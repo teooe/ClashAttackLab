@@ -3,6 +3,7 @@ import SwiftUI
 
 struct ContentView: View {
     private let scene: BattleScene = {
+        let gameData = PrototypeGameData()
         let entities = [
             BattleEntity(
                 kind: .giant,
@@ -14,7 +15,10 @@ struct ContentView: View {
             )
         ]
 
-        let simulation = SimulationEngine(entities: entities)
+        let simulation = SimulationEngine(
+            entities: entities,
+            gameData: gameData
+        )
 
         return BattleScene(
             size: CGSize(width: 1_000, height: 700),
@@ -29,21 +33,29 @@ struct ContentView: View {
                     Text("Clash Attack Lab")
                         .font(.title2.bold())
 
-                    Text("Milestone 1 · Ricerca e movimento")
+                    Text("Milestone 1 · Movimento e combattimento")
                         .foregroundStyle(.secondary)
                 }
 
                 Spacer()
 
-                Label("Simulazione in corso", systemImage: "play.circle.fill")
-                    .foregroundStyle(.blue)
+                Text("Dati prototipo · non ufficiali")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+
+                Button {
+                    scene.restartSimulation()
+                } label: {
+                    Label("Riavvia", systemImage: "arrow.counterclockwise")
+                }
+                .keyboardShortcut("r", modifiers: [.command])
             }
             .padding()
 
             Divider()
 
             SpriteView(scene: scene)
-                .frame(minWidth: 720, minHeight: 520)
+                .frame(minWidth: 760, minHeight: 540)
         }
     }
 }
