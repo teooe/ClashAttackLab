@@ -1,7 +1,13 @@
 import Foundation
 
+enum BattleEntityRole {
+    case troop
+    case defense
+}
+
 struct CombatDefinition {
     let displayName: String
+    let role: BattleEntityRole
     let maxHitPoints: Double
     let movementSpeed: Double
     let attackDamage: Double
