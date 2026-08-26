@@ -3,10 +3,13 @@ import Foundation
 final class SimulationEngine {
     private let fixedTimeStep: TimeInterval = 1.0 / 60.0
     private let gameData: any GameDataProviding
+    private let navigationGrid: NavigationGrid
+    private let pathfinder: AStarPathfinder
     private let initialEntities: [BattleEntity]
 
     private var accumulatedTime: TimeInterval = 0
     private var attackCounts: [BattleEntityRole: Int] = [:]
+    private var movementPaths: [UUID: [WorldPosition]] = [:]
 
     private(set) var entities: [BattleEntity]
     private(set) var status: SimulationStatus = .ready
@@ -14,11 +17,15 @@ final class SimulationEngine {
 
     init(
         entities: [BattleEntity],
-        gameData: any GameDataProviding
+        gameData: any GameDataProviding,
+        navigationGrid: NavigationGrid,
+        pathfinder: AStarPathfinder = AStarPathfinder()
     ) {
         self.initialEntities = entities
         self.entities = entities
         self.gameData = gameData
+        self.navigationGrid = navigationGrid
+        self.pathfinder = pathfinder
         reset()
     }
 
@@ -59,6 +66,7 @@ final class SimulationEngine {
         accumulatedTime = 0
         elapsedTime = 0
         attackCounts = [:]
+        movementPaths = [:]
         status = .ready
     }
 
@@ -73,6 +81,10 @@ final class SimulationEngine {
         }
 
         return max(0, min(entity.hitPoints / maximum, 1))
+    }
+
+    func movementPath(for entityID: UUID) -> [WorldPosition] {
+        movementPaths[entityID, default: []]
     }
 
     private func tick(deltaTime: TimeInterval) {
@@ -133,6 +145,7 @@ final class SimulationEngine {
 
         guard let targetIndex else {
             entities[attackerIndex].currentTargetID = nil
+            movementPaths[entities[attackerIndex].id] = []
             return
         }
 
@@ -142,24 +155,28 @@ final class SimulationEngine {
         )
 
         if distanceToTarget <= attackerDefinition.attackRange {
+            movementPaths[entities[attackerIndex].id] = []
             performAttackIfPossible(
                 attackerIndex: attackerIndex,
                 targetIndex: targetIndex,
                 pendingDamage: &pendingDamage
             )
         } else if attackerDefinition.canMove {
-            move(
+            ensurePath(
+                for: attackerIndex,
+                to: entities[targetIndex].position
+            )
+            moveAlongPath(
                 entityAt: attackerIndex,
-                toward: entities[targetIndex].position,
                 stoppingAt: attackerDefinition.attackRange,
-                distance: distanceToTarget,
+                targetPosition: entities[targetIndex].position,
                 deltaTime: deltaTime
             )
         }
     }
 
-    /// Approximation: an entity keeps a valid target until it is destroyed.
-    /// When a new target is needed, the nearest eligible one is selected.
+    /// Approximation: troops keep a valid target until it is destroyed.
+    /// New troop targets are ranked by reachable A* route cost.
     private func resolveTarget(
         for attackerIndex: Int,
         among candidateIndices: [Int],
@@ -181,36 +198,125 @@ final class SimulationEngine {
             }
         }
 
-        let nearest = candidateIndices
-            .filter { candidateIndex in
-                guard entities[candidateIndex].isAlive else {
-                    return false
-                }
+        let attackerDefinition = definition(for: entities[attackerIndex].kind)
+        let selected: Int?
 
-                guard let acquisitionRange else {
-                    return true
+        if attackerDefinition.role == .troop {
+            let reachableTargets = candidateIndices.compactMap { index in
+                pathfinder.findPath(
+                    from: entities[attackerIndex].position,
+                    to: entities[index].position,
+                    in: navigationGrid
+                ).map { result in
+                    (index: index, result: result)
                 }
-
-                return distance(
-                    from: entities[attackerIndex].position,
-                    to: entities[candidateIndex].position
-                ) <= acquisitionRange
-            }
-            .min { firstIndex, secondIndex in
-                distance(
-                    from: entities[attackerIndex].position,
-                    to: entities[firstIndex].position
-                ) < distance(
-                    from: entities[attackerIndex].position,
-                    to: entities[secondIndex].position
-                )
             }
 
-        entities[attackerIndex].currentTargetID = nearest.map {
+            let best = reachableTargets.min {
+                $0.result.totalCost < $1.result.totalCost
+            }
+            selected = best?.index
+
+            if let best {
+                movementPaths[entities[attackerIndex].id] =
+                    best.result.waypoints
+            }
+        } else {
+            selected = candidateIndices
+                .filter { candidateIndex in
+                    guard entities[candidateIndex].isAlive else {
+                        return false
+                    }
+
+                    guard let acquisitionRange else {
+                        return true
+                    }
+
+                    return distance(
+                        from: entities[attackerIndex].position,
+                        to: entities[candidateIndex].position
+                    ) <= acquisitionRange
+                }
+                .min { firstIndex, secondIndex in
+                    distance(
+                        from: entities[attackerIndex].position,
+                        to: entities[firstIndex].position
+                    ) < distance(
+                        from: entities[attackerIndex].position,
+                        to: entities[secondIndex].position
+                    )
+                }
+        }
+
+        entities[attackerIndex].currentTargetID = selected.map {
             entities[$0].id
         }
 
-        return nearest
+        return selected
+    }
+
+    private func ensurePath(
+        for entityIndex: Int,
+        to targetPosition: WorldPosition
+    ) {
+        let entityID = entities[entityIndex].id
+
+        guard movementPaths[entityID, default: []].isEmpty else {
+            return
+        }
+
+        movementPaths[entityID] = pathfinder.findPath(
+            from: entities[entityIndex].position,
+            to: targetPosition,
+            in: navigationGrid
+        )?.waypoints ?? []
+    }
+
+    private func moveAlongPath(
+        entityAt index: Int,
+        stoppingAt range: Double,
+        targetPosition: WorldPosition,
+        deltaTime: TimeInterval
+    ) {
+        let entityID = entities[index].id
+        var path = movementPaths[entityID, default: []]
+        var remainingTravel =
+            definition(for: entities[index].kind).movementSpeed * deltaTime
+
+        while remainingTravel > 0, let waypoint = path.first {
+            let currentPosition = entities[index].position
+            let distanceToTarget = distance(
+                from: currentPosition,
+                to: targetPosition
+            )
+
+            guard distanceToTarget > range else {
+                path = []
+                break
+            }
+
+            let distanceToWaypoint = distance(
+                from: currentPosition,
+                to: waypoint
+            )
+
+            if distanceToWaypoint <= remainingTravel {
+                entities[index].position = waypoint
+                remainingTravel -= distanceToWaypoint
+                path.removeFirst()
+            } else if distanceToWaypoint > 0 {
+                let ratio = remainingTravel / distanceToWaypoint
+                entities[index].position.x +=
+                    (waypoint.x - currentPosition.x) * ratio
+                entities[index].position.y +=
+                    (waypoint.y - currentPosition.y) * ratio
+                remainingTravel = 0
+            } else {
+                path.removeFirst()
+            }
+        }
+
+        movementPaths[entityID] = path
     }
 
     private func performAttackIfPossible(
@@ -230,28 +336,6 @@ final class SimulationEngine {
         entities[attackerIndex].attackCooldown =
             attackerDefinition.attackInterval
         attackCounts[attackerDefinition.role, default: 0] += 1
-    }
-
-    private func move(
-        entityAt index: Int,
-        toward target: WorldPosition,
-        stoppingAt range: Double,
-        distance: Double,
-        deltaTime: TimeInterval
-    ) {
-        guard distance > 0 else {
-            return
-        }
-
-        let definition = definition(for: entities[index].kind)
-        let current = entities[index].position
-        let deltaX = target.x - current.x
-        let deltaY = target.y - current.y
-        let remainingDistance = max(0, distance - range)
-        let travel = min(definition.movementSpeed * deltaTime, remainingDistance)
-
-        entities[index].position.x += (deltaX / distance) * travel
-        entities[index].position.y += (deltaY / distance) * travel
     }
 
     private func reduceCooldowns(by deltaTime: TimeInterval) {
@@ -283,6 +367,7 @@ final class SimulationEngine {
                 !livingIDs.contains(targetID)
             {
                 entities[index].currentTargetID = nil
+                movementPaths[entities[index].id] = []
             }
         }
     }
