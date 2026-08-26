@@ -6,11 +6,17 @@ struct ContentView: View {
         let gameData = PrototypeGameData()
         let navigationGrid = PrototypeBattleMap.makeNavigationGrid()
 
-        let entities = [
+        var entities = [
             BattleEntity(
                 kind: .giant,
                 position: navigationGrid.worldPosition(
                     for: GridCoordinate(column: 2, row: 4)
+                )
+            ),
+            BattleEntity(
+                kind: .giant,
+                position: navigationGrid.worldPosition(
+                    for: GridCoordinate(column: 2, row: 7)
                 )
             ),
             BattleEntity(
@@ -22,22 +28,47 @@ struct ContentView: View {
             BattleEntity(
                 kind: .cannon,
                 position: navigationGrid.worldPosition(
-                    for: GridCoordinate(column: 17, row: 3)
+                    for: GridCoordinate(column: 16, row: 3)
                 )
             ),
             BattleEntity(
                 kind: .cannon,
                 position: navigationGrid.worldPosition(
-                    for: GridCoordinate(column: 21, row: 8)
+                    for: GridCoordinate(column: 19, row: 8)
                 )
             ),
             BattleEntity(
                 kind: .cannon,
                 position: navigationGrid.worldPosition(
-                    for: GridCoordinate(column: 17, row: 13)
+                    for: GridCoordinate(column: 16, row: 13)
+                )
+            ),
+            BattleEntity(
+                kind: .townHall,
+                position: navigationGrid.worldPosition(
+                    for: GridCoordinate(column: 22, row: 8)
+                )
+            ),
+            BattleEntity(
+                kind: .goldStorage,
+                position: navigationGrid.worldPosition(
+                    for: GridCoordinate(column: 17, row: 7)
+                )
+            ),
+            BattleEntity(
+                kind: .goldStorage,
+                position: navigationGrid.worldPosition(
+                    for: GridCoordinate(column: 17, row: 12)
                 )
             )
         ]
+
+        entities += PrototypeBattleMap.wallCoordinates().map {
+            BattleEntity(
+                kind: .wall,
+                position: navigationGrid.worldPosition(for: $0)
+            )
+        }
 
         let simulation = SimulationEngine(
             entities: entities,
@@ -59,15 +90,27 @@ struct ContentView: View {
                     Text("Clash Attack Lab")
                         .font(.title2.bold())
 
-                    Text("Milestone 3 · Muri e pathfinding A*")
+                    Text("Milestone 4 · Base, muri, percentuale e stelle")
                         .foregroundStyle(.secondary)
                 }
 
                 Spacer()
 
-                Text("Muri statici · approssimazione")
+                Text("Dati e tempo: prototipo")
                     .font(.caption)
                     .foregroundStyle(.secondary)
+
+                Menu("Velocità") {
+                    Button("1×") {
+                        scene.simulationSpeed = 1
+                    }
+                    Button("2×") {
+                        scene.simulationSpeed = 2
+                    }
+                    Button("4×") {
+                        scene.simulationSpeed = 4
+                    }
+                }
 
                 Button {
                     scene.restartSimulation()
@@ -81,7 +124,7 @@ struct ContentView: View {
             Divider()
 
             SpriteView(scene: scene)
-                .frame(minWidth: 820, minHeight: 580)
+                .frame(minWidth: 840, minHeight: 600)
         }
     }
 }
