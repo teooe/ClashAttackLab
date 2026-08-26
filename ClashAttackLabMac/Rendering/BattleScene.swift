@@ -5,6 +5,7 @@ final class BattleScene: SKScene {
         let root: SKNode
         let healthFill: SKSpriteNode
         let healthLabel: SKLabelNode
+        let targetLine: SKShapeNode
     }
 
     private let simulation: SimulationEngine
@@ -62,27 +63,19 @@ final class BattleScene: SKScene {
         arena.strokeColor = .white.withAlphaComponent(0.35)
         arena.lineWidth = 3
         addChild(arena)
-
-        let centerLine = SKShapeNode(
-            rectOf: CGSize(width: 2, height: size.height - 120)
-        )
-        centerLine.fillColor = .white.withAlphaComponent(0.12)
-        centerLine.strokeColor = .clear
-        centerLine.position = CGPoint(x: size.width / 2, y: size.height / 2)
-        addChild(centerLine)
     }
 
     private func configureLabels() {
         statusLabel.fontSize = 18
         statusLabel.fontColor = .white
         statusLabel.position = CGPoint(x: size.width / 2, y: size.height - 30)
-        statusLabel.zPosition = 20
+        statusLabel.zPosition = 30
         addChild(statusLabel)
 
-        resultLabel.fontSize = 20
+        resultLabel.fontSize = 19
         resultLabel.fontColor = .white
-        resultLabel.position = CGPoint(x: size.width / 2, y: 58)
-        resultLabel.zPosition = 20
+        resultLabel.position = CGPoint(x: size.width / 2, y: 56)
+        resultLabel.zPosition = 30
         resultLabel.isHidden = true
         addChild(resultLabel)
     }
@@ -119,23 +112,38 @@ final class BattleScene: SKScene {
             root.addChild(healthFill)
 
             let healthLabel = SKLabelNode(fontNamed: "AvenirNext-Medium")
-            healthLabel.fontSize = 12
+            healthLabel.fontSize = 11
             healthLabel.fontColor = .white
             healthLabel.verticalAlignmentMode = .center
             healthLabel.position = CGPoint(x: 0, y: -69)
             healthLabel.zPosition = 12
             root.addChild(healthLabel)
 
+            let targetLine = SKShapeNode()
+            targetLine.strokeColor =
+                simulation.definition(for: entity.kind).role == .troop
+                    ? .systemYellow
+                    : .systemRed
+            targetLine.lineWidth = 2
+            targetLine.alpha = 0.38
+            targetLine.zPosition = 5
+            addChild(targetLine)
+
             entityVisuals[entity.id] = EntityVisual(
                 root: root,
                 healthFill: healthFill,
-                healthLabel: healthLabel
+                healthLabel: healthLabel,
+                targetLine: targetLine
             )
             addChild(root)
         }
     }
 
     private func updatePresentation() {
+        let entitiesByID = Dictionary(
+            uniqueKeysWithValues: simulation.entities.map { ($0.id, $0) }
+        )
+
         for entity in simulation.entities {
             guard let visual = entityVisuals[entity.id] else {
                 continue
@@ -148,21 +156,28 @@ final class BattleScene: SKScene {
                 x: entity.position.x,
                 y: entity.position.y
             )
-            visual.root.alpha = entity.isAlive ? 1 : 0.25
+            visual.root.alpha = entity.isAlive ? 1 : 0.2
             visual.healthFill.xScale = healthFraction
-            visual.healthFill.color = healthFraction > 0.35 ? .systemGreen : .systemRed
+            visual.healthFill.color =
+                healthFraction > 0.35 ? .systemGreen : .systemRed
             visual.healthLabel.text =
                 "\(definition.displayName): \(Int(entity.hitPoints.rounded(.up)))/\(Int(definition.maxHitPoints))"
+
+            updateTargetLine(
+                visual.targetLine,
+                from: entity,
+                target: entity.currentTargetID.flatMap { entitiesByID[$0] }
+            )
         }
 
         switch simulation.status {
         case .ready:
-            statusLabel.text = "Pronto"
+            statusLabel.text = "Pronto · linee gialle: truppe · linee rosse: difese"
             resultLabel.isHidden = true
 
         case .running:
             statusLabel.text = String(
-                format: "Simulazione · %.1f s",
+                format: "Simulazione · %.1f s · Bersagli visibili",
                 simulation.elapsedTime
             )
             resultLabel.isHidden = true
@@ -170,14 +185,36 @@ final class BattleScene: SKScene {
         case .finished(let result):
             statusLabel.text = "Simulazione terminata"
             resultLabel.text = String(
-                format: "Vincitore: %@ · Tempo: %.1f s · Attacchi G/C: %d/%d",
+                format: "Vincitore: %@ · %.1f s · Superstiti T/D: %d/%d · Attacchi T/D: %d/%d",
                 result.winner.displayName,
                 result.elapsedTime,
-                result.giantAttackCount,
-                result.cannonAttackCount
+                result.survivingTroops,
+                result.survivingDefenses,
+                result.troopAttackCount,
+                result.defenseAttackCount
             )
             resultLabel.isHidden = false
         }
+    }
+
+    private func updateTargetLine(
+        _ line: SKShapeNode,
+        from entity: BattleEntity,
+        target: BattleEntity?
+    ) {
+        guard entity.isAlive, let target, target.isAlive else {
+            line.path = nil
+            return
+        }
+
+        let path = CGMutablePath()
+        path.move(
+            to: CGPoint(x: entity.position.x, y: entity.position.y)
+        )
+        path.addLine(
+            to: CGPoint(x: target.position.x, y: target.position.y)
+        )
+        line.path = path
     }
 
     private func makeGiantBody() -> SKNode {
