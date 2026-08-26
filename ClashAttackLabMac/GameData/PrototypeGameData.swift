@@ -9,9 +9,9 @@ struct PrototypeGameData: GameDataProviding {
             return CombatDefinition(
                 displayName: "Gigante",
                 role: .troop,
-                maxHitPoints: 1_000,
+                maxHitPoints: 1_050,
                 movementSpeed: 100,
-                attackDamage: 110,
+                attackDamage: 115,
                 attackRange: 82,
                 attackInterval: 1.2,
                 canMove: true
@@ -23,9 +23,45 @@ struct PrototypeGameData: GameDataProviding {
                 role: .defense,
                 maxHitPoints: 500,
                 movementSpeed: 0,
-                attackDamage: 45,
+                attackDamage: 40,
                 attackRange: 300,
                 attackInterval: 0.9,
+                canMove: false
+            )
+
+        case .townHall:
+            return CombatDefinition(
+                displayName: "Municipio",
+                role: .building,
+                maxHitPoints: 900,
+                movementSpeed: 0,
+                attackDamage: 0,
+                attackRange: 0,
+                attackInterval: 0,
+                canMove: false
+            )
+
+        case .goldStorage:
+            return CombatDefinition(
+                displayName: "Deposito",
+                role: .building,
+                maxHitPoints: 620,
+                movementSpeed: 0,
+                attackDamage: 0,
+                attackRange: 0,
+                attackInterval: 0,
+                canMove: false
+            )
+
+        case .wall:
+            return CombatDefinition(
+                displayName: "Muro",
+                role: .wall,
+                maxHitPoints: 280,
+                movementSpeed: 0,
+                attackDamage: 0,
+                attackRange: 0,
+                attackInterval: 0,
                 canMove: false
             )
         }
