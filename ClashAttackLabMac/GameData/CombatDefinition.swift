@@ -1,6 +1,6 @@
 import Foundation
 
-enum BattleEntityRole {
+enum BattleEntityRole: Hashable {
     case troop
     case defense
 }
