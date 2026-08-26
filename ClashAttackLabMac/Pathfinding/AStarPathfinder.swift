@@ -91,7 +91,7 @@ struct AStarPathfinder {
             path.append(current)
         }
 
-        return path.reversed()
+        return Array(path.reversed())
     }
 
     private func heuristic(
