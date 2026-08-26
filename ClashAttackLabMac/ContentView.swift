@@ -1,32 +1,48 @@
+import SpriteKit
 import SwiftUI
 
 struct ContentView: View {
-    private let simulationStatus: SimulationStatus = .ready
+    private let scene: BattleScene = {
+        let entities = [
+            BattleEntity(
+                kind: .giant,
+                position: WorldPosition(x: 220, y: 350)
+            ),
+            BattleEntity(
+                kind: .cannon,
+                position: WorldPosition(x: 780, y: 350)
+            )
+        ]
+
+        return BattleScene(
+            size: CGSize(width: 1_000, height: 700),
+            entities: entities
+        )
+    }()
 
     var body: some View {
-        VStack(spacing: 18) {
-            Image(systemName: "scope")
-                .font(.system(size: 52))
-                .foregroundStyle(.blue)
+        VStack(spacing: 0) {
+            HStack {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Clash Attack Lab")
+                        .font(.title2.bold())
 
-            Text("Clash Attack Lab")
-                .font(.largeTitle.bold())
+                    Text("Milestone 1 · Arena statica")
+                        .foregroundStyle(.secondary)
+                }
 
-            Text("Laboratorio di simulazione degli attacchi")
-                .font(.title3)
-                .foregroundStyle(.secondary)
+                Spacer()
+
+                Label("Simulazione pronta", systemImage: "checkmark.circle.fill")
+                    .foregroundStyle(.green)
+            }
+            .padding()
 
             Divider()
-                .frame(width: 320)
 
-            Label(
-                "Motore di simulazione: \(simulationStatus.displayName)",
-                systemImage: "checkmark.circle.fill"
-            )
-            .foregroundStyle(.green)
+            SpriteView(scene: scene)
+                .frame(minWidth: 720, minHeight: 520)
         }
-        .frame(minWidth: 640, minHeight: 420)
-        .padding(32)
     }
 }
 
