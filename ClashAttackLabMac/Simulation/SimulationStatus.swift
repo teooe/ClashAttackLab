@@ -3,7 +3,6 @@ import Foundation
 enum BattleWinner {
     case attackers
     case defenses
-    case draw
 
     var displayName: String {
         switch self {
@@ -11,8 +10,6 @@ enum BattleWinner {
             return "Attaccanti"
         case .defenses:
             return "Difese"
-        case .draw:
-            return "Pareggio"
         }
     }
 }
@@ -20,10 +17,12 @@ enum BattleWinner {
 struct SimulationResult {
     let winner: BattleWinner
     let elapsedTime: TimeInterval
+    let timeExpired: Bool
     let survivingTroops: Int
     let survivingDefenses: Int
     let troopAttackCount: Int
     let defenseAttackCount: Int
+    let score: BaseScoreSnapshot
 }
 
 enum SimulationStatus {
