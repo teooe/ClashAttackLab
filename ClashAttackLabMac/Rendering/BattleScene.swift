@@ -1,10 +1,12 @@
 import SpriteKit
 
 final class BattleScene: SKScene {
-    private let entities: [BattleEntity]
+    private let simulation: SimulationEngine
+    private var entityNodes: [UUID: SKNode] = [:]
+    private var lastUpdateTime: TimeInterval?
 
-    init(size: CGSize, entities: [BattleEntity]) {
-        self.entities = entities
+    init(size: CGSize, simulation: SimulationEngine) {
+        self.simulation = simulation
         super.init(size: size)
         scaleMode = .aspectFit
     }
@@ -17,7 +19,21 @@ final class BattleScene: SKScene {
     override func didMove(to view: SKView) {
         backgroundColor = SKColor(red: 0.16, green: 0.34, blue: 0.18, alpha: 1)
         drawArena()
-        drawEntities()
+        createEntityNodes()
+    }
+
+    override func update(_ currentTime: TimeInterval) {
+        let deltaTime: TimeInterval
+
+        if let lastUpdateTime {
+            deltaTime = min(currentTime - lastUpdateTime, 0.05)
+        } else {
+            deltaTime = 0
+        }
+
+        self.lastUpdateTime = currentTime
+        simulation.step(deltaTime: deltaTime)
+        synchronizeEntityNodes()
     }
 
     private func drawArena() {
@@ -31,8 +47,8 @@ final class BattleScene: SKScene {
         addChild(arena)
     }
 
-    private func drawEntities() {
-        for entity in entities {
+    private func createEntityNodes() {
+        for entity in simulation.entities {
             let node: SKNode
 
             switch entity.kind {
@@ -42,8 +58,19 @@ final class BattleScene: SKScene {
                 node = makeCannonNode()
             }
 
-            node.position = CGPoint(x: entity.position.x, y: entity.position.y)
+            entityNodes[entity.id] = node
             addChild(node)
+        }
+
+        synchronizeEntityNodes()
+    }
+
+    private func synchronizeEntityNodes() {
+        for entity in simulation.entities {
+            entityNodes[entity.id]?.position = CGPoint(
+                x: entity.position.x,
+                y: entity.position.y
+            )
         }
     }
 
