@@ -55,6 +55,14 @@ struct AStarPathfinder {
             openSet.remove(current)
 
             for neighbor in grid.neighbors(of: current) {
+                guard !cutsBreakableCorner(
+                    from: current,
+                    to: neighbor,
+                    breakableCells: breakableCells
+                ) else {
+                    continue
+                }
+
                 let wallCost = breakableCells.contains(neighbor)
                     ? breakableTraversalCost
                     : 0
@@ -83,6 +91,31 @@ struct AStarPathfinder {
         }
 
         return nil
+    }
+
+    private func cutsBreakableCorner(
+        from first: GridCoordinate,
+        to second: GridCoordinate,
+        breakableCells: Set<GridCoordinate>
+    ) -> Bool {
+        let columnOffset = second.column - first.column
+        let rowOffset = second.row - first.row
+
+        guard abs(columnOffset) == 1, abs(rowOffset) == 1 else {
+            return false
+        }
+
+        let horizontal = GridCoordinate(
+            column: first.column + columnOffset,
+            row: first.row
+        )
+        let vertical = GridCoordinate(
+            column: first.column,
+            row: first.row + rowOffset
+        )
+
+        return breakableCells.contains(horizontal) ||
+            breakableCells.contains(vertical)
     }
 
     private func reconstructPath(
