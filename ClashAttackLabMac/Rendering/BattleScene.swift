@@ -14,7 +14,10 @@ final class BattleScene: SKScene {
     private var lastUpdateTime: TimeInterval?
 
     private let statusLabel = SKLabelNode(fontNamed: "AvenirNext-DemiBold")
+    private let scoreLabel = SKLabelNode(fontNamed: "AvenirNext-Bold")
     private let resultLabel = SKLabelNode(fontNamed: "AvenirNext-Bold")
+
+    var simulationSpeed: Double = 1
 
     init(
         size: CGSize,
@@ -36,7 +39,6 @@ final class BattleScene: SKScene {
         backgroundColor = SKColor(red: 0.16, green: 0.34, blue: 0.18, alpha: 1)
         drawArena()
         drawNavigationGrid()
-        drawWalls()
         configureLabels()
         createEntityNodes()
         updatePresentation()
@@ -52,7 +54,7 @@ final class BattleScene: SKScene {
         }
 
         self.lastUpdateTime = currentTime
-        simulation.advance(by: deltaTime)
+        simulation.advance(by: deltaTime * simulationSpeed)
         updatePresentation()
     }
 
@@ -64,10 +66,20 @@ final class BattleScene: SKScene {
 
     private func drawArena() {
         let arena = SKShapeNode(
-            rect: CGRect(x: 40, y: 40, width: size.width - 80, height: size.height - 80),
+            rect: CGRect(
+                x: 40,
+                y: 40,
+                width: size.width - 80,
+                height: size.height - 80
+            ),
             cornerRadius: 16
         )
-        arena.fillColor = SKColor(red: 0.22, green: 0.46, blue: 0.24, alpha: 1)
+        arena.fillColor = SKColor(
+            red: 0.22,
+            green: 0.46,
+            blue: 0.24,
+            alpha: 1
+        )
         arena.strokeColor = .white.withAlphaComponent(0.35)
         arena.lineWidth = 3
         addChild(arena)
@@ -91,7 +103,7 @@ final class BattleScene: SKScene {
             )
 
             let line = SKShapeNode(path: path)
-            line.strokeColor = .white.withAlphaComponent(0.045)
+            line.strokeColor = .white.withAlphaComponent(0.04)
             line.lineWidth = 1
             line.zPosition = 1
             addChild(line)
@@ -114,85 +126,67 @@ final class BattleScene: SKScene {
             )
 
             let line = SKShapeNode(path: path)
-            line.strokeColor = .white.withAlphaComponent(0.045)
+            line.strokeColor = .white.withAlphaComponent(0.04)
             line.lineWidth = 1
             line.zPosition = 1
             addChild(line)
         }
     }
 
-    private func drawWalls() {
-        for coordinate in navigationGrid.blockedCells {
-            let position = navigationGrid.worldPosition(for: coordinate)
-            let wall = SKShapeNode(
-                rectOf: CGSize(
-                    width: navigationGrid.cellSize - 4,
-                    height: navigationGrid.cellSize - 4
-                ),
-                cornerRadius: 6
-            )
-            wall.position = CGPoint(x: position.x, y: position.y)
-            wall.fillColor = SKColor(
-                red: 0.44,
-                green: 0.31,
-                blue: 0.20,
-                alpha: 1
-            )
-            wall.strokeColor = SKColor(
-                red: 0.72,
-                green: 0.60,
-                blue: 0.42,
-                alpha: 1
-            )
-            wall.lineWidth = 2
-            wall.zPosition = 4
-            addChild(wall)
-        }
-    }
-
     private func configureLabels() {
-        statusLabel.fontSize = 18
+        statusLabel.fontSize = 17
         statusLabel.fontColor = .white
-        statusLabel.position = CGPoint(x: size.width / 2, y: size.height - 30)
-        statusLabel.zPosition = 30
+        statusLabel.horizontalAlignmentMode = .left
+        statusLabel.position = CGPoint(x: 65, y: size.height - 30)
+        statusLabel.zPosition = 40
         addChild(statusLabel)
 
-        resultLabel.fontSize = 19
+        scoreLabel.fontSize = 20
+        scoreLabel.fontColor = .systemYellow
+        scoreLabel.horizontalAlignmentMode = .right
+        scoreLabel.position = CGPoint(
+            x: size.width - 65,
+            y: size.height - 30
+        )
+        scoreLabel.zPosition = 40
+        addChild(scoreLabel)
+
+        resultLabel.fontSize = 18
         resultLabel.fontColor = .white
-        resultLabel.position = CGPoint(x: size.width / 2, y: 56)
-        resultLabel.zPosition = 30
+        resultLabel.position = CGPoint(x: size.width / 2, y: 55)
+        resultLabel.zPosition = 40
         resultLabel.isHidden = true
         addChild(resultLabel)
     }
 
     private func createEntityNodes() {
         for entity in simulation.entities {
+            let definition = simulation.definition(for: entity.kind)
             let root = SKNode()
-            let body: SKNode
-
-            switch entity.kind {
-            case .giant:
-                body = makeGiantBody()
-            case .cannon:
-                body = makeCannonBody()
-            }
-
+            let body = makeBody(for: entity.kind)
             root.addChild(body)
 
+            let isWall = definition.role == .wall
+            let healthWidth = isWall ? 34.0 : 88.0
+            let healthY = isWall ? -25.0 : -52.0
+
             let healthBackground = SKSpriteNode(
-                color: .black.withAlphaComponent(0.55),
-                size: CGSize(width: 92, height: 10)
+                color: .black.withAlphaComponent(0.58),
+                size: CGSize(width: healthWidth + 4, height: 10)
             )
-            healthBackground.position = CGPoint(x: 0, y: -52)
+            healthBackground.position = CGPoint(x: 0, y: healthY)
             healthBackground.zPosition = 10
             root.addChild(healthBackground)
 
             let healthFill = SKSpriteNode(
                 color: .systemGreen,
-                size: CGSize(width: 88, height: 6)
+                size: CGSize(width: healthWidth, height: 6)
             )
             healthFill.anchorPoint = CGPoint(x: 0, y: 0.5)
-            healthFill.position = CGPoint(x: -44, y: -52)
+            healthFill.position = CGPoint(
+                x: -healthWidth / 2,
+                y: healthY
+            )
             healthFill.zPosition = 11
             root.addChild(healthFill)
 
@@ -202,17 +196,20 @@ final class BattleScene: SKScene {
             healthLabel.verticalAlignmentMode = .center
             healthLabel.position = CGPoint(x: 0, y: -69)
             healthLabel.zPosition = 12
+            healthLabel.isHidden = isWall
             root.addChild(healthLabel)
 
             let targetLine = SKShapeNode()
             targetLine.strokeColor =
-                simulation.definition(for: entity.kind).role == .troop
+                definition.role == .troop
                     ? .systemYellow
                     : .systemRed
             targetLine.lineWidth = 2
             targetLine.alpha = 0.48
             targetLine.zPosition = 5
             addChild(targetLine)
+
+            root.zPosition = isWall ? 7 : 15
 
             entityVisuals[entity.id] = EntityVisual(
                 root: root,
@@ -241,42 +238,59 @@ final class BattleScene: SKScene {
                 x: entity.position.x,
                 y: entity.position.y
             )
-            visual.root.alpha = entity.isAlive ? 1 : 0.2
+            visual.root.alpha = entity.isAlive ? 1 : 0.08
             visual.healthFill.xScale = healthFraction
             visual.healthFill.color =
                 healthFraction > 0.35 ? .systemGreen : .systemRed
             visual.healthLabel.text =
                 "\(definition.displayName): \(Int(entity.hitPoints.rounded(.up)))/\(Int(definition.maxHitPoints))"
 
+            let visibleTargetID =
+                entity.blockingWallID ??
+                entity.currentTargetID
+
             updateTargetPath(
                 visual.targetLine,
                 from: entity,
-                target: entity.currentTargetID.flatMap { entitiesByID[$0] }
+                target: visibleTargetID.flatMap { entitiesByID[$0] }
             )
         }
 
+        let score = simulation.score
+        let filledStars = String(repeating: "★", count: score.stars)
+        let emptyStars = String(repeating: "☆", count: 3 - score.stars)
+        scoreLabel.text = String(
+            format: "%@%@  %.0f%%",
+            filledStars,
+            emptyStars,
+            score.destructionPercentage
+        )
+
         switch simulation.status {
         case .ready:
-            statusLabel.text = "Pronto · A* a 8 direzioni · muri statici"
+            statusLabel.text = "Pronto · muri distruttibili · 60 s"
             resultLabel.isHidden = true
 
         case .running:
             statusLabel.text = String(
-                format: "Pathfinding A* · %.1f s",
-                simulation.elapsedTime
+                format: "Tempo: %.1f s · Edifici: %d/%d",
+                simulation.remainingTime,
+                score.destroyedBuildings,
+                score.totalBuildings
             )
             resultLabel.isHidden = true
 
         case .finished(let result):
-            statusLabel.text = "Simulazione terminata"
+            statusLabel.text = result.timeExpired
+                ? "Tempo scaduto"
+                : "Simulazione terminata"
             resultLabel.text = String(
-                format: "Vincitore: %@ · %.1f s · Superstiti T/D: %d/%d · Attacchi T/D: %d/%d",
+                format: "%@ · %d stelle · %.0f%% · %.1f s · Superstiti: %d",
                 result.winner.displayName,
+                result.score.stars,
+                result.score.destructionPercentage,
                 result.elapsedTime,
-                result.survivingTroops,
-                result.survivingDefenses,
-                result.troopAttackCount,
-                result.defenseAttackCount
+                result.survivingTroops
             )
             resultLabel.isHidden = false
         }
@@ -287,19 +301,28 @@ final class BattleScene: SKScene {
         from entity: BattleEntity,
         target: BattleEntity?
     ) {
-        guard entity.isAlive, let target, target.isAlive else {
+        let definition = simulation.definition(for: entity.kind)
+
+        guard
+            entity.isAlive,
+            let target,
+            target.isAlive,
+            definition.role == .troop ||
+                definition.role == .defense
+        else {
             line.path = nil
             return
         }
 
-        let definition = simulation.definition(for: entity.kind)
         let path = CGMutablePath()
         path.move(
             to: CGPoint(x: entity.position.x, y: entity.position.y)
         )
 
-        if definition.role == .troop {
-            for waypoint in simulation.movementPath(for: entity.id) {
+        let movementPath = simulation.movementPath(for: entity.id)
+
+        if definition.role == .troop, !movementPath.isEmpty {
+            for waypoint in movementPath {
                 path.addLine(
                     to: CGPoint(x: waypoint.x, y: waypoint.y)
                 )
@@ -313,36 +336,86 @@ final class BattleScene: SKScene {
         line.path = path
     }
 
-    private func makeGiantBody() -> SKNode {
-        let body = SKShapeNode(circleOfRadius: 30)
-        body.fillColor = .systemOrange
+    private func makeBody(for kind: BattleEntityKind) -> SKNode {
+        switch kind {
+        case .giant:
+            return makeLabeledCircle(
+                radius: 30,
+                color: .systemOrange,
+                text: "G"
+            )
+
+        case .cannon:
+            return makeLabeledRectangle(
+                size: CGSize(width: 66, height: 66),
+                color: .darkGray,
+                text: "C"
+            )
+
+        case .townHall:
+            return makeLabeledRectangle(
+                size: CGSize(width: 82, height: 82),
+                color: .systemPurple,
+                text: "TH"
+            )
+
+        case .goldStorage:
+            return makeLabeledCircle(
+                radius: 35,
+                color: .systemYellow,
+                text: "D"
+            )
+
+        case .wall:
+            return makeLabeledRectangle(
+                size: CGSize(width: 36, height: 36),
+                color: SKColor(
+                    red: 0.44,
+                    green: 0.31,
+                    blue: 0.20,
+                    alpha: 1
+                ),
+                text: ""
+            )
+        }
+    }
+
+    private func makeLabeledCircle(
+        radius: CGFloat,
+        color: SKColor,
+        text: String
+    ) -> SKNode {
+        let body = SKShapeNode(circleOfRadius: radius)
+        body.fillColor = color
         body.strokeColor = .white
         body.lineWidth = 3
-
-        let label = SKLabelNode(text: "G")
-        label.fontName = "AvenirNext-Bold"
-        label.fontSize = 24
-        label.verticalAlignmentMode = .center
-        body.addChild(label)
-
+        addLabel(text, to: body)
         return body
     }
 
-    private func makeCannonBody() -> SKNode {
-        let body = SKShapeNode(
-            rectOf: CGSize(width: 66, height: 66),
-            cornerRadius: 10
-        )
-        body.fillColor = .darkGray
+    private func makeLabeledRectangle(
+        size: CGSize,
+        color: SKColor,
+        text: String
+    ) -> SKNode {
+        let body = SKShapeNode(rectOf: size, cornerRadius: 7)
+        body.fillColor = color
         body.strokeColor = .white
-        body.lineWidth = 3
-
-        let label = SKLabelNode(text: "C")
-        label.fontName = "AvenirNext-Bold"
-        label.fontSize = 24
-        label.verticalAlignmentMode = .center
-        body.addChild(label)
-
+        body.lineWidth = 2
+        addLabel(text, to: body)
         return body
+    }
+
+    private func addLabel(_ text: String, to node: SKNode) {
+        guard !text.isEmpty else {
+            return
+        }
+
+        let label = SKLabelNode(text: text)
+        label.fontName = "AvenirNext-Bold"
+        label.fontSize = text.count > 1 ? 19 : 24
+        label.fontColor = .white
+        label.verticalAlignmentMode = .center
+        node.addChild(label)
     }
 }
