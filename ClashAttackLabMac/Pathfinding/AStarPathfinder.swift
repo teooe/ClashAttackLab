@@ -9,7 +9,9 @@ struct AStarPathfinder {
     func findPath(
         from startPosition: WorldPosition,
         to goalPosition: WorldPosition,
-        in grid: NavigationGrid
+        in grid: NavigationGrid,
+        breakableCells: Set<GridCoordinate> = [],
+        breakableTraversalCost: Double = 0
     ) -> PathfindingResult? {
         guard
             let start = grid.coordinate(for: startPosition),
@@ -53,9 +55,13 @@ struct AStarPathfinder {
             openSet.remove(current)
 
             for neighbor in grid.neighbors(of: current) {
+                let wallCost = breakableCells.contains(neighbor)
+                    ? breakableTraversalCost
+                    : 0
                 let tentativeCost =
                     costFromStart[current, default: .infinity] +
-                    grid.movementCost(from: current, to: neighbor)
+                    grid.movementCost(from: current, to: neighbor) +
+                    wallCost
 
                 guard tentativeCost <
                     costFromStart[neighbor, default: .infinity]
