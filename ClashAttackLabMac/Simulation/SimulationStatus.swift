@@ -1,16 +1,16 @@
 import Foundation
 
 enum BattleWinner {
-    case giant
-    case cannon
+    case attackers
+    case defenses
     case draw
 
     var displayName: String {
         switch self {
-        case .giant:
-            return "Gigante"
-        case .cannon:
-            return "Cannone"
+        case .attackers:
+            return "Attaccanti"
+        case .defenses:
+            return "Difese"
         case .draw:
             return "Pareggio"
         }
@@ -20,10 +20,10 @@ enum BattleWinner {
 struct SimulationResult {
     let winner: BattleWinner
     let elapsedTime: TimeInterval
-    let giantRemainingHitPoints: Double
-    let cannonRemainingHitPoints: Double
-    let giantAttackCount: Int
-    let cannonAttackCount: Int
+    let survivingTroops: Int
+    let survivingDefenses: Int
+    let troopAttackCount: Int
+    let defenseAttackCount: Int
 }
 
 enum SimulationStatus {
