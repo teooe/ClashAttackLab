@@ -8,9 +8,10 @@ struct PrototypeGameData: GameDataProviding {
         case .giant:
             return CombatDefinition(
                 displayName: "Gigante",
-                maxHitPoints: 900,
-                movementSpeed: 95,
-                attackDamage: 95,
+                role: .troop,
+                maxHitPoints: 1_000,
+                movementSpeed: 100,
+                attackDamage: 110,
                 attackRange: 82,
                 attackInterval: 1.2,
                 canMove: true
@@ -19,11 +20,12 @@ struct PrototypeGameData: GameDataProviding {
         case .cannon:
             return CombatDefinition(
                 displayName: "Cannone",
-                maxHitPoints: 600,
+                role: .defense,
+                maxHitPoints: 500,
                 movementSpeed: 0,
-                attackDamage: 60,
+                attackDamage: 45,
                 attackRange: 300,
-                attackInterval: 0.8,
+                attackInterval: 0.9,
                 canMove: false
             )
         }
