@@ -7,11 +7,23 @@ struct ContentView: View {
         let entities = [
             BattleEntity(
                 kind: .giant,
-                position: WorldPosition(x: 220, y: 350)
+                position: WorldPosition(x: 140, y: 270)
+            ),
+            BattleEntity(
+                kind: .giant,
+                position: WorldPosition(x: 140, y: 490)
             ),
             BattleEntity(
                 kind: .cannon,
-                position: WorldPosition(x: 780, y: 350)
+                position: WorldPosition(x: 680, y: 190)
+            ),
+            BattleEntity(
+                kind: .cannon,
+                position: WorldPosition(x: 770, y: 380)
+            ),
+            BattleEntity(
+                kind: .cannon,
+                position: WorldPosition(x: 680, y: 570)
             )
         ]
 
@@ -21,7 +33,7 @@ struct ContentView: View {
         )
 
         return BattleScene(
-            size: CGSize(width: 1_000, height: 700),
+            size: CGSize(width: 1_100, height: 760),
             simulation: simulation
         )
     }()
@@ -33,7 +45,7 @@ struct ContentView: View {
                     Text("Clash Attack Lab")
                         .font(.title2.bold())
 
-                    Text("Milestone 1 · Movimento e combattimento")
+                    Text("Milestone 2 · Più entità e selezione bersagli")
                         .foregroundStyle(.secondary)
                 }
 
@@ -55,7 +67,7 @@ struct ContentView: View {
             Divider()
 
             SpriteView(scene: scene)
-                .frame(minWidth: 760, minHeight: 540)
+                .frame(minWidth: 800, minHeight: 570)
         }
     }
 }
