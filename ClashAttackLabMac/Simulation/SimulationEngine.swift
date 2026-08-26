@@ -2,9 +2,11 @@ import Foundation
 
 final class SimulationEngine {
     private let fixedTimeStep: TimeInterval = 1.0 / 60.0
+    private let timeLimit: TimeInterval = 60
     private let gameData: any GameDataProviding
     private let navigationGrid: NavigationGrid
     private let pathfinder: AStarPathfinder
+    private let scoringSystem: BaseScoringSystem
     private let initialEntities: [BattleEntity]
 
     private var accumulatedTime: TimeInterval = 0
@@ -14,18 +16,25 @@ final class SimulationEngine {
     private(set) var entities: [BattleEntity]
     private(set) var status: SimulationStatus = .ready
     private(set) var elapsedTime: TimeInterval = 0
+    private(set) var score: BaseScoreSnapshot = .zero
+
+    var remainingTime: TimeInterval {
+        max(0, timeLimit - elapsedTime)
+    }
 
     init(
         entities: [BattleEntity],
         gameData: any GameDataProviding,
         navigationGrid: NavigationGrid,
-        pathfinder: AStarPathfinder = AStarPathfinder()
+        pathfinder: AStarPathfinder = AStarPathfinder(),
+        scoringSystem: BaseScoringSystem = BaseScoringSystem()
     ) {
         self.initialEntities = entities
         self.entities = entities
         self.gameData = gameData
         self.navigationGrid = navigationGrid
         self.pathfinder = pathfinder
+        self.scoringSystem = scoringSystem
         reset()
     }
 
@@ -57,9 +66,11 @@ final class SimulationEngine {
     func reset() {
         entities = initialEntities.map { entity in
             var resetEntity = entity
-            resetEntity.hitPoints = gameData.definition(for: entity.kind).maxHitPoints
+            resetEntity.hitPoints =
+                gameData.definition(for: entity.kind).maxHitPoints
             resetEntity.attackCooldown = 0
             resetEntity.currentTargetID = nil
+            resetEntity.blockingWallID = nil
             return resetEntity
         }
 
@@ -67,6 +78,10 @@ final class SimulationEngine {
         elapsedTime = 0
         attackCounts = [:]
         movementPaths = [:]
+        score = scoringSystem.calculate(
+            entities: entities,
+            gameData: gameData
+        )
         status = .ready
     }
 
@@ -89,170 +104,273 @@ final class SimulationEngine {
 
     private func tick(deltaTime: TimeInterval) {
         elapsedTime += deltaTime
+
+        if elapsedTime >= timeLimit {
+            finish(timeExpired: true)
+            return
+        }
+
         reduceCooldowns(by: deltaTime)
 
         let troopIndices = livingIndices(with: .troop)
         let defenseIndices = livingIndices(with: .defense)
+        let buildingIndices = livingIndices(with: .building)
+        let objectiveIndices = defenseIndices.isEmpty
+            ? buildingIndices
+            : defenseIndices
 
-        guard !troopIndices.isEmpty, !defenseIndices.isEmpty else {
-            finishIfNeeded()
+        guard !troopIndices.isEmpty, !objectiveIndices.isEmpty else {
+            finish(timeExpired: false)
             return
         }
 
         var pendingDamage: [UUID: Double] = [:]
 
         for defenseIndex in defenseIndices {
-            act(
-                entityAt: defenseIndex,
+            actDefense(
+                at: defenseIndex,
                 possibleTargets: troopIndices,
-                deltaTime: deltaTime,
                 pendingDamage: &pendingDamage
             )
         }
 
         for troopIndex in troopIndices {
-            act(
-                entityAt: troopIndex,
-                possibleTargets: defenseIndices,
+            actTroop(
+                at: troopIndex,
+                possibleObjectives: objectiveIndices,
                 deltaTime: deltaTime,
                 pendingDamage: &pendingDamage
             )
         }
 
         apply(pendingDamage)
-        clearTargetsPointingToDestroyedEntities()
+        score = scoringSystem.calculate(
+            entities: entities,
+            gameData: gameData
+        )
+        clearInvalidTargets()
         finishIfNeeded()
     }
 
-    private func act(
-        entityAt attackerIndex: Int,
+    private func actDefense(
+        at defenseIndex: Int,
         possibleTargets: [Int],
-        deltaTime: TimeInterval,
         pendingDamage: inout [UUID: Double]
     ) {
-        guard entities[attackerIndex].isAlive else {
-            return
-        }
-
-        let attackerDefinition = definition(for: entities[attackerIndex].kind)
-        let targetIndex = resolveTarget(
-            for: attackerIndex,
+        let definition = definition(for: entities[defenseIndex].kind)
+        let targetIndex = resolveDefenseTarget(
+            for: defenseIndex,
             among: possibleTargets,
-            acquisitionRange: attackerDefinition.role == .defense
-                ? attackerDefinition.attackRange
-                : nil
+            acquisitionRange: definition.attackRange
         )
 
         guard let targetIndex else {
-            entities[attackerIndex].currentTargetID = nil
-            movementPaths[entities[attackerIndex].id] = []
             return
         }
 
-        let distanceToTarget = distance(
-            from: entities[attackerIndex].position,
-            to: entities[targetIndex].position
+        performAttackIfPossible(
+            attackerIndex: defenseIndex,
+            targetIndex: targetIndex,
+            pendingDamage: &pendingDamage
+        )
+    }
+
+    private func actTroop(
+        at troopIndex: Int,
+        possibleObjectives: [Int],
+        deltaTime: TimeInterval,
+        pendingDamage: inout [UUID: Double]
+    ) {
+        let objectiveIndex = resolveTroopObjective(
+            for: troopIndex,
+            among: possibleObjectives
         )
 
-        if distanceToTarget <= attackerDefinition.attackRange {
-            movementPaths[entities[attackerIndex].id] = []
-            performAttackIfPossible(
-                attackerIndex: attackerIndex,
-                targetIndex: targetIndex,
+        guard let objectiveIndex else {
+            return
+        }
+
+        if
+            let blockingWallIndex = livingIndex(
+                withID: entities[troopIndex].blockingWallID,
+                role: .wall
+            )
+        {
+            handleBlockingWall(
+                troopIndex: troopIndex,
+                wallIndex: blockingWallIndex,
+                deltaTime: deltaTime,
                 pendingDamage: &pendingDamage
             )
-        } else if attackerDefinition.canMove {
-            ensurePath(
-                for: attackerIndex,
-                to: entities[targetIndex].position
+            return
+        }
+
+        let troopDefinition = definition(for: entities[troopIndex].kind)
+        let objectiveDistance = distance(
+            from: entities[troopIndex].position,
+            to: entities[objectiveIndex].position
+        )
+
+        if objectiveDistance <= troopDefinition.attackRange {
+            movementPaths[entities[troopIndex].id] = []
+            performAttackIfPossible(
+                attackerIndex: troopIndex,
+                targetIndex: objectiveIndex,
+                pendingDamage: &pendingDamage
             )
+            return
+        }
+
+        ensurePath(
+            for: troopIndex,
+            to: entities[objectiveIndex].position
+        )
+
+        guard
+            let nextWaypoint = movementPaths[
+                entities[troopIndex].id,
+                default: []
+            ].first
+        else {
+            return
+        }
+
+        if let wallIndex = livingWallIndex(at: nextWaypoint) {
+            entities[troopIndex].blockingWallID = entities[wallIndex].id
+            handleBlockingWall(
+                troopIndex: troopIndex,
+                wallIndex: wallIndex,
+                deltaTime: deltaTime,
+                pendingDamage: &pendingDamage
+            )
+        } else {
             moveAlongPath(
-                entityAt: attackerIndex,
-                stoppingAt: attackerDefinition.attackRange,
-                targetPosition: entities[targetIndex].position,
+                entityAt: troopIndex,
+                stoppingAt: troopDefinition.attackRange,
+                targetPosition: entities[objectiveIndex].position,
                 deltaTime: deltaTime
             )
         }
     }
 
-    /// Approximation: troops keep a valid target until it is destroyed.
-    /// New troop targets are ranked by reachable A* route cost.
-    private func resolveTarget(
-        for attackerIndex: Int,
-        among candidateIndices: [Int],
-        acquisitionRange: Double?
+    private func handleBlockingWall(
+        troopIndex: Int,
+        wallIndex: Int,
+        deltaTime: TimeInterval,
+        pendingDamage: inout [UUID: Double]
+    ) {
+        let troopDefinition = definition(for: entities[troopIndex].kind)
+        let wallPosition = entities[wallIndex].position
+        let wallDistance = distance(
+            from: entities[troopIndex].position,
+            to: wallPosition
+        )
+
+        if wallDistance <= troopDefinition.attackRange {
+            performAttackIfPossible(
+                attackerIndex: troopIndex,
+                targetIndex: wallIndex,
+                pendingDamage: &pendingDamage
+            )
+        } else {
+            moveDirectly(
+                entityAt: troopIndex,
+                toward: wallPosition,
+                stoppingAt: troopDefinition.attackRange,
+                deltaTime: deltaTime
+            )
+        }
+    }
+
+    /// Documented preference: Giants prioritize defenses.
+    /// Approximation: among eligible objectives, choose the lowest weighted A* cost.
+    private func resolveTroopObjective(
+        for troopIndex: Int,
+        among candidateIndices: [Int]
     ) -> Int? {
         if
-            let lockedID = entities[attackerIndex].currentTargetID,
+            let lockedID = entities[troopIndex].currentTargetID,
             let lockedIndex = candidateIndices.first(where: {
                 entities[$0].id == lockedID && entities[$0].isAlive
             })
         {
-            let lockedDistance = distance(
-                from: entities[attackerIndex].position,
+            return lockedIndex
+        }
+
+        let breakableCells = livingWallCells()
+        let wallCost = estimatedWallTraversalCost(
+            for: entities[troopIndex].kind
+        )
+
+        let reachableTargets = candidateIndices.compactMap { index in
+            pathfinder.findPath(
+                from: entities[troopIndex].position,
+                to: entities[index].position,
+                in: navigationGrid,
+                breakableCells: breakableCells,
+                breakableTraversalCost: wallCost
+            ).map { result in
+                (index: index, result: result)
+            }
+        }
+
+        let best = reachableTargets.min {
+            $0.result.totalCost < $1.result.totalCost
+        }
+
+        entities[troopIndex].currentTargetID = best.map {
+            entities[$0.index].id
+        }
+
+        if let best {
+            movementPaths[entities[troopIndex].id] =
+                best.result.waypoints
+        }
+
+        return best?.index
+    }
+
+    private func resolveDefenseTarget(
+        for defenseIndex: Int,
+        among candidateIndices: [Int],
+        acquisitionRange: Double
+    ) -> Int? {
+        if
+            let lockedID = entities[defenseIndex].currentTargetID,
+            let lockedIndex = candidateIndices.first(where: {
+                entities[$0].id == lockedID && entities[$0].isAlive
+            }),
+            distance(
+                from: entities[defenseIndex].position,
                 to: entities[lockedIndex].position
-            )
-
-            if acquisitionRange == nil || lockedDistance <= acquisitionRange! {
-                return lockedIndex
-            }
+            ) <= acquisitionRange
+        {
+            return lockedIndex
         }
 
-        let attackerDefinition = definition(for: entities[attackerIndex].kind)
-        let selected: Int?
-
-        if attackerDefinition.role == .troop {
-            let reachableTargets = candidateIndices.compactMap { index in
-                pathfinder.findPath(
-                    from: entities[attackerIndex].position,
-                    to: entities[index].position,
-                    in: navigationGrid
-                ).map { result in
-                    (index: index, result: result)
-                }
-            }
-
-            let best = reachableTargets.min {
-                $0.result.totalCost < $1.result.totalCost
-            }
-            selected = best?.index
-
-            if let best {
-                movementPaths[entities[attackerIndex].id] =
-                    best.result.waypoints
-            }
-        } else {
-            selected = candidateIndices
-                .filter { candidateIndex in
-                    guard entities[candidateIndex].isAlive else {
-                        return false
-                    }
-
-                    guard let acquisitionRange else {
-                        return true
-                    }
-
-                    return distance(
-                        from: entities[attackerIndex].position,
-                        to: entities[candidateIndex].position
-                    ) <= acquisitionRange
-                }
-                .min { firstIndex, secondIndex in
+        let nearest = candidateIndices
+            .filter {
+                entities[$0].isAlive &&
                     distance(
-                        from: entities[attackerIndex].position,
-                        to: entities[firstIndex].position
-                    ) < distance(
-                        from: entities[attackerIndex].position,
-                        to: entities[secondIndex].position
-                    )
-                }
-        }
+                        from: entities[defenseIndex].position,
+                        to: entities[$0].position
+                    ) <= acquisitionRange
+            }
+            .min {
+                distance(
+                    from: entities[defenseIndex].position,
+                    to: entities[$0].position
+                ) < distance(
+                    from: entities[defenseIndex].position,
+                    to: entities[$1].position
+                )
+            }
 
-        entities[attackerIndex].currentTargetID = selected.map {
+        entities[defenseIndex].currentTargetID = nearest.map {
             entities[$0].id
         }
 
-        return selected
+        return nearest
     }
 
     private func ensurePath(
@@ -268,7 +386,11 @@ final class SimulationEngine {
         movementPaths[entityID] = pathfinder.findPath(
             from: entities[entityIndex].position,
             to: targetPosition,
-            in: navigationGrid
+            in: navigationGrid,
+            breakableCells: livingWallCells(),
+            breakableTraversalCost: estimatedWallTraversalCost(
+                for: entities[entityIndex].kind
+            )
         )?.waypoints ?? []
     }
 
@@ -281,16 +403,17 @@ final class SimulationEngine {
         let entityID = entities[index].id
         var path = movementPaths[entityID, default: []]
         var remainingTravel =
-            definition(for: entities[index].kind).movementSpeed * deltaTime
+            definition(for: entities[index].kind).movementSpeed *
+            deltaTime
 
         while remainingTravel > 0, let waypoint = path.first {
             let currentPosition = entities[index].position
-            let distanceToTarget = distance(
+            let distanceToObjective = distance(
                 from: currentPosition,
                 to: targetPosition
             )
 
-            guard distanceToTarget > range else {
+            guard distanceToObjective > range else {
                 path = []
                 break
             }
@@ -319,6 +442,30 @@ final class SimulationEngine {
         movementPaths[entityID] = path
     }
 
+    private func moveDirectly(
+        entityAt index: Int,
+        toward target: WorldPosition,
+        stoppingAt range: Double,
+        deltaTime: TimeInterval
+    ) {
+        let current = entities[index].position
+        let targetDistance = distance(from: current, to: target)
+
+        guard targetDistance > range, targetDistance > 0 else {
+            return
+        }
+
+        let definition = definition(for: entities[index].kind)
+        let travel = min(
+            definition.movementSpeed * deltaTime,
+            targetDistance - range
+        )
+        let ratio = travel / targetDistance
+
+        entities[index].position.x += (target.x - current.x) * ratio
+        entities[index].position.y += (target.y - current.y) * ratio
+    }
+
     private func performAttackIfPossible(
         attackerIndex: Int,
         targetIndex: Int,
@@ -327,7 +474,12 @@ final class SimulationEngine {
         let attacker = entities[attackerIndex]
         let attackerDefinition = definition(for: attacker.kind)
 
-        guard attacker.attackCooldown <= 0 else {
+        guard
+            attacker.isAlive,
+            entities[targetIndex].isAlive,
+            attacker.attackCooldown <= 0,
+            attackerDefinition.attackDamage > 0
+        else {
             return
         }
 
@@ -350,11 +502,14 @@ final class SimulationEngine {
     private func apply(_ pendingDamage: [UUID: Double]) {
         for index in entities.indices {
             let damage = pendingDamage[entities[index].id, default: 0]
-            entities[index].hitPoints = max(0, entities[index].hitPoints - damage)
+            entities[index].hitPoints = max(
+                0,
+                entities[index].hitPoints - damage
+            )
         }
     }
 
-    private func clearTargetsPointingToDestroyedEntities() {
+    private func clearInvalidTargets() {
         let livingIDs = Set(
             entities
                 .filter(\.isAlive)
@@ -369,6 +524,14 @@ final class SimulationEngine {
                 entities[index].currentTargetID = nil
                 movementPaths[entities[index].id] = []
             }
+
+            if
+                let wallID = entities[index].blockingWallID,
+                !livingIDs.contains(wallID)
+            {
+                entities[index].blockingWallID = nil
+                movementPaths[entities[index].id] = []
+            }
         }
     }
 
@@ -379,33 +542,93 @@ final class SimulationEngine {
         }
     }
 
+    private func livingIndex(
+        withID id: UUID?,
+        role: BattleEntityRole
+    ) -> Int? {
+        guard let id else {
+            return nil
+        }
+
+        return entities.indices.first {
+            entities[$0].id == id &&
+                entities[$0].isAlive &&
+                definition(for: entities[$0].kind).role == role
+        }
+    }
+
+    private func livingWallCells() -> Set<GridCoordinate> {
+        Set(
+            livingIndices(with: .wall).compactMap {
+                navigationGrid.coordinate(for: entities[$0].position)
+            }
+        )
+    }
+
+    private func livingWallIndex(at position: WorldPosition) -> Int? {
+        guard let coordinate = navigationGrid.coordinate(for: position) else {
+            return nil
+        }
+
+        return livingIndices(with: .wall).first {
+            navigationGrid.coordinate(for: entities[$0].position) ==
+                coordinate
+        }
+    }
+
+    private func estimatedWallTraversalCost(
+        for troopKind: BattleEntityKind
+    ) -> Double {
+        let troop = definition(for: troopKind)
+        let wall = definition(for: .wall)
+
+        guard troop.attackDamage > 0 else {
+            return .infinity
+        }
+
+        let attacksNeeded = ceil(wall.maxHitPoints / troop.attackDamage)
+        let breakTime = attacksNeeded * troop.attackInterval
+        return breakTime * troop.movementSpeed
+    }
+
     private func finishIfNeeded() {
         let survivingTroops = livingIndices(with: .troop).count
-        let survivingDefenses = livingIndices(with: .defense).count
+        let remainingObjectives =
+            livingIndices(with: .defense).count +
+            livingIndices(with: .building).count
 
-        guard survivingTroops == 0 || survivingDefenses == 0 else {
+        if survivingTroops == 0 || remainingObjectives == 0 {
+            finish(timeExpired: false)
+        }
+    }
+
+    private func finish(timeExpired: Bool) {
+        guard case .running = status else {
             return
         }
 
-        let winner: BattleWinner
+        score = scoringSystem.calculate(
+            entities: entities,
+            gameData: gameData
+        )
 
-        switch (survivingTroops, survivingDefenses) {
-        case (let troops, 0) where troops > 0:
-            winner = .attackers
-        case (0, let defenses) where defenses > 0:
-            winner = .defenses
-        default:
-            winner = .draw
-        }
+        let survivingTroops = livingIndices(with: .troop).count
+        let survivingDefenses = livingIndices(with: .defense).count
+        let winner: BattleWinner =
+            score.destructionPercentage >= 100
+                ? .attackers
+                : .defenses
 
         status = .finished(
             SimulationResult(
                 winner: winner,
-                elapsedTime: elapsedTime,
+                elapsedTime: min(elapsedTime, timeLimit),
+                timeExpired: timeExpired,
                 survivingTroops: survivingTroops,
                 survivingDefenses: survivingDefenses,
                 troopAttackCount: attackCounts[.troop, default: 0],
-                defenseAttackCount: attackCounts[.defense, default: 0]
+                defenseAttackCount: attackCounts[.defense, default: 0],
+                score: score
             )
         )
     }
