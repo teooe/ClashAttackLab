@@ -3,6 +3,8 @@ import Foundation
 enum BattleEntityRole: Hashable {
     case troop
     case defense
+    case building
+    case wall
 }
 
 struct CombatDefinition {
@@ -14,6 +16,10 @@ struct CombatDefinition {
     let attackRange: Double
     let attackInterval: TimeInterval
     let canMove: Bool
+
+    var countsForDestruction: Bool {
+        role == .defense || role == .building
+    }
 }
 
 protocol GameDataProviding {
