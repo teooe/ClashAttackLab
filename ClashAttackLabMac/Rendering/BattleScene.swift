@@ -9,14 +9,20 @@ final class BattleScene: SKScene {
     }
 
     private let simulation: SimulationEngine
+    private let navigationGrid: NavigationGrid
     private var entityVisuals: [UUID: EntityVisual] = [:]
     private var lastUpdateTime: TimeInterval?
 
     private let statusLabel = SKLabelNode(fontNamed: "AvenirNext-DemiBold")
     private let resultLabel = SKLabelNode(fontNamed: "AvenirNext-Bold")
 
-    init(size: CGSize, simulation: SimulationEngine) {
+    init(
+        size: CGSize,
+        simulation: SimulationEngine,
+        navigationGrid: NavigationGrid
+    ) {
         self.simulation = simulation
+        self.navigationGrid = navigationGrid
         super.init(size: size)
         scaleMode = .aspectFit
     }
@@ -29,6 +35,8 @@ final class BattleScene: SKScene {
     override func didMove(to view: SKView) {
         backgroundColor = SKColor(red: 0.16, green: 0.34, blue: 0.18, alpha: 1)
         drawArena()
+        drawNavigationGrid()
+        drawWalls()
         configureLabels()
         createEntityNodes()
         updatePresentation()
@@ -63,6 +71,83 @@ final class BattleScene: SKScene {
         arena.strokeColor = .white.withAlphaComponent(0.35)
         arena.lineWidth = 3
         addChild(arena)
+    }
+
+    private func drawNavigationGrid() {
+        for column in 0...navigationGrid.columns {
+            let x = navigationGrid.origin.x +
+                Double(column) * navigationGrid.cellSize
+            let path = CGMutablePath()
+            path.move(
+                to: CGPoint(x: x, y: navigationGrid.origin.y)
+            )
+            path.addLine(
+                to: CGPoint(
+                    x: x,
+                    y: navigationGrid.origin.y +
+                        Double(navigationGrid.rows) *
+                        navigationGrid.cellSize
+                )
+            )
+
+            let line = SKShapeNode(path: path)
+            line.strokeColor = .white.withAlphaComponent(0.045)
+            line.lineWidth = 1
+            line.zPosition = 1
+            addChild(line)
+        }
+
+        for row in 0...navigationGrid.rows {
+            let y = navigationGrid.origin.y +
+                Double(row) * navigationGrid.cellSize
+            let path = CGMutablePath()
+            path.move(
+                to: CGPoint(x: navigationGrid.origin.x, y: y)
+            )
+            path.addLine(
+                to: CGPoint(
+                    x: navigationGrid.origin.x +
+                        Double(navigationGrid.columns) *
+                        navigationGrid.cellSize,
+                    y: y
+                )
+            )
+
+            let line = SKShapeNode(path: path)
+            line.strokeColor = .white.withAlphaComponent(0.045)
+            line.lineWidth = 1
+            line.zPosition = 1
+            addChild(line)
+        }
+    }
+
+    private func drawWalls() {
+        for coordinate in navigationGrid.blockedCells {
+            let position = navigationGrid.worldPosition(for: coordinate)
+            let wall = SKShapeNode(
+                rectOf: CGSize(
+                    width: navigationGrid.cellSize - 4,
+                    height: navigationGrid.cellSize - 4
+                ),
+                cornerRadius: 6
+            )
+            wall.position = CGPoint(x: position.x, y: position.y)
+            wall.fillColor = SKColor(
+                red: 0.44,
+                green: 0.31,
+                blue: 0.20,
+                alpha: 1
+            )
+            wall.strokeColor = SKColor(
+                red: 0.72,
+                green: 0.60,
+                blue: 0.42,
+                alpha: 1
+            )
+            wall.lineWidth = 2
+            wall.zPosition = 4
+            addChild(wall)
+        }
     }
 
     private func configureLabels() {
@@ -125,7 +210,7 @@ final class BattleScene: SKScene {
                     ? .systemYellow
                     : .systemRed
             targetLine.lineWidth = 2
-            targetLine.alpha = 0.38
+            targetLine.alpha = 0.48
             targetLine.zPosition = 5
             addChild(targetLine)
 
@@ -163,7 +248,7 @@ final class BattleScene: SKScene {
             visual.healthLabel.text =
                 "\(definition.displayName): \(Int(entity.hitPoints.rounded(.up)))/\(Int(definition.maxHitPoints))"
 
-            updateTargetLine(
+            updateTargetPath(
                 visual.targetLine,
                 from: entity,
                 target: entity.currentTargetID.flatMap { entitiesByID[$0] }
@@ -172,12 +257,12 @@ final class BattleScene: SKScene {
 
         switch simulation.status {
         case .ready:
-            statusLabel.text = "Pronto · linee gialle: truppe · linee rosse: difese"
+            statusLabel.text = "Pronto · A* a 8 direzioni · muri statici"
             resultLabel.isHidden = true
 
         case .running:
             statusLabel.text = String(
-                format: "Simulazione · %.1f s · Bersagli visibili",
+                format: "Pathfinding A* · %.1f s",
                 simulation.elapsedTime
             )
             resultLabel.isHidden = true
@@ -197,7 +282,7 @@ final class BattleScene: SKScene {
         }
     }
 
-    private func updateTargetLine(
+    private func updateTargetPath(
         _ line: SKShapeNode,
         from entity: BattleEntity,
         target: BattleEntity?
@@ -207,13 +292,24 @@ final class BattleScene: SKScene {
             return
         }
 
+        let definition = simulation.definition(for: entity.kind)
         let path = CGMutablePath()
         path.move(
             to: CGPoint(x: entity.position.x, y: entity.position.y)
         )
-        path.addLine(
-            to: CGPoint(x: target.position.x, y: target.position.y)
-        )
+
+        if definition.role == .troop {
+            for waypoint in simulation.movementPath(for: entity.id) {
+                path.addLine(
+                    to: CGPoint(x: waypoint.x, y: waypoint.y)
+                )
+            }
+        } else {
+            path.addLine(
+                to: CGPoint(x: target.position.x, y: target.position.y)
+            )
+        }
+
         line.path = path
     }
 
