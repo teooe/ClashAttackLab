@@ -14,9 +14,11 @@ struct ContentView: View {
             )
         ]
 
+        let simulation = SimulationEngine(entities: entities)
+
         return BattleScene(
             size: CGSize(width: 1_000, height: 700),
-            entities: entities
+            simulation: simulation
         )
     }()
 
@@ -27,14 +29,14 @@ struct ContentView: View {
                     Text("Clash Attack Lab")
                         .font(.title2.bold())
 
-                    Text("Milestone 1 · Arena statica")
+                    Text("Milestone 1 · Ricerca e movimento")
                         .foregroundStyle(.secondary)
                 }
 
                 Spacer()
 
-                Label("Simulazione pronta", systemImage: "checkmark.circle.fill")
-                    .foregroundStyle(.green)
+                Label("Simulazione in corso", systemImage: "play.circle.fill")
+                    .foregroundStyle(.blue)
             }
             .padding()
 
