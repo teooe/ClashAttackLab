@@ -4,37 +4,51 @@ import SwiftUI
 struct ContentView: View {
     private let scene: BattleScene = {
         let gameData = PrototypeGameData()
+        let navigationGrid = PrototypeBattleMap.makeNavigationGrid()
+
         let entities = [
             BattleEntity(
                 kind: .giant,
-                position: WorldPosition(x: 140, y: 270)
+                position: navigationGrid.worldPosition(
+                    for: GridCoordinate(column: 2, row: 4)
+                )
             ),
             BattleEntity(
                 kind: .giant,
-                position: WorldPosition(x: 140, y: 490)
+                position: navigationGrid.worldPosition(
+                    for: GridCoordinate(column: 2, row: 11)
+                )
             ),
             BattleEntity(
                 kind: .cannon,
-                position: WorldPosition(x: 680, y: 190)
+                position: navigationGrid.worldPosition(
+                    for: GridCoordinate(column: 17, row: 3)
+                )
             ),
             BattleEntity(
                 kind: .cannon,
-                position: WorldPosition(x: 770, y: 380)
+                position: navigationGrid.worldPosition(
+                    for: GridCoordinate(column: 21, row: 8)
+                )
             ),
             BattleEntity(
                 kind: .cannon,
-                position: WorldPosition(x: 680, y: 570)
+                position: navigationGrid.worldPosition(
+                    for: GridCoordinate(column: 17, row: 13)
+                )
             )
         ]
 
         let simulation = SimulationEngine(
             entities: entities,
-            gameData: gameData
+            gameData: gameData,
+            navigationGrid: navigationGrid
         )
 
         return BattleScene(
             size: CGSize(width: 1_100, height: 760),
-            simulation: simulation
+            simulation: simulation,
+            navigationGrid: navigationGrid
         )
     }()
 
@@ -45,13 +59,13 @@ struct ContentView: View {
                     Text("Clash Attack Lab")
                         .font(.title2.bold())
 
-                    Text("Milestone 2 · Più entità e selezione bersagli")
+                    Text("Milestone 3 · Muri e pathfinding A*")
                         .foregroundStyle(.secondary)
                 }
 
                 Spacer()
 
-                Text("Dati prototipo · non ufficiali")
+                Text("Muri statici · approssimazione")
                     .font(.caption)
                     .foregroundStyle(.secondary)
 
@@ -67,7 +81,7 @@ struct ContentView: View {
             Divider()
 
             SpriteView(scene: scene)
-                .frame(minWidth: 800, minHeight: 570)
+                .frame(minWidth: 820, minHeight: 580)
         }
     }
 }
