@@ -8,10 +8,12 @@ final class SimulationEngine {
     private let pathfinder: AStarPathfinder
     private let scoringSystem: BaseScoringSystem
     private let initialEntities: [BattleEntity]
+    private let attackPlan: AttackPlan
 
     private var accumulatedTime: TimeInterval = 0
     private var attackCounts: [BattleEntityRole: Int] = [:]
     private var movementPaths: [UUID: [WorldPosition]] = [:]
+    private var pendingDeployments: [DeploymentOrder] = []
 
     private(set) var entities: [BattleEntity]
     private(set) var status: SimulationStatus = .ready
@@ -22,8 +24,17 @@ final class SimulationEngine {
         max(0, timeLimit - elapsedTime)
     }
 
+    var pendingDeploymentCount: Int {
+        pendingDeployments.count
+    }
+
+    var deployedTroopCount: Int {
+        attackPlan.deployments.count - pendingDeployments.count
+    }
+
     init(
         entities: [BattleEntity],
+        attackPlan: AttackPlan,
         gameData: any GameDataProviding,
         navigationGrid: NavigationGrid,
         pathfinder: AStarPathfinder = AStarPathfinder(),
@@ -31,6 +42,7 @@ final class SimulationEngine {
     ) {
         self.initialEntities = entities
         self.entities = entities
+        self.attackPlan = attackPlan
         self.gameData = gameData
         self.navigationGrid = navigationGrid
         self.pathfinder = pathfinder
@@ -41,10 +53,6 @@ final class SimulationEngine {
     func advance(by deltaTime: TimeInterval) {
         guard deltaTime > 0 else {
             return
-        }
-
-        if case .ready = status {
-            status = .running
         }
 
         guard case .running = status else {
@@ -63,6 +71,26 @@ final class SimulationEngine {
         }
     }
 
+    func start() {
+        switch status {
+        case .ready, .paused:
+            status = .running
+        case .running, .finished:
+            break
+        }
+    }
+
+    func togglePause() {
+        switch status {
+        case .running:
+            status = .paused
+        case .paused:
+            status = .running
+        case .ready, .finished:
+            break
+        }
+    }
+
     func reset() {
         entities = initialEntities.map { entity in
             var resetEntity = entity
@@ -78,6 +106,7 @@ final class SimulationEngine {
         elapsedTime = 0
         attackCounts = [:]
         movementPaths = [:]
+        pendingDeployments = attackPlan.orderedDeployments
         score = scoringSystem.calculate(
             entities: entities,
             gameData: gameData
@@ -104,6 +133,7 @@ final class SimulationEngine {
 
     private func tick(deltaTime: TimeInterval) {
         elapsedTime += deltaTime
+        deployScheduledTroops()
 
         if elapsedTime >= timeLimit {
             finish(timeExpired: true)
@@ -119,8 +149,15 @@ final class SimulationEngine {
             ? buildingIndices
             : defenseIndices
 
-        guard !troopIndices.isEmpty, !objectiveIndices.isEmpty else {
+        guard !objectiveIndices.isEmpty else {
             finish(timeExpired: false)
+            return
+        }
+
+        guard !troopIndices.isEmpty else {
+            if pendingDeployments.isEmpty {
+                finish(timeExpired: false)
+            }
             return
         }
 
@@ -150,6 +187,24 @@ final class SimulationEngine {
         )
         clearInvalidTargets()
         finishIfNeeded()
+    }
+
+    private func deployScheduledTroops() {
+        while
+            let next = pendingDeployments.first,
+            next.deploymentTime <= elapsedTime
+        {
+            let definition = definition(for: next.kind)
+            entities.append(
+                BattleEntity(
+                    id: next.entityID,
+                    kind: next.kind,
+                    position: next.position,
+                    hitPoints: definition.maxHitPoints
+                )
+            )
+            pendingDeployments.removeFirst()
+        }
     }
 
     private func actDefense(
@@ -597,7 +652,10 @@ final class SimulationEngine {
             livingIndices(with: .defense).count +
             livingIndices(with: .building).count
 
-        if survivingTroops == 0 || remainingObjectives == 0 {
+        if
+            remainingObjectives == 0 ||
+            (survivingTroops == 0 && pendingDeployments.isEmpty)
+        {
             finish(timeExpired: false)
         }
     }
@@ -624,6 +682,7 @@ final class SimulationEngine {
                 winner: winner,
                 elapsedTime: min(elapsedTime, timeLimit),
                 timeExpired: timeExpired,
+                deployedTroops: deployedTroopCount,
                 survivingTroops: survivingTroops,
                 survivingDefenses: survivingDefenses,
                 troopAttackCount: attackCounts[.troop, default: 0],
