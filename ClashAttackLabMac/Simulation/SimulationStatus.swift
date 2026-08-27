@@ -18,6 +18,7 @@ struct SimulationResult {
     let winner: BattleWinner
     let elapsedTime: TimeInterval
     let timeExpired: Bool
+    let deployedTroops: Int
     let survivingTroops: Int
     let survivingDefenses: Int
     let troopAttackCount: Int
@@ -28,5 +29,6 @@ struct SimulationResult {
 enum SimulationStatus {
     case ready
     case running
+    case paused
     case finished(SimulationResult)
 }
