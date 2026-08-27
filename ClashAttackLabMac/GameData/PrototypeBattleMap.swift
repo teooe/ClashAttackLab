@@ -1,6 +1,6 @@
 import Foundation
 
-/// Prototype layout used to validate route choice, wall destruction and scoring.
+/// Prototype layout used to validate route choice, deployment and scoring.
 enum PrototypeBattleMap {
     static func makeNavigationGrid() -> NavigationGrid {
         NavigationGrid(
@@ -24,5 +24,36 @@ enum PrototypeBattleMap {
         }
 
         return walls
+    }
+
+    static func makeAttackPlan(
+        navigationGrid: NavigationGrid
+    ) -> AttackPlan {
+        AttackPlan(
+            name: "Assalto prototipo a ondate",
+            deployments: [
+                DeploymentOrder(
+                    kind: .giant,
+                    position: navigationGrid.worldPosition(
+                        for: GridCoordinate(column: 2, row: 4)
+                    ),
+                    deploymentTime: 0
+                ),
+                DeploymentOrder(
+                    kind: .giant,
+                    position: navigationGrid.worldPosition(
+                        for: GridCoordinate(column: 2, row: 7)
+                    ),
+                    deploymentTime: 2
+                ),
+                DeploymentOrder(
+                    kind: .giant,
+                    position: navigationGrid.worldPosition(
+                        for: GridCoordinate(column: 2, row: 11)
+                    ),
+                    deploymentTime: 4
+                )
+            ]
+        )
     }
 }
