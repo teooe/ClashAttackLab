@@ -119,4 +119,162 @@ struct ClashAttackLabMacTests {
         #expect(!detourCoordinates.contains(wall))
         #expect(detourRoute.totalCost < breakingRoute.totalCost + 100)
     }
+
+    @Test
+    func attackPlanOrdersDeploymentsByTime() {
+        let grid = PrototypeBattleMap.makeNavigationGrid()
+        let lateID = UUID()
+        let earlyID = UUID()
+        let middleID = UUID()
+
+        let plan = AttackPlan(
+            name: "Ordine di prova",
+            deployments: [
+                DeploymentOrder(
+                    entityID: lateID,
+                    kind: .giant,
+                    position: grid.worldPosition(
+                        for: GridCoordinate(column: 2, row: 4)
+                    ),
+                    deploymentTime: 4
+                ),
+                DeploymentOrder(
+                    entityID: earlyID,
+                    kind: .giant,
+                    position: grid.worldPosition(
+                        for: GridCoordinate(column: 2, row: 7)
+                    ),
+                    deploymentTime: 0
+                ),
+                DeploymentOrder(
+                    entityID: middleID,
+                    kind: .giant,
+                    position: grid.worldPosition(
+                        for: GridCoordinate(column: 2, row: 11)
+                    ),
+                    deploymentTime: 2
+                )
+            ]
+        )
+
+        #expect(
+            plan.orderedDeployments.map(\.entityID) ==
+                [earlyID, middleID, lateID]
+        )
+    }
+
+    @Test
+    func simulationDeploysTroopsAtScheduledTimes() {
+        let grid = PrototypeBattleMap.makeNavigationGrid()
+        let plan = PrototypeBattleMap.makeAttackPlan(
+            navigationGrid: grid
+        )
+        let engine = makeDeploymentTestEngine(
+            grid: grid,
+            plan: plan
+        )
+
+        #expect(engine.pendingDeploymentCount == 3)
+        #expect(engine.deployedTroopCount == 0)
+        #expect(engine.entities.filter { $0.kind == .giant }.isEmpty)
+
+        engine.start()
+        engine.advance(by: 1.0 / 60.0)
+
+        #expect(engine.pendingDeploymentCount == 2)
+        #expect(engine.deployedTroopCount == 1)
+        #expect(
+            engine.entities.contains {
+                $0.id == plan.orderedDeployments[0].entityID
+            }
+        )
+
+        advance(engine, ticks: 125)
+
+        #expect(engine.pendingDeploymentCount == 1)
+        #expect(engine.deployedTroopCount == 2)
+        #expect(
+            engine.entities.contains {
+                $0.id == plan.orderedDeployments[1].entityID
+            }
+        )
+
+        advance(engine, ticks: 121)
+
+        #expect(engine.pendingDeploymentCount == 0)
+        #expect(engine.deployedTroopCount == 3)
+        #expect(
+            engine.entities.contains {
+                $0.id == plan.orderedDeployments[2].entityID
+            }
+        )
+    }
+
+    @Test
+    func pauseStopsTimeAndResetRestoresThePlan() {
+        let grid = PrototypeBattleMap.makeNavigationGrid()
+        let plan = PrototypeBattleMap.makeAttackPlan(
+            navigationGrid: grid
+        )
+        let engine = makeDeploymentTestEngine(
+            grid: grid,
+            plan: plan
+        )
+
+        engine.start()
+        engine.advance(by: 1.0 / 60.0)
+        let timeAtPause = engine.elapsedTime
+
+        engine.togglePause()
+        advance(engine, ticks: 120)
+
+        #expect(engine.elapsedTime == timeAtPause)
+        #expect(engine.deployedTroopCount == 1)
+
+        engine.togglePause()
+        engine.advance(by: 1.0 / 60.0)
+
+        #expect(engine.elapsedTime > timeAtPause)
+
+        engine.reset()
+
+        if case .ready = engine.status {
+            // Stato atteso.
+        } else {
+            Issue.record("Il reset deve riportare la simulazione a ready.")
+        }
+
+        #expect(engine.elapsedTime == 0)
+        #expect(engine.pendingDeploymentCount == 3)
+        #expect(engine.deployedTroopCount == 0)
+        #expect(engine.entities.filter { $0.kind == .giant }.isEmpty)
+    }
+
+    private func makeDeploymentTestEngine(
+        grid: NavigationGrid,
+        plan: AttackPlan
+    ) -> SimulationEngine {
+        let townHall = BattleEntity(
+            kind: .townHall,
+            position: grid.worldPosition(
+                for: GridCoordinate(column: 22, row: 8)
+            )
+        )
+
+        return SimulationEngine(
+            entities: [townHall],
+            attackPlan: plan,
+            gameData: PrototypeGameData(),
+            navigationGrid: grid
+        )
+    }
+
+    private func advance(
+        _ engine: SimulationEngine,
+        ticks: Int
+    ) {
+        for _ in 0..<ticks {
+            engine.advance(by: 1.0 / 60.0)
+        }
+    }
 }
