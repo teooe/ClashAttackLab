@@ -5,26 +5,11 @@ struct ContentView: View {
     private let scene: BattleScene = {
         let gameData = PrototypeGameData()
         let navigationGrid = PrototypeBattleMap.makeNavigationGrid()
+        let attackPlan = PrototypeBattleMap.makeAttackPlan(
+            navigationGrid: navigationGrid
+        )
 
-        var entities = [
-            BattleEntity(
-                kind: .giant,
-                position: navigationGrid.worldPosition(
-                    for: GridCoordinate(column: 2, row: 4)
-                )
-            ),
-            BattleEntity(
-                kind: .giant,
-                position: navigationGrid.worldPosition(
-                    for: GridCoordinate(column: 2, row: 7)
-                )
-            ),
-            BattleEntity(
-                kind: .giant,
-                position: navigationGrid.worldPosition(
-                    for: GridCoordinate(column: 2, row: 11)
-                )
-            ),
+        var baseEntities = [
             BattleEntity(
                 kind: .cannon,
                 position: navigationGrid.worldPosition(
@@ -63,7 +48,7 @@ struct ContentView: View {
             )
         ]
 
-        entities += PrototypeBattleMap.wallCoordinates().map {
+        baseEntities += PrototypeBattleMap.wallCoordinates().map {
             BattleEntity(
                 kind: .wall,
                 position: navigationGrid.worldPosition(for: $0)
@@ -71,7 +56,8 @@ struct ContentView: View {
         }
 
         let simulation = SimulationEngine(
-            entities: entities,
+            entities: baseEntities,
+            attackPlan: attackPlan,
             gameData: gameData,
             navigationGrid: navigationGrid
         )
@@ -79,7 +65,8 @@ struct ContentView: View {
         return BattleScene(
             size: CGSize(width: 1_100, height: 760),
             simulation: simulation,
-            navigationGrid: navigationGrid
+            navigationGrid: navigationGrid,
+            attackPlan: attackPlan
         )
     }()
 
@@ -90,7 +77,7 @@ struct ContentView: View {
                     Text("Clash Attack Lab")
                         .font(.title2.bold())
 
-                    Text("Milestone 4 · Base, muri, percentuale e stelle")
+                    Text("Milestone 5 · Piano di deploy temporizzato")
                         .foregroundStyle(.secondary)
                 }
 
@@ -99,6 +86,18 @@ struct ContentView: View {
                 Text("Dati e tempo: prototipo")
                     .font(.caption)
                     .foregroundStyle(.secondary)
+
+                Button {
+                    scene.startSimulation()
+                } label: {
+                    Label("Avvia", systemImage: "play.fill")
+                }
+
+                Button {
+                    scene.togglePause()
+                } label: {
+                    Label("Pausa / Riprendi", systemImage: "pause.fill")
+                }
 
                 Menu("Velocità") {
                     Button("1×") {
