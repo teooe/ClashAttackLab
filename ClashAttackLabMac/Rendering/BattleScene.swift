@@ -10,7 +10,9 @@ final class BattleScene: SKScene {
 
     private let simulation: SimulationEngine
     private let navigationGrid: NavigationGrid
+    private let attackPlan: AttackPlan
     private var entityVisuals: [UUID: EntityVisual] = [:]
+    private var deploymentMarkers: [UUID: SKNode] = [:]
     private var lastUpdateTime: TimeInterval?
 
     private let statusLabel = SKLabelNode(fontNamed: "AvenirNext-DemiBold")
@@ -22,10 +24,12 @@ final class BattleScene: SKScene {
     init(
         size: CGSize,
         simulation: SimulationEngine,
-        navigationGrid: NavigationGrid
+        navigationGrid: NavigationGrid,
+        attackPlan: AttackPlan
     ) {
         self.simulation = simulation
         self.navigationGrid = navigationGrid
+        self.attackPlan = attackPlan
         super.init(size: size)
         scaleMode = .aspectFit
     }
@@ -39,6 +43,7 @@ final class BattleScene: SKScene {
         backgroundColor = SKColor(red: 0.16, green: 0.34, blue: 0.18, alpha: 1)
         drawArena()
         drawNavigationGrid()
+        drawDeploymentMarkers()
         configureLabels()
         createEntityNodes()
         updatePresentation()
@@ -56,6 +61,14 @@ final class BattleScene: SKScene {
         self.lastUpdateTime = currentTime
         simulation.advance(by: deltaTime * simulationSpeed)
         updatePresentation()
+    }
+
+    func startSimulation() {
+        simulation.start()
+    }
+
+    func togglePause() {
+        simulation.togglePause()
     }
 
     func restartSimulation() {
@@ -159,69 +172,131 @@ final class BattleScene: SKScene {
         addChild(resultLabel)
     }
 
-    private func createEntityNodes() {
-        for entity in simulation.entities {
-            let definition = simulation.definition(for: entity.kind)
+    private func drawDeploymentMarkers() {
+        for order in attackPlan.deployments {
             let root = SKNode()
-            let body = makeBody(for: entity.kind)
-            root.addChild(body)
-
-            let isWall = definition.role == .wall
-            let healthWidth = isWall ? 34.0 : 88.0
-            let healthY = isWall ? -25.0 : -52.0
-
-            let healthBackground = SKSpriteNode(
-                color: .black.withAlphaComponent(0.58),
-                size: CGSize(width: healthWidth + 4, height: 10)
+            root.position = CGPoint(
+                x: order.position.x,
+                y: order.position.y
             )
-            healthBackground.position = CGPoint(x: 0, y: healthY)
-            healthBackground.zPosition = 10
-            root.addChild(healthBackground)
+            root.zPosition = 8
 
-            let healthFill = SKSpriteNode(
-                color: .systemGreen,
-                size: CGSize(width: healthWidth, height: 6)
+            let marker = SKShapeNode(circleOfRadius: 22)
+            marker.fillColor = .systemCyan.withAlphaComponent(0.12)
+            marker.strokeColor = .systemCyan
+            marker.lineWidth = 2
+            root.addChild(marker)
+
+            let label = SKLabelNode(
+                text: String(format: "%.0f s", order.deploymentTime)
             )
-            healthFill.anchorPoint = CGPoint(x: 0, y: 0.5)
-            healthFill.position = CGPoint(
-                x: -healthWidth / 2,
-                y: healthY
-            )
-            healthFill.zPosition = 11
-            root.addChild(healthFill)
+            label.fontName = "AvenirNext-Bold"
+            label.fontSize = 12
+            label.fontColor = .white
+            label.verticalAlignmentMode = .center
+            root.addChild(label)
 
-            let healthLabel = SKLabelNode(fontNamed: "AvenirNext-Medium")
-            healthLabel.fontSize = 11
-            healthLabel.fontColor = .white
-            healthLabel.verticalAlignmentMode = .center
-            healthLabel.position = CGPoint(x: 0, y: -69)
-            healthLabel.zPosition = 12
-            healthLabel.isHidden = isWall
-            root.addChild(healthLabel)
-
-            let targetLine = SKShapeNode()
-            targetLine.strokeColor =
-                definition.role == .troop
-                    ? .systemYellow
-                    : .systemRed
-            targetLine.lineWidth = 2
-            targetLine.alpha = 0.48
-            targetLine.zPosition = 5
-            addChild(targetLine)
-
-            root.zPosition = isWall ? 7 : 15
-
-            entityVisuals[entity.id] = EntityVisual(
-                root: root,
-                healthFill: healthFill,
-                healthLabel: healthLabel,
-                targetLine: targetLine
-            )
+            deploymentMarkers[order.entityID] = root
             addChild(root)
         }
     }
 
+    private func createEntityNodes() {
+        for entity in simulation.entities {
+            createEntityVisual(for: entity)
+        }
+    }
+
+    private func reconcileEntityVisuals() {
+        let currentIDs = Set(simulation.entities.map(\.id))
+        let removedIDs = entityVisuals.keys.filter {
+            !currentIDs.contains($0)
+        }
+
+        for id in removedIDs {
+            entityVisuals[id]?.root.removeFromParent()
+            entityVisuals[id]?.targetLine.removeFromParent()
+            entityVisuals.removeValue(forKey: id)
+        }
+
+        for entity in simulation.entities
+        where entityVisuals[entity.id] == nil {
+            createEntityVisual(for: entity)
+        }
+    }
+
+    private func createEntityVisual(for entity: BattleEntity) {
+        let definition = simulation.definition(for: entity.kind)
+        let root = SKNode()
+        let body = makeBody(for: entity.kind)
+        root.addChild(body)
+
+        let isWall = definition.role == .wall
+        let healthWidth = isWall ? 34.0 : 88.0
+        let healthY = isWall ? -25.0 : -52.0
+
+        let healthBackground = SKSpriteNode(
+            color: .black.withAlphaComponent(0.58),
+            size: CGSize(width: healthWidth + 4, height: 10)
+        )
+        healthBackground.position = CGPoint(x: 0, y: healthY)
+        healthBackground.zPosition = 10
+        root.addChild(healthBackground)
+
+        let healthFill = SKSpriteNode(
+            color: .systemGreen,
+            size: CGSize(width: healthWidth, height: 6)
+        )
+        healthFill.anchorPoint = CGPoint(x: 0, y: 0.5)
+        healthFill.position = CGPoint(
+            x: -healthWidth / 2,
+            y: healthY
+        )
+        healthFill.zPosition = 11
+        root.addChild(healthFill)
+
+        let healthLabel = SKLabelNode(fontNamed: "AvenirNext-Medium")
+        healthLabel.fontSize = 11
+        healthLabel.fontColor = .white
+        healthLabel.verticalAlignmentMode = .center
+        healthLabel.position = CGPoint(x: 0, y: -69)
+        healthLabel.zPosition = 12
+        healthLabel.isHidden = isWall
+        root.addChild(healthLabel)
+
+        let targetLine = SKShapeNode()
+        targetLine.strokeColor =
+            definition.role == .troop
+                ? .systemYellow
+                : .systemRed
+        targetLine.lineWidth = 2
+        targetLine.alpha = 0.48
+        targetLine.zPosition = 5
+        addChild(targetLine)
+
+        root.zPosition = isWall ? 7 : 15
+
+        entityVisuals[entity.id] = EntityVisual(
+            root: root,
+            healthFill: healthFill,
+            healthLabel: healthLabel,
+            targetLine: targetLine
+        )
+        addChild(root)
+    }
+
+    private func updateDeploymentMarkers() {
+        let deployedIDs = Set(simulation.entities.map(\.id))
+
+        for (entityID, marker) in deploymentMarkers {
+            marker.isHidden = deployedIDs.contains(entityID)
+        }
+    }
+
     private func updatePresentation() {
+        reconcileEntityVisuals()
+        updateDeploymentMarkers()
+
         let entitiesByID = Dictionary(
             uniqueKeysWithValues: simulation.entities.map { ($0.id, $0) }
         )
@@ -268,15 +343,23 @@ final class BattleScene: SKScene {
 
         switch simulation.status {
         case .ready:
-            statusLabel.text = "Pronto · muri distruttibili · 60 s"
+            statusLabel.text =
+                "Piano: \(attackPlan.name) · premi Avvia"
             resultLabel.isHidden = true
 
         case .running:
             statusLabel.text = String(
-                format: "Tempo: %.1f s · Edifici: %d/%d",
+                format: "Tempo: %.1f s · Deploy: %d · In attesa: %d",
                 simulation.remainingTime,
-                score.destroyedBuildings,
-                score.totalBuildings
+                simulation.deployedTroopCount,
+                simulation.pendingDeploymentCount
+            )
+            resultLabel.isHidden = true
+
+        case .paused:
+            statusLabel.text = String(
+                format: "In pausa · %.1f s rimasti",
+                simulation.remainingTime
             )
             resultLabel.isHidden = true
 
@@ -285,11 +368,12 @@ final class BattleScene: SKScene {
                 ? "Tempo scaduto"
                 : "Simulazione terminata"
             resultLabel.text = String(
-                format: "%@ · %d stelle · %.0f%% · %.1f s · Superstiti: %d",
+                format: "%@ · %d stelle · %.0f%% · %.1f s · Deploy: %d · Superstiti: %d",
                 result.winner.displayName,
                 result.score.stars,
                 result.score.destructionPercentage,
                 result.elapsedTime,
+                result.deployedTroops,
                 result.survivingTroops
             )
             resultLabel.isHidden = false
