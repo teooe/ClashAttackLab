@@ -1,4 +1,4 @@
-struct GridCoordinate: Hashable {
+nonisolated struct GridCoordinate: Hashable {
     let column: Int
     let row: Int
 }

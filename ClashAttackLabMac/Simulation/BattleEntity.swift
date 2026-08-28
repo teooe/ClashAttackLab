@@ -1,11 +1,11 @@
 import Foundation
 
-struct WorldPosition: Equatable {
+nonisolated struct WorldPosition: Equatable {
     var x: Double
     var y: Double
 }
 
-enum BattleEntityKind: Hashable {
+nonisolated enum BattleEntityKind: Hashable {
     case giant
     case barbarian
     case archer

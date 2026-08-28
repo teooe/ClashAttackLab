@@ -1,20 +1,20 @@
 import Foundation
 
-enum BattleEntityRole: Hashable {
+nonisolated enum BattleEntityRole: Hashable {
     case troop
     case defense
     case building
     case wall
 }
 
-enum MechanicEvidence: String, Hashable {
+nonisolated enum MechanicEvidence: String, Hashable {
     case documented
     case observed
     case approximation
     case prototype
 }
 
-enum TargetPreference: Hashable {
+nonisolated enum TargetPreference: Hashable {
     case defenses
     case anyBuilding
 }
