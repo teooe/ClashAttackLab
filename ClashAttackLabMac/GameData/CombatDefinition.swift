@@ -50,4 +50,5 @@ nonisolated struct CombatDefinition {
 
 nonisolated protocol GameDataProviding {
     func definition(for kind: BattleEntityKind) -> CombatDefinition
+    func spellDefinition(for kind: BattleSpellKind) -> SpellDefinition
 }

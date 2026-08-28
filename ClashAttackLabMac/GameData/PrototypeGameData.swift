@@ -6,6 +6,36 @@ import Foundation
 /// official Clash of Clans statistics. Target preferences and defense
 /// behaviors are stored separately from those temporary numbers.
 nonisolated struct PrototypeGameData: GameDataProviding {
+    func spellDefinition(for kind: BattleSpellKind) -> SpellDefinition {
+        switch kind {
+        case .heal:
+            return SpellDefinition(
+                displayName: "Cura",
+                radius: 145,
+                duration: 6,
+                healingPerSecond: 100,
+                damageMultiplier: 1,
+                movementSpeedMultiplier: 1,
+                attackSpeedMultiplier: 1,
+                behaviorEvidence: .documented,
+                tuningEvidence: .prototype
+            )
+
+        case .rage:
+            return SpellDefinition(
+                displayName: "Furia",
+                radius: 155,
+                duration: 7,
+                healingPerSecond: 0,
+                damageMultiplier: 1.5,
+                movementSpeedMultiplier: 1.35,
+                attackSpeedMultiplier: 1.35,
+                behaviorEvidence: .documented,
+                tuningEvidence: .prototype
+            )
+        }
+    }
+
     func definition(for kind: BattleEntityKind) -> CombatDefinition {
         switch kind {
         case .giant:

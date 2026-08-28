@@ -102,6 +102,19 @@ struct AttackPlanEvaluator {
             return first.result.score.townHallDestroyed
         }
 
+        if
+            first.result.metrics.damageToBase !=
+            second.result.metrics.damageToBase
+        {
+            return first.result.metrics.damageToBase >
+                second.result.metrics.damageToBase
+        }
+
+        if first.result.metrics.troopsLost != second.result.metrics.troopsLost {
+            return first.result.metrics.troopsLost <
+                second.result.metrics.troopsLost
+        }
+
         if first.result.survivingTroops != second.result.survivingTroops {
             return first.result.survivingTroops >
                 second.result.survivingTroops

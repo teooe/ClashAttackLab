@@ -22,19 +22,41 @@ nonisolated struct DeploymentOrder: Identifiable {
     }
 }
 
+nonisolated struct SpellDeploymentOrder: Identifiable {
+    let id: UUID
+    let kind: BattleSpellKind
+    let position: WorldPosition
+    let deploymentTime: TimeInterval
+
+    init(
+        id: UUID = UUID(),
+        kind: BattleSpellKind,
+        position: WorldPosition,
+        deploymentTime: TimeInterval
+    ) {
+        self.id = id
+        self.kind = kind
+        self.position = position
+        self.deploymentTime = deploymentTime
+    }
+}
+
 nonisolated struct AttackPlan: Identifiable {
     let id: UUID
     let name: String
     let deployments: [DeploymentOrder]
+    let spellDeployments: [SpellDeploymentOrder]
 
     init(
         id: UUID = UUID(),
         name: String,
-        deployments: [DeploymentOrder]
+        deployments: [DeploymentOrder],
+        spellDeployments: [SpellDeploymentOrder] = []
     ) {
         self.id = id
         self.name = name
         self.deployments = deployments
+        self.spellDeployments = spellDeployments
     }
 
     var orderedDeployments: [DeploymentOrder] {
@@ -47,8 +69,22 @@ nonisolated struct AttackPlan: Identifiable {
         }
     }
 
+    var orderedSpellDeployments: [SpellDeploymentOrder] {
+        spellDeployments.sorted {
+            if $0.deploymentTime == $1.deploymentTime {
+                return $0.id.uuidString < $1.id.uuidString
+            }
+
+            return $0.deploymentTime < $1.deploymentTime
+        }
+    }
+
     var totalDeploymentCount: Int {
         deployments.count
+    }
+
+    var totalSpellCount: Int {
+        spellDeployments.count
     }
 
     var troopKindsInDeploymentOrder: [BattleEntityKind] {

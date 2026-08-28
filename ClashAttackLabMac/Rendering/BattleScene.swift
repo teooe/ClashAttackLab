@@ -14,12 +14,16 @@ final class BattleScene: SKScene {
     private var entityVisuals: [UUID: EntityVisual] = [:]
     private var projectileVisuals: [UUID: SKShapeNode] = [:]
     private var deploymentMarkers: [UUID: SKNode] = [:]
+    private var spellMarkers: [UUID: SKNode] = [:]
+    private var activeSpellVisuals: [UUID: SKNode] = [:]
     private var aliveEntityIDs: Set<UUID> = []
     private var lastUpdateTime: TimeInterval?
 
     private let statusLabel = SKLabelNode(fontNamed: "AvenirNext-DemiBold")
+    private let spellStatusLabel = SKLabelNode(fontNamed: "AvenirNext-Medium")
     private let scoreLabel = SKLabelNode(fontNamed: "AvenirNext-Bold")
     private let resultLabel = SKLabelNode(fontNamed: "AvenirNext-Bold")
+    private let resultDetailLabel = SKLabelNode(fontNamed: "AvenirNext-Medium")
 
     var simulationSpeed: Double = 1
 
@@ -46,6 +50,7 @@ final class BattleScene: SKScene {
         drawArena()
         drawNavigationGrid()
         drawDeploymentMarkers()
+        drawSpellMarkers()
         configureLabels()
         createEntityNodes()
         updatePresentation()
@@ -86,8 +91,13 @@ final class BattleScene: SKScene {
         for marker in deploymentMarkers.values {
             marker.removeFromParent()
         }
+        for marker in spellMarkers.values {
+            marker.removeFromParent()
+        }
         deploymentMarkers.removeAll()
+        spellMarkers.removeAll()
         drawDeploymentMarkers()
+        drawSpellMarkers()
 
         lastUpdateTime = nil
         updatePresentation()
@@ -170,6 +180,16 @@ final class BattleScene: SKScene {
         statusLabel.zPosition = 40
         addChild(statusLabel)
 
+        spellStatusLabel.fontSize = 13
+        spellStatusLabel.fontColor = .white.withAlphaComponent(0.78)
+        spellStatusLabel.horizontalAlignmentMode = .left
+        spellStatusLabel.position = CGPoint(
+            x: 65,
+            y: size.height - 53
+        )
+        spellStatusLabel.zPosition = 40
+        addChild(spellStatusLabel)
+
         scoreLabel.fontSize = 20
         scoreLabel.fontColor = .systemYellow
         scoreLabel.horizontalAlignmentMode = .right
@@ -182,10 +202,20 @@ final class BattleScene: SKScene {
 
         resultLabel.fontSize = 18
         resultLabel.fontColor = .white
-        resultLabel.position = CGPoint(x: size.width / 2, y: 55)
+        resultLabel.position = CGPoint(x: size.width / 2, y: 65)
         resultLabel.zPosition = 40
         resultLabel.isHidden = true
         addChild(resultLabel)
+
+        resultDetailLabel.fontSize = 13
+        resultDetailLabel.fontColor = .white.withAlphaComponent(0.82)
+        resultDetailLabel.position = CGPoint(
+            x: size.width / 2,
+            y: 39
+        )
+        resultDetailLabel.zPosition = 40
+        resultDetailLabel.isHidden = true
+        addChild(resultDetailLabel)
     }
 
     private func drawDeploymentMarkers() {
@@ -222,6 +252,40 @@ final class BattleScene: SKScene {
         }
     }
 
+    private func drawSpellMarkers() {
+        for order in attackPlan.spellDeployments {
+            let root = SKNode()
+            root.position = CGPoint(
+                x: order.position.x,
+                y: order.position.y
+            )
+            root.zPosition = 9
+
+            let color = spellColor(for: order.kind)
+            let marker = SKShapeNode(circleOfRadius: 28)
+            marker.fillColor = color.withAlphaComponent(0.12)
+            marker.strokeColor = color.withAlphaComponent(0.8)
+            marker.lineWidth = 3
+            root.addChild(marker)
+
+            let label = SKLabelNode(
+                text: String(
+                    format: "%@ %.1f s",
+                    spellSymbol(for: order.kind),
+                    order.deploymentTime
+                )
+            )
+            label.fontName = "AvenirNext-Bold"
+            label.fontSize = 12
+            label.fontColor = .white
+            label.verticalAlignmentMode = .center
+            root.addChild(label)
+
+            spellMarkers[order.id] = root
+            addChild(root)
+        }
+    }
+
     private func createEntityNodes() {
         for entity in simulation.entities {
             createEntityVisual(for: entity)
@@ -244,6 +308,70 @@ final class BattleScene: SKScene {
         where entityVisuals[entity.id] == nil {
             createEntityVisual(for: entity)
         }
+    }
+
+    private func reconcileActiveSpellVisuals() {
+        let currentIDs = Set(simulation.activeSpells.map(\.id))
+        let removedIDs = activeSpellVisuals.keys.filter {
+            !currentIDs.contains($0)
+        }
+
+        for id in removedIDs {
+            activeSpellVisuals[id]?.removeFromParent()
+            activeSpellVisuals.removeValue(forKey: id)
+        }
+
+        for spell in simulation.activeSpells {
+            let node: SKNode
+
+            if let existing = activeSpellVisuals[spell.id] {
+                node = existing
+            } else {
+                node = makeActiveSpellNode(for: spell)
+                activeSpellVisuals[spell.id] = node
+                addChild(node)
+            }
+
+            node.position = CGPoint(
+                x: spell.position.x,
+                y: spell.position.y
+            )
+        }
+    }
+
+    private func makeActiveSpellNode(
+        for spell: ActiveBattleSpell
+    ) -> SKNode {
+        let definition = simulation.spellDefinition(for: spell.kind)
+        let color = spellColor(for: spell.kind)
+        let root = SKNode()
+        root.zPosition = 6
+
+        let zone = SKShapeNode(
+            circleOfRadius: definition.radius
+        )
+        zone.fillColor = color.withAlphaComponent(0.09)
+        zone.strokeColor = color.withAlphaComponent(0.72)
+        zone.lineWidth = 4
+        zone.glowWidth = 5
+        root.addChild(zone)
+
+        let label = SKLabelNode(
+            text: spellSymbol(for: spell.kind)
+        )
+        label.fontName = "AvenirNext-Bold"
+        label.fontSize = 22
+        label.fontColor = color
+        label.verticalAlignmentMode = .center
+        label.zPosition = 1
+        root.addChild(label)
+
+        let pulse = SKAction.sequence([
+            .fadeAlpha(to: 0.55, duration: 0.55),
+            .fadeAlpha(to: 1, duration: 0.55)
+        ])
+        root.run(.repeatForever(pulse))
+        return root
     }
 
     private func reconcileProjectileVisuals() {
@@ -402,6 +530,14 @@ final class BattleScene: SKScene {
         }
     }
 
+    private func updateSpellMarkers() {
+        let pendingIDs = simulation.pendingSpellIDs
+
+        for (spellID, marker) in spellMarkers {
+            marker.isHidden = !pendingIDs.contains(spellID)
+        }
+    }
+
     private func separatedDisplayPositions(
         for entities: [BattleEntity]
     ) -> [UUID: WorldPosition] {
@@ -507,7 +643,9 @@ final class BattleScene: SKScene {
     private func updatePresentation() {
         reconcileEntityVisuals()
         reconcileProjectileVisuals()
+        reconcileActiveSpellVisuals()
         updateDeploymentMarkers()
+        updateSpellMarkers()
         showWallBreakerExplosions(for: simulation.entities)
 
         let displayPositions = separatedDisplayPositions(
@@ -568,7 +706,9 @@ final class BattleScene: SKScene {
         case .ready:
             statusLabel.text =
                 "Pronto · \(attackPlan.name) · \(armySummary()) · premi Avvia"
+            spellStatusLabel.text = spellScheduleSummary()
             resultLabel.isHidden = true
+            resultDetailLabel.isHidden = true
 
         case .running:
             statusLabel.text = String(
@@ -579,7 +719,14 @@ final class BattleScene: SKScene {
                 attackPlan.totalDeploymentCount,
                 simulation.pendingDeploymentCount
             )
+            spellStatusLabel.text = String(
+                format: "Incantesimi lanciati: %d/%d · Zone attive: %d",
+                simulation.deployedSpellCount,
+                attackPlan.totalSpellCount,
+                simulation.activeSpells.count
+            )
             resultLabel.isHidden = true
+            resultDetailLabel.isHidden = true
 
         case .paused:
             statusLabel.text = String(
@@ -587,22 +734,35 @@ final class BattleScene: SKScene {
                 simulation.remainingTime,
                 simulation.livingTroopCount
             )
+            spellStatusLabel.text = "Incantesimi e timer in pausa"
             resultLabel.isHidden = true
+            resultDetailLabel.isHidden = true
 
         case .finished(let result):
-            statusLabel.text = result.timeExpired
-                ? "Tempo scaduto"
-                : "Simulazione terminata"
+            statusLabel.text = result.finishReason.displayName
+            spellStatusLabel.text = String(
+                format: "Incantesimi usati: %d/%d",
+                result.metrics.spellsCast,
+                attackPlan.totalSpellCount
+            )
             resultLabel.text = String(
-                format: "%@ · %d stelle · %.0f%% · %.1f s · Deploy: %d · Superstiti: %d",
+                format: "%@ · %d stelle · %.0f%% · %.1f s · Superstiti: %d",
                 result.winner.displayName,
                 result.score.stars,
                 result.score.destructionPercentage,
                 result.elapsedTime,
-                result.deployedTroops,
                 result.survivingTroops
             )
+            resultDetailLabel.text = String(
+                format: "%@ · Danno base: %.0f · PV esercito persi: %.0f · Truppe perse: %d · Muri: %d",
+                result.finishReason.displayName,
+                result.metrics.damageToBase,
+                result.metrics.hitPointsLostByArmy,
+                result.metrics.troopsLost,
+                result.metrics.destroyedWalls
+            )
             resultLabel.isHidden = false
+            resultDetailLabel.isHidden = false
         }
     }
 
@@ -664,6 +824,41 @@ final class BattleScene: SKScene {
                 return "\(name) ×\(count)"
             }
             .joined(separator: " · ")
+    }
+
+    private func spellScheduleSummary() -> String {
+        let entries = attackPlan.orderedSpellDeployments.map { order in
+            let name = simulation
+                .spellDefinition(for: order.kind)
+                .displayName
+            return String(
+                format: "%@ @ %.1f s",
+                name,
+                order.deploymentTime
+            )
+        }
+
+        return entries.isEmpty
+            ? "Nessun incantesimo programmato"
+            : "Incantesimi: " + entries.joined(separator: " · ")
+    }
+
+    private func spellColor(for kind: BattleSpellKind) -> SKColor {
+        switch kind {
+        case .heal:
+            return .systemGreen
+        case .rage:
+            return .systemPurple
+        }
+    }
+
+    private func spellSymbol(for kind: BattleSpellKind) -> String {
+        switch kind {
+        case .heal:
+            return "H"
+        case .rage:
+            return "R"
+        }
     }
 
     private func deploymentMarkerColor(

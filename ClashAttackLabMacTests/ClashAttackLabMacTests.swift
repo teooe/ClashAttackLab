@@ -164,6 +164,40 @@ struct ClashAttackLabMacTests {
     }
 
     @Test
+    func attackPlanOrdersSpellDeploymentsByTime() {
+        let grid = PrototypeBattleMap.makeNavigationGrid()
+        let lateID = UUID()
+        let earlyID = UUID()
+        let plan = AttackPlan(
+            name: "Spell order",
+            deployments: [],
+            spellDeployments: [
+                SpellDeploymentOrder(
+                    id: lateID,
+                    kind: .rage,
+                    position: grid.worldPosition(
+                        for: GridCoordinate(column: 10, row: 8)
+                    ),
+                    deploymentTime: 4
+                ),
+                SpellDeploymentOrder(
+                    id: earlyID,
+                    kind: .heal,
+                    position: grid.worldPosition(
+                        for: GridCoordinate(column: 8, row: 8)
+                    ),
+                    deploymentTime: 1
+                )
+            ]
+        )
+
+        #expect(
+            plan.orderedSpellDeployments.map(\.id) ==
+                [earlyID, lateID]
+        )
+    }
+
+    @Test
     func simulationDeploysMixedTroopsAtScheduledTimes() {
         let grid = PrototypeBattleMap.makeNavigationGrid()
         let plan = PrototypeBattleMap.makeAttackPlan(
@@ -230,6 +264,237 @@ struct ClashAttackLabMacTests {
     }
 
     @Test
+    func scheduledSpellActivatesAndExpires() {
+        let grid = PrototypeBattleMap.makeNavigationGrid()
+        let start = grid.worldPosition(
+            for: GridCoordinate(column: 2, row: 8)
+        )
+        let plan = AttackPlan(
+            name: "Spell lifecycle",
+            deployments: [
+                DeploymentOrder(
+                    kind: .barbarian,
+                    position: start,
+                    deploymentTime: 0
+                )
+            ],
+            spellDeployments: [
+                SpellDeploymentOrder(
+                    kind: .heal,
+                    position: start,
+                    deploymentTime: 0.5
+                )
+            ]
+        )
+        let engine = makeDeploymentTestEngine(
+            grid: grid,
+            plan: plan
+        )
+
+        engine.start()
+        advance(engine, ticks: 20)
+
+        #expect(engine.pendingSpellCount == 1)
+        #expect(engine.activeSpells.isEmpty)
+
+        advance(engine, ticks: 20)
+
+        #expect(engine.pendingSpellCount == 0)
+        #expect(engine.deployedSpellCount == 1)
+        #expect(engine.activeSpells.count == 1)
+
+        advance(engine, ticks: 380)
+
+        #expect(engine.activeSpells.isEmpty)
+    }
+
+    @Test
+    func healSpellRestoresHitPointsInsideItsZone() throws {
+        let grid = PrototypeBattleMap.makeNavigationGrid()
+        let troopPosition = grid.worldPosition(
+            for: GridCoordinate(column: 5, row: 8)
+        )
+        let cannon = BattleEntity(
+            kind: .cannon,
+            position: grid.worldPosition(
+                for: GridCoordinate(column: 7, row: 8)
+            )
+        )
+        let townHall = BattleEntity(
+            kind: .townHall,
+            position: grid.worldPosition(
+                for: GridCoordinate(column: 20, row: 8)
+            )
+        )
+        let deployment = DeploymentOrder(
+            kind: .giant,
+            position: troopPosition,
+            deploymentTime: 0
+        )
+        let planWithoutHeal = AttackPlan(
+            name: "No heal",
+            deployments: [deployment]
+        )
+        let planWithHeal = AttackPlan(
+            name: "Heal",
+            deployments: [deployment],
+            spellDeployments: [
+                SpellDeploymentOrder(
+                    kind: .heal,
+                    position: troopPosition,
+                    deploymentTime: 0
+                )
+            ]
+        )
+        let normalEngine = SimulationEngine(
+            entities: [cannon, townHall],
+            attackPlan: planWithoutHeal,
+            gameData: PrototypeGameData(),
+            navigationGrid: grid
+        )
+        let healedEngine = SimulationEngine(
+            entities: [cannon, townHall],
+            attackPlan: planWithHeal,
+            gameData: PrototypeGameData(),
+            navigationGrid: grid
+        )
+
+        normalEngine.start()
+        healedEngine.start()
+        advance(normalEngine, ticks: 120)
+        advance(healedEngine, ticks: 120)
+
+        let normalGiant = try #require(
+            normalEngine.entities.first { $0.kind == .giant }
+        )
+        let healedGiant = try #require(
+            healedEngine.entities.first { $0.kind == .giant }
+        )
+
+        #expect(healedGiant.hitPoints > normalGiant.hitPoints)
+    }
+
+    @Test
+    func rageSpellIncreasesMovementInsideItsZone() throws {
+        let grid = PrototypeBattleMap.makeNavigationGrid()
+        let start = grid.worldPosition(
+            for: GridCoordinate(column: 2, row: 8)
+        )
+        let townHall = BattleEntity(
+            kind: .townHall,
+            position: grid.worldPosition(
+                for: GridCoordinate(column: 22, row: 8)
+            )
+        )
+        let deployment = DeploymentOrder(
+            kind: .barbarian,
+            position: start,
+            deploymentTime: 0
+        )
+        let normalPlan = AttackPlan(
+            name: "Normal",
+            deployments: [deployment]
+        )
+        let ragePlan = AttackPlan(
+            name: "Rage",
+            deployments: [deployment],
+            spellDeployments: [
+                SpellDeploymentOrder(
+                    kind: .rage,
+                    position: grid.worldPosition(
+                        for: GridCoordinate(column: 5, row: 8)
+                    ),
+                    deploymentTime: 0
+                )
+            ]
+        )
+        let normalEngine = SimulationEngine(
+            entities: [townHall],
+            attackPlan: normalPlan,
+            gameData: PrototypeGameData(),
+            navigationGrid: grid
+        )
+        let ragedEngine = SimulationEngine(
+            entities: [townHall],
+            attackPlan: ragePlan,
+            gameData: PrototypeGameData(),
+            navigationGrid: grid
+        )
+
+        normalEngine.start()
+        ragedEngine.start()
+        advance(normalEngine, ticks: 60)
+        advance(ragedEngine, ticks: 60)
+
+        let normalBarbarian = try #require(
+            normalEngine.entities.first { $0.kind == .barbarian }
+        )
+        let ragedBarbarian = try #require(
+            ragedEngine.entities.first { $0.kind == .barbarian }
+        )
+
+        #expect(ragedBarbarian.position.x > normalBarbarian.position.x)
+    }
+
+    @Test
+    func rageSpellIncreasesDamageAndAttackFrequency() throws {
+        let grid = PrototypeBattleMap.makeNavigationGrid()
+        let start = grid.worldPosition(
+            for: GridCoordinate(column: 5, row: 8)
+        )
+        let townHall = BattleEntity(
+            kind: .townHall,
+            position: grid.worldPosition(
+                for: GridCoordinate(column: 6, row: 8)
+            )
+        )
+        let deployment = DeploymentOrder(
+            kind: .barbarian,
+            position: start,
+            deploymentTime: 0
+        )
+        let normalEngine = SimulationEngine(
+            entities: [townHall],
+            attackPlan: AttackPlan(
+                name: "Normal damage",
+                deployments: [deployment]
+            ),
+            gameData: PrototypeGameData(),
+            navigationGrid: grid
+        )
+        let ragedEngine = SimulationEngine(
+            entities: [townHall],
+            attackPlan: AttackPlan(
+                name: "Raged damage",
+                deployments: [deployment],
+                spellDeployments: [
+                    SpellDeploymentOrder(
+                        kind: .rage,
+                        position: start,
+                        deploymentTime: 0
+                    )
+                ]
+            ),
+            gameData: PrototypeGameData(),
+            navigationGrid: grid
+        )
+
+        normalEngine.start()
+        ragedEngine.start()
+        advance(normalEngine, ticks: 60)
+        advance(ragedEngine, ticks: 60)
+
+        let normalTownHall = try #require(
+            normalEngine.entities.first { $0.kind == .townHall }
+        )
+        let ragedTownHall = try #require(
+            ragedEngine.entities.first { $0.kind == .townHall }
+        )
+
+        #expect(ragedTownHall.hitPoints < normalTownHall.hitPoints)
+    }
+
+    @Test
     func pauseStopsTimeAndResetRestoresThePlan() {
         let grid = PrototypeBattleMap.makeNavigationGrid()
         let plan = PrototypeBattleMap.makeAttackPlan(
@@ -269,6 +534,9 @@ struct ClashAttackLabMacTests {
                 plan.totalDeploymentCount
         )
         #expect(engine.deployedTroopCount == 0)
+        #expect(engine.pendingSpellCount == plan.totalSpellCount)
+        #expect(engine.deployedSpellCount == 0)
+        #expect(engine.activeSpells.isEmpty)
         #expect(engine.entities.count == 1)
     }
 
@@ -413,6 +681,16 @@ struct ClashAttackLabMacTests {
         #expect(damagedTownHall.hitPoints < maximumHitPoints)
         #expect(!wallBreaker.isAlive)
         #expect(engine.livingTroopCount == 0)
+
+        guard case .finished(let result) = engine.status else {
+            Issue.record("La battaglia deve terminare senza truppe vive.")
+            return
+        }
+
+        #expect(result.finishReason == .armyEliminated)
+        #expect(result.metrics.troopsLost == 1)
+        #expect(result.metrics.damageToBase > 0)
+        #expect(result.metrics.spellsCast == 0)
     }
 
     @Test
@@ -703,40 +981,60 @@ struct ClashAttackLabMacTests {
     }
 
     @Test
-    func candidatePlansPreserveArmyAndSchedule() throws {
+    func generatorCreatesFairAndDistinctCandidatePlans() throws {
         let grid = PrototypeBattleMap.makeNavigationGrid()
         let plans = PrototypeBattleMap.makeCandidateAttackPlans(
             navigationGrid: grid
         )
         let baseline = try #require(plans.first)
         let baselineKinds = baseline.orderedDeployments.map(\.kind)
-        let baselineTimes = baseline.orderedDeployments.map(\.deploymentTime)
         let baselineEntityIDs = baseline.orderedDeployments.map(\.entityID)
+        let baselineSpellKinds =
+            baseline.orderedSpellDeployments.map(\.kind)
+        let baselineSpellIDs =
+            baseline.orderedSpellDeployments.map(\.id)
 
-        #expect(plans.count == 4)
+        #expect(plans.count == 24)
+        #expect(baseline.totalDeploymentCount == 10)
+        #expect(baseline.totalSpellCount == 2)
 
         for plan in plans.dropFirst() {
             #expect(plan.orderedDeployments.map(\.kind) == baselineKinds)
             #expect(
-                plan.orderedDeployments.map(\.deploymentTime) ==
-                    baselineTimes
-            )
-            #expect(
                 plan.orderedDeployments.map(\.entityID) ==
                     baselineEntityIDs
             )
+            #expect(
+                plan.orderedSpellDeployments.map(\.kind) ==
+                    baselineSpellKinds
+            )
+            #expect(
+                plan.orderedSpellDeployments.map(\.id) ==
+                    baselineSpellIDs
+            )
         }
 
-        let distinctPositionSets = Set(
-            plans.map { plan in
-                plan.orderedDeployments
-                    .map {
-                        "\($0.position.x),\($0.position.y)"
-                    }
+        let distinctSchedules = Set(
+            plans.map {
+                $0.orderedDeployments
+                    .map { String(format: "%.1f", $0.deploymentTime) }
                     .joined(separator: "|")
             }
         )
-        #expect(distinctPositionSets.count == plans.count)
+        let distinctCandidates = Set(
+            plans.map { plan in
+                let troops = plan.orderedDeployments.map {
+                    "\($0.position.x),\($0.position.y),\($0.deploymentTime)"
+                }
+                let spells = plan.orderedSpellDeployments.map {
+                    "\($0.position.x),\($0.position.y),\($0.deploymentTime)"
+                }
+                return (troops + spells).joined(separator: "|")
+            }
+        )
+
+        #expect(distinctSchedules.count == 3)
+        #expect(distinctCandidates.count == plans.count)
     }
 
     @Test
@@ -799,10 +1097,16 @@ struct ClashAttackLabMacTests {
 
         #expect(engine.elapsedTime == 0)
         #expect(engine.deployedTroopCount == 0)
+        #expect(engine.deployedSpellCount == 0)
         #expect(
             engine.pendingDeploymentCount ==
                 plans[1].totalDeploymentCount
         )
+        #expect(
+            engine.pendingSpellCount ==
+                plans[1].totalSpellCount
+        )
+        #expect(engine.activeSpells.isEmpty)
         #expect(engine.entities.count == 1)
     }
 

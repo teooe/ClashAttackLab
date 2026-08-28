@@ -8,6 +8,10 @@ final class AttackLabSession: ObservableObject {
 
     let scene: BattleScene
 
+    var candidatePlanCount: Int {
+        candidatePlans.count
+    }
+
     private let candidatePlans: [AttackPlan]
     private let evaluator: AttackPlanEvaluator
 

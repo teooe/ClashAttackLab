@@ -15,9 +15,11 @@ final class SimulationEngine {
     private var attackCounts: [BattleEntityRole: Int] = [:]
     private var movementPaths: [UUID: [WorldPosition]] = [:]
     private var pendingDeployments: [DeploymentOrder] = []
+    private var pendingSpellDeployments: [SpellDeploymentOrder] = []
 
     private(set) var entities: [BattleEntity]
     private(set) var projectiles: [BattleProjectile] = []
+    private(set) var activeSpells: [ActiveBattleSpell] = []
     private(set) var status: SimulationStatus = .ready
     private(set) var elapsedTime: TimeInterval = 0
     private(set) var score: BaseScoreSnapshot = .zero
@@ -36,6 +38,19 @@ final class SimulationEngine {
 
     var livingTroopCount: Int {
         livingIndices(with: .troop).count
+    }
+
+    var pendingSpellCount: Int {
+        pendingSpellDeployments.count
+    }
+
+    var deployedSpellCount: Int {
+        attackPlan.spellDeployments.count -
+            pendingSpellDeployments.count
+    }
+
+    var pendingSpellIDs: Set<UUID> {
+        Set(pendingSpellDeployments.map(\.id))
     }
 
     init(
@@ -117,7 +132,10 @@ final class SimulationEngine {
         attackCounts = [:]
         movementPaths = [:]
         projectiles = []
+        activeSpells = []
         pendingDeployments = attackPlan.orderedDeployments
+        pendingSpellDeployments =
+            attackPlan.orderedSpellDeployments
         score = scoringSystem.calculate(
             entities: entities,
             gameData: gameData
@@ -132,6 +150,10 @@ final class SimulationEngine {
 
     func definition(for kind: BattleEntityKind) -> CombatDefinition {
         gameData.definition(for: kind)
+    }
+
+    func spellDefinition(for kind: BattleSpellKind) -> SpellDefinition {
+        gameData.spellDefinition(for: kind)
     }
 
     func healthFraction(for entity: BattleEntity) -> Double {
@@ -150,9 +172,15 @@ final class SimulationEngine {
     private func tick(deltaTime: TimeInterval) {
         elapsedTime += deltaTime
         deployScheduledTroops()
+        deployScheduledSpells()
+        applyHealingSpells(by: deltaTime)
+
+        defer {
+            advanceActiveSpells(by: deltaTime)
+        }
 
         if elapsedTime >= timeLimit {
-            finish(timeExpired: true)
+            finish(reason: .timeExpired)
             return
         }
 
@@ -180,7 +208,7 @@ final class SimulationEngine {
         let troopTargetIndices = objectiveIndices + wallIndices
 
         guard !objectiveIndices.isEmpty else {
-            finish(timeExpired: false)
+            finish(reason: .totalDestruction)
             return
         }
 
@@ -189,7 +217,7 @@ final class SimulationEngine {
                 pendingDeployments.isEmpty &&
                 !hasAttackerProjectiles
             {
-                finish(timeExpired: false)
+                finish(reason: .armyEliminated)
             }
             return
         }
@@ -235,6 +263,70 @@ final class SimulationEngine {
                 )
             )
             pendingDeployments.removeFirst()
+        }
+    }
+
+    private func deployScheduledSpells() {
+        while
+            let next = pendingSpellDeployments.first,
+            next.deploymentTime <= elapsedTime
+        {
+            let definition = spellDefinition(for: next.kind)
+            activeSpells.append(
+                ActiveBattleSpell(
+                    id: next.id,
+                    kind: next.kind,
+                    position: next.position,
+                    remainingDuration: definition.duration
+                )
+            )
+            pendingSpellDeployments.removeFirst()
+        }
+    }
+
+    private func applyHealingSpells(by deltaTime: TimeInterval) {
+        let healingSpells = activeSpells.filter {
+            spellDefinition(for: $0.kind).healingPerSecond > 0
+        }
+
+        guard !healingSpells.isEmpty else {
+            return
+        }
+
+        for troopIndex in livingIndices(with: .troop) {
+            let troopPosition = entities[troopIndex].position
+            var healing = 0.0
+
+            for spell in healingSpells {
+                let definition = spellDefinition(for: spell.kind)
+
+                if distance(
+                    from: troopPosition,
+                    to: spell.position
+                ) <= definition.radius {
+                    healing += definition.healingPerSecond * deltaTime
+                }
+            }
+
+            guard healing > 0 else {
+                continue
+            }
+
+            let maximum = definition(
+                for: entities[troopIndex].kind
+            ).maxHitPoints
+            entities[troopIndex].hitPoints = min(
+                maximum,
+                entities[troopIndex].hitPoints + healing
+            )
+        }
+    }
+
+    private func advanceActiveSpells(by deltaTime: TimeInterval) {
+        activeSpells = activeSpells.compactMap { spell in
+            var updated = spell
+            updated.remainingDuration -= deltaTime
+            return updated.remainingDuration > 0 ? updated : nil
         }
     }
 
@@ -495,8 +587,11 @@ final class SimulationEngine {
     ) {
         let entityID = entities[index].id
         var path = movementPaths[entityID, default: []]
+        let entity = entities[index]
+        let modifiers = combatModifiers(for: entity)
         var remainingTravel =
-            definition(for: entities[index].kind).movementSpeed *
+            definition(for: entity.kind).movementSpeed *
+            modifiers.movementSpeed *
             deltaTime
 
         while remainingTravel > 0, let waypoint = path.first {
@@ -548,9 +643,13 @@ final class SimulationEngine {
             return
         }
 
-        let definition = definition(for: entities[index].kind)
+        let entity = entities[index]
+        let definition = definition(for: entity.kind)
+        let modifiers = combatModifiers(for: entity)
         let travel = min(
-            definition.movementSpeed * deltaTime,
+            definition.movementSpeed *
+                modifiers.movementSpeed *
+                deltaTime,
             targetDistance - range
         )
         let ratio = travel / targetDistance
@@ -567,12 +666,15 @@ final class SimulationEngine {
         let attacker = entities[attackerIndex]
         let target = entities[targetIndex]
         let attackerDefinition = definition(for: attacker.kind)
+        let modifiers = combatModifiers(for: attacker)
+        let attackDamage =
+            attackerDefinition.attackDamage * modifiers.damage
 
         guard
             attacker.isAlive,
             target.isAlive,
             attacker.attackCooldown <= 0,
-            attackerDefinition.attackDamage > 0
+            attackDamage > 0
         else {
             return
         }
@@ -592,7 +694,7 @@ final class SimulationEngine {
                     position: attacker.position,
                     destination: target.position,
                     speed: attackerDefinition.projectileSpeed,
-                    damage: attackerDefinition.attackDamage,
+                    damage: attackDamage,
                     splashRadius: attackerDefinition.splashRadius
                 )
             )
@@ -601,13 +703,12 @@ final class SimulationEngine {
             queueAreaDamage(
                 centeredAt: target.position,
                 targetRole: targetRole,
-                damage: attackerDefinition.attackDamage,
+                damage: attackDamage,
                 radius: attackerDefinition.splashRadius,
                 pendingDamage: &pendingDamage
             )
         } else {
-            pendingDamage[target.id, default: 0] +=
-                attackerDefinition.attackDamage
+            pendingDamage[target.id, default: 0] += attackDamage
         }
 
         if attackerDefinition.selfDestructsOnAttack {
@@ -615,7 +716,8 @@ final class SimulationEngine {
         }
 
         entities[attackerIndex].attackCooldown =
-            attackerDefinition.attackInterval
+            attackerDefinition.attackInterval /
+            modifiers.attackSpeed
         attackCounts[attackerDefinition.role, default: 0] += 1
     }
 
@@ -826,11 +928,15 @@ final class SimulationEngine {
                 !hasAttackerProjectiles
             )
         {
-            finish(timeExpired: false)
+            let reason: SimulationFinishReason =
+                remainingObjectives == 0
+                    ? .totalDestruction
+                    : .armyEliminated
+            finish(reason: reason)
         }
     }
 
-    private func finish(timeExpired: Bool) {
+    private func finish(reason: SimulationFinishReason) {
         guard case .running = status else {
             return
         }
@@ -842,6 +948,9 @@ final class SimulationEngine {
 
         let survivingTroops = livingIndices(with: .troop).count
         let survivingDefenses = livingIndices(with: .defense).count
+        let metrics = makeSummaryMetrics(
+            survivingTroops: survivingTroops
+        )
         projectiles = []
         let winner: BattleWinner =
             score.destructionPercentage >= 100
@@ -852,14 +961,92 @@ final class SimulationEngine {
             SimulationResult(
                 winner: winner,
                 elapsedTime: min(elapsedTime, timeLimit),
-                timeExpired: timeExpired,
+                timeExpired: reason == .timeExpired,
+                finishReason: reason,
                 deployedTroops: deployedTroopCount,
                 survivingTroops: survivingTroops,
                 survivingDefenses: survivingDefenses,
                 troopAttackCount: attackCounts[.troop, default: 0],
                 defenseAttackCount: attackCounts[.defense, default: 0],
-                score: score
+                score: score,
+                metrics: metrics
             )
+        )
+    }
+
+    private func makeSummaryMetrics(
+        survivingTroops: Int
+    ) -> BattleSummaryMetrics {
+        var damageToBase = 0.0
+        var hitPointsLostByArmy = 0.0
+        var destroyedWalls = 0
+
+        for entity in entities {
+            let entityDefinition = definition(for: entity.kind)
+            let lostHitPoints = max(
+                0,
+                entityDefinition.maxHitPoints - entity.hitPoints
+            )
+
+            if entityDefinition.role == .troop {
+                hitPointsLostByArmy += lostHitPoints
+            } else {
+                damageToBase += lostHitPoints
+            }
+
+            if
+                entityDefinition.role == .wall &&
+                !entity.isAlive
+            {
+                destroyedWalls += 1
+            }
+        }
+
+        return BattleSummaryMetrics(
+            damageToBase: damageToBase,
+            hitPointsLostByArmy: hitPointsLostByArmy,
+            troopsLost: max(0, deployedTroopCount - survivingTroops),
+            destroyedWalls: destroyedWalls,
+            spellsCast: deployedSpellCount
+        )
+    }
+
+    private func combatModifiers(
+        for entity: BattleEntity
+    ) -> CombatModifiers {
+        guard definition(for: entity.kind).role == .troop else {
+            return .neutral
+        }
+
+        var damage = 1.0
+        var movementSpeed = 1.0
+        var attackSpeed = 1.0
+
+        for spell in activeSpells where spell.kind == .rage {
+            let spellData = spellDefinition(for: spell.kind)
+
+            guard distance(
+                from: entity.position,
+                to: spell.position
+            ) <= spellData.radius else {
+                continue
+            }
+
+            damage = max(damage, spellData.damageMultiplier)
+            movementSpeed = max(
+                movementSpeed,
+                spellData.movementSpeedMultiplier
+            )
+            attackSpeed = max(
+                attackSpeed,
+                spellData.attackSpeedMultiplier
+            )
+        }
+
+        return CombatModifiers(
+            damage: damage,
+            movementSpeed: movementSpeed,
+            attackSpeed: attackSpeed
         )
     }
 

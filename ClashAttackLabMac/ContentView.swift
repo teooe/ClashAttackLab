@@ -12,7 +12,7 @@ struct ContentView: View {
                     Text("Clash Attack Lab")
                         .font(.title2.bold())
 
-                    Text("Milestone 9 · Spaccamuro e brecce specializzate")
+                    Text("Milestone 12 · Incantesimi, ricerca e analisi")
                         .foregroundStyle(.secondary)
                         .lineLimit(1)
                         .minimumScaleFactor(0.8)
@@ -23,7 +23,10 @@ struct ContentView: View {
                 Button {
                     session.findBestAttack()
                 } label: {
-                    Label("Trova attacco", systemImage: "wand.and.stars")
+                    Label(
+                        "Trova tra \(session.candidatePlanCount)",
+                        systemImage: "wand.and.stars"
+                    )
                 }
                 .buttonStyle(.borderedProminent)
 
@@ -95,6 +98,28 @@ struct ContentView: View {
                     Spacer()
 
                     Text("Preferenze bersaglio: documentate")
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                }
+
+                HStack(spacing: 18) {
+                    legendItem(
+                        symbol: "H",
+                        color: .green,
+                        title: "Cura",
+                        detail: "recupero nella zona"
+                    )
+
+                    legendItem(
+                        symbol: "R",
+                        color: .purple,
+                        title: "Furia",
+                        detail: "danno + velocità"
+                    )
+
+                    Spacer()
+
+                    Text("Comportamento documentato · valori numerici prototipo")
                         .font(.caption2)
                         .foregroundStyle(.secondary)
                 }
@@ -217,6 +242,18 @@ struct ContentView: View {
                     )
                     .font(.caption2.monospacedDigit())
                     .foregroundStyle(.secondary)
+
+                    Text(
+                        String(
+                            format: "Danno %.0f · Perse %d · Muri %d · %@",
+                            evaluation.result.metrics.damageToBase,
+                            evaluation.result.metrics.troopsLost,
+                            evaluation.result.metrics.destroyedWalls,
+                            evaluation.result.finishReason.displayName
+                        )
+                    )
+                    .font(.system(size: 9).monospacedDigit())
+                    .foregroundStyle(.tertiary)
                 }
             }
             .padding(.horizontal, 12)
