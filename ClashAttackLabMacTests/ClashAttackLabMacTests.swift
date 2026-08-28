@@ -357,7 +357,7 @@ struct ClashAttackLabMacTests {
     }
 
     @Test
-    func archerAttacksFromRangeWithoutMoving() throws {
+    func archerLaunchesArrowFromRangeWithoutMoving() throws {
         let grid = PrototypeBattleMap.makeNavigationGrid()
         let start = grid.worldPosition(
             for: GridCoordinate(column: 2, row: 5)
@@ -381,18 +381,198 @@ struct ClashAttackLabMacTests {
         let archer = try #require(
             engine.entities.first { $0.kind == .archer }
         )
-        let damagedStorage = try #require(
+        let storageBeforeImpact = try #require(
             engine.entities.first { $0.id == storage.id }
         )
+        let arrow = try #require(engine.projectiles.first)
 
         #expect(archer.currentTargetID == storage.id)
         #expect(archer.position == start)
+        #expect(arrow.kind == .arrow)
+        #expect(arrow.targetEntityID == storage.id)
         #expect(
-            damagedStorage.hitPoints <
+            storageBeforeImpact.hitPoints ==
                 PrototypeGameData()
                     .definition(for: .goldStorage)
                     .maxHitPoints
         )
+
+        advance(engine, ticks: 30)
+
+        let storageAfterImpact = try #require(
+            engine.entities.first { $0.id == storage.id }
+        )
+        #expect(
+            storageAfterImpact.hitPoints <
+                PrototypeGameData()
+                    .definition(for: .goldStorage)
+                    .maxHitPoints
+        )
+    }
+
+    @Test
+    func archerTowerDelaysDamageUntilArrowImpact() throws {
+        let grid = PrototypeBattleMap.makeNavigationGrid()
+        let tower = BattleEntity(
+            kind: .archerTower,
+            position: grid.worldPosition(
+                for: GridCoordinate(column: 10, row: 8)
+            )
+        )
+        let giantID = UUID()
+        let plan = AttackPlan(
+            name: "Test proiettile torre",
+            deployments: [
+                DeploymentOrder(
+                    entityID: giantID,
+                    kind: .giant,
+                    position: grid.worldPosition(
+                        for: GridCoordinate(column: 4, row: 8)
+                    ),
+                    deploymentTime: 0
+                )
+            ]
+        )
+        let engine = SimulationEngine(
+            entities: [tower],
+            attackPlan: plan,
+            gameData: PrototypeGameData(),
+            navigationGrid: grid
+        )
+
+        engine.start()
+        engine.advance(by: 1.0 / 60.0)
+
+        let giantBeforeImpact = try #require(
+            engine.entities.first { $0.id == giantID }
+        )
+        let projectile = try #require(engine.projectiles.first)
+
+        #expect(projectile.kind == .arrow)
+        #expect(projectile.targetEntityID == giantID)
+        #expect(
+            giantBeforeImpact.hitPoints ==
+                PrototypeGameData()
+                    .definition(for: .giant)
+                    .maxHitPoints
+        )
+
+        advance(engine, ticks: 30)
+
+        let giantAfterImpact = try #require(
+            engine.entities.first { $0.id == giantID }
+        )
+        #expect(
+            giantAfterImpact.hitPoints <
+                PrototypeGameData()
+                    .definition(for: .giant)
+                    .maxHitPoints
+        )
+    }
+
+    @Test
+    func mortarIgnoresTroopsInsideMinimumRange() throws {
+        let grid = PrototypeBattleMap.makeNavigationGrid()
+        let mortar = BattleEntity(
+            kind: .mortar,
+            position: grid.worldPosition(
+                for: GridCoordinate(column: 10, row: 8)
+            )
+        )
+        let closeID = UUID()
+        let distantID = UUID()
+        let plan = AttackPlan(
+            name: "Test raggio minimo",
+            deployments: [
+                DeploymentOrder(
+                    entityID: closeID,
+                    kind: .giant,
+                    position: grid.worldPosition(
+                        for: GridCoordinate(column: 12, row: 8)
+                    ),
+                    deploymentTime: 0
+                ),
+                DeploymentOrder(
+                    entityID: distantID,
+                    kind: .giant,
+                    position: grid.worldPosition(
+                        for: GridCoordinate(column: 17, row: 8)
+                    ),
+                    deploymentTime: 0
+                )
+            ]
+        )
+        let engine = SimulationEngine(
+            entities: [mortar],
+            attackPlan: plan,
+            gameData: PrototypeGameData(),
+            navigationGrid: grid
+        )
+
+        engine.start()
+        engine.advance(by: 1.0 / 60.0)
+
+        let shell = try #require(engine.projectiles.first)
+        #expect(shell.kind == .mortarShell)
+        #expect(shell.targetEntityID == distantID)
+        #expect(shell.targetEntityID != closeID)
+        #expect(shell.splashRadius > 0)
+    }
+
+    @Test
+    func mortarSplashDamagesClusteredTroops() throws {
+        let grid = PrototypeBattleMap.makeNavigationGrid()
+        let mortar = BattleEntity(
+            kind: .mortar,
+            position: grid.worldPosition(
+                for: GridCoordinate(column: 10, row: 8)
+            )
+        )
+        let firstID = UUID()
+        let secondID = UUID()
+        let plan = AttackPlan(
+            name: "Test danno ad area",
+            deployments: [
+                DeploymentOrder(
+                    entityID: firstID,
+                    kind: .giant,
+                    position: grid.worldPosition(
+                        for: GridCoordinate(column: 17, row: 8)
+                    ),
+                    deploymentTime: 0
+                ),
+                DeploymentOrder(
+                    entityID: secondID,
+                    kind: .giant,
+                    position: grid.worldPosition(
+                        for: GridCoordinate(column: 17, row: 9)
+                    ),
+                    deploymentTime: 0
+                )
+            ]
+        )
+        let gameData = PrototypeGameData()
+        let engine = SimulationEngine(
+            entities: [mortar],
+            attackPlan: plan,
+            gameData: gameData,
+            navigationGrid: grid
+        )
+
+        engine.start()
+        engine.advance(by: 1.0 / 60.0)
+        advance(engine, ticks: 60)
+
+        let first = try #require(
+            engine.entities.first { $0.id == firstID }
+        )
+        let second = try #require(
+            engine.entities.first { $0.id == secondID }
+        )
+        let maximum = gameData.definition(for: .giant).maxHitPoints
+
+        #expect(first.hitPoints < maximum)
+        #expect(second.hitPoints < maximum)
     }
 
     private func makeSingleTroopEngine(

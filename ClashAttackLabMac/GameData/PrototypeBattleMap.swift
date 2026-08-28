@@ -26,6 +26,70 @@ enum PrototypeBattleMap {
         return walls
     }
 
+    static func makeBaseEntities(
+        navigationGrid: NavigationGrid
+    ) -> [BattleEntity] {
+        var entities = [
+            BattleEntity(
+                kind: .cannon,
+                position: navigationGrid.worldPosition(
+                    for: GridCoordinate(column: 16, row: 3)
+                )
+            ),
+            BattleEntity(
+                kind: .cannon,
+                position: navigationGrid.worldPosition(
+                    for: GridCoordinate(column: 16, row: 13)
+                )
+            ),
+            BattleEntity(
+                kind: .archerTower,
+                position: navigationGrid.worldPosition(
+                    for: GridCoordinate(column: 19, row: 4)
+                )
+            ),
+            BattleEntity(
+                kind: .archerTower,
+                position: navigationGrid.worldPosition(
+                    for: GridCoordinate(column: 19, row: 12)
+                )
+            ),
+            BattleEntity(
+                kind: .mortar,
+                position: navigationGrid.worldPosition(
+                    for: GridCoordinate(column: 18, row: 8)
+                )
+            ),
+            BattleEntity(
+                kind: .townHall,
+                position: navigationGrid.worldPosition(
+                    for: GridCoordinate(column: 22, row: 8)
+                )
+            ),
+            BattleEntity(
+                kind: .goldStorage,
+                position: navigationGrid.worldPosition(
+                    for: GridCoordinate(column: 16, row: 7)
+                )
+            ),
+            BattleEntity(
+                kind: .goldStorage,
+                position: navigationGrid.worldPosition(
+                    for: GridCoordinate(column: 16, row: 12)
+                )
+            )
+        ]
+
+        entities += wallCoordinates().map {
+            BattleEntity(
+                kind: .wall,
+                position: navigationGrid.worldPosition(for: $0)
+            )
+        }
+
+        return entities
+    }
+
     static func makeAttackPlan(
         navigationGrid: NavigationGrid
     ) -> AttackPlan {

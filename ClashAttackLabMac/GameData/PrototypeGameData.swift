@@ -3,9 +3,9 @@ import Foundation
 /// Temporary tuning values used only to validate the simulator architecture.
 ///
 /// Numeric combat values in this file are synthetic prototype values, not
-/// official Clash of Clans statistics. Target preferences are stored
-/// separately and tagged with their evidence level.
-struct PrototypeGameData: GameDataProviding {
+/// official Clash of Clans statistics. Target preferences and defense
+/// behaviors are stored separately from those temporary numbers.
+nonisolated struct PrototypeGameData: GameDataProviding {
     func definition(for kind: BattleEntityKind) -> CombatDefinition {
         switch kind {
         case .giant:
@@ -15,9 +15,13 @@ struct PrototypeGameData: GameDataProviding {
                 maxHitPoints: 1_050,
                 movementSpeed: 100,
                 attackDamage: 115,
+                minimumAttackRange: 0,
                 attackRange: 82,
                 attackInterval: 1.2,
                 canMove: true,
+                projectileKind: nil,
+                projectileSpeed: 0,
+                splashRadius: 0,
                 targetingProfile: TargetingProfile(
                     preference: .defenses,
                     evidence: .documented
@@ -31,9 +35,13 @@ struct PrototypeGameData: GameDataProviding {
                 maxHitPoints: 380,
                 movementSpeed: 140,
                 attackDamage: 70,
+                minimumAttackRange: 0,
                 attackRange: 58,
                 attackInterval: 0.9,
                 canMove: true,
+                projectileKind: nil,
+                projectileSpeed: 0,
+                splashRadius: 0,
                 targetingProfile: TargetingProfile(
                     preference: .anyBuilding,
                     evidence: .documented
@@ -47,9 +55,13 @@ struct PrototypeGameData: GameDataProviding {
                 maxHitPoints: 190,
                 movementSpeed: 150,
                 attackDamage: 55,
+                minimumAttackRange: 0,
                 attackRange: 200,
                 attackInterval: 1.0,
                 canMove: true,
+                projectileKind: .arrow,
+                projectileSpeed: 650,
+                splashRadius: 0,
                 targetingProfile: TargetingProfile(
                     preference: .anyBuilding,
                     evidence: .documented
@@ -63,9 +75,47 @@ struct PrototypeGameData: GameDataProviding {
                 maxHitPoints: 500,
                 movementSpeed: 0,
                 attackDamage: 40,
+                minimumAttackRange: 0,
                 attackRange: 300,
                 attackInterval: 0.9,
                 canMove: false,
+                projectileKind: .cannonball,
+                projectileSpeed: 600,
+                splashRadius: 0,
+                targetingProfile: nil
+            )
+
+        case .archerTower:
+            return CombatDefinition(
+                displayName: "Torre dell’Arciera",
+                role: .defense,
+                maxHitPoints: 560,
+                movementSpeed: 0,
+                attackDamage: 34,
+                minimumAttackRange: 0,
+                attackRange: 340,
+                attackInterval: 0.75,
+                canMove: false,
+                projectileKind: .arrow,
+                projectileSpeed: 700,
+                splashRadius: 0,
+                targetingProfile: nil
+            )
+
+        case .mortar:
+            return CombatDefinition(
+                displayName: "Mortaio",
+                role: .defense,
+                maxHitPoints: 520,
+                movementSpeed: 0,
+                attackDamage: 120,
+                minimumAttackRange: 150,
+                attackRange: 440,
+                attackInterval: 2.8,
+                canMove: false,
+                projectileKind: .mortarShell,
+                projectileSpeed: 360,
+                splashRadius: 95,
                 targetingProfile: nil
             )
 
@@ -76,9 +126,13 @@ struct PrototypeGameData: GameDataProviding {
                 maxHitPoints: 900,
                 movementSpeed: 0,
                 attackDamage: 0,
+                minimumAttackRange: 0,
                 attackRange: 0,
                 attackInterval: 0,
                 canMove: false,
+                projectileKind: nil,
+                projectileSpeed: 0,
+                splashRadius: 0,
                 targetingProfile: nil
             )
 
@@ -89,9 +143,13 @@ struct PrototypeGameData: GameDataProviding {
                 maxHitPoints: 620,
                 movementSpeed: 0,
                 attackDamage: 0,
+                minimumAttackRange: 0,
                 attackRange: 0,
                 attackInterval: 0,
                 canMove: false,
+                projectileKind: nil,
+                projectileSpeed: 0,
+                splashRadius: 0,
                 targetingProfile: nil
             )
 
@@ -102,9 +160,13 @@ struct PrototypeGameData: GameDataProviding {
                 maxHitPoints: 280,
                 movementSpeed: 0,
                 attackDamage: 0,
+                minimumAttackRange: 0,
                 attackRange: 0,
                 attackInterval: 0,
                 canMove: false,
+                projectileKind: nil,
+                projectileSpeed: 0,
+                splashRadius: 0,
                 targetingProfile: nil
             )
         }

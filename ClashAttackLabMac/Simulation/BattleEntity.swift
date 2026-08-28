@@ -10,12 +10,14 @@ nonisolated enum BattleEntityKind: Hashable {
     case barbarian
     case archer
     case cannon
+    case archerTower
+    case mortar
     case townHall
     case goldStorage
     case wall
 }
 
-struct BattleEntity: Identifiable {
+nonisolated struct BattleEntity: Identifiable {
     let id: UUID
     let kind: BattleEntityKind
     var position: WorldPosition

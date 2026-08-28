@@ -17,6 +17,7 @@ final class SimulationEngine {
     private var pendingDeployments: [DeploymentOrder] = []
 
     private(set) var entities: [BattleEntity]
+    private(set) var projectiles: [BattleProjectile] = []
     private(set) var status: SimulationStatus = .ready
     private(set) var elapsedTime: TimeInterval = 0
     private(set) var score: BaseScoreSnapshot = .zero
@@ -111,6 +112,7 @@ final class SimulationEngine {
         elapsedTime = 0
         attackCounts = [:]
         movementPaths = [:]
+        projectiles = []
         pendingDeployments = attackPlan.orderedDeployments
         score = scoringSystem.calculate(
             entities: entities,
@@ -147,6 +149,20 @@ final class SimulationEngine {
 
         reduceCooldowns(by: deltaTime)
 
+        var pendingDamage: [UUID: Double] = [:]
+        advanceProjectiles(
+            by: deltaTime,
+            pendingDamage: &pendingDamage
+        )
+        apply(pendingDamage)
+        pendingDamage.removeAll(keepingCapacity: true)
+        clearInvalidTargets()
+
+        score = scoringSystem.calculate(
+            entities: entities,
+            gameData: gameData
+        )
+
         let troopIndices = livingIndices(with: .troop)
         let defenseIndices = livingIndices(with: .defense)
         let buildingIndices = livingIndices(with: .building)
@@ -158,13 +174,14 @@ final class SimulationEngine {
         }
 
         guard !troopIndices.isEmpty else {
-            if pendingDeployments.isEmpty {
+            if
+                pendingDeployments.isEmpty &&
+                !hasAttackerProjectiles
+            {
                 finish(timeExpired: false)
             }
             return
         }
-
-        var pendingDamage: [UUID: Double] = [:]
 
         for defenseIndex in defenseIndices {
             actDefense(
@@ -219,6 +236,7 @@ final class SimulationEngine {
         let targetIndex = resolveDefenseTarget(
             for: defenseIndex,
             among: possibleTargets,
+            minimumRange: definition.minimumAttackRange,
             acquisitionRange: definition.attackRange
         )
 
@@ -375,37 +393,59 @@ final class SimulationEngine {
     private func resolveDefenseTarget(
         for defenseIndex: Int,
         among candidateIndices: [Int],
+        minimumRange: Double,
         acquisitionRange: Double
     ) -> Int? {
+        let defensePosition = entities[defenseIndex].position
+
         if
             let lockedID = entities[defenseIndex].currentTargetID,
             let lockedIndex = candidateIndices.first(where: {
                 entities[$0].id == lockedID && entities[$0].isAlive
-            }),
-            distance(
-                from: entities[defenseIndex].position,
-                to: entities[lockedIndex].position
-            ) <= acquisitionRange
+            })
         {
-            return lockedIndex
+            let lockedDistance = distance(
+                from: defensePosition,
+                to: entities[lockedIndex].position
+            )
+
+            if
+                lockedDistance >= minimumRange &&
+                lockedDistance <= acquisitionRange
+            {
+                return lockedIndex
+            }
         }
 
         let nearest = candidateIndices
             .filter {
-                entities[$0].isAlive &&
-                    distance(
-                        from: entities[defenseIndex].position,
-                        to: entities[$0].position
-                    ) <= acquisitionRange
+                guard entities[$0].isAlive else {
+                    return false
+                }
+
+                let candidateDistance = distance(
+                    from: defensePosition,
+                    to: entities[$0].position
+                )
+                return candidateDistance >= minimumRange &&
+                    candidateDistance <= acquisitionRange
             }
             .min {
-                distance(
-                    from: entities[defenseIndex].position,
+                let firstDistance = distance(
+                    from: defensePosition,
                     to: entities[$0].position
-                ) < distance(
-                    from: entities[defenseIndex].position,
+                )
+                let secondDistance = distance(
+                    from: defensePosition,
                     to: entities[$1].position
                 )
+
+                if firstDistance == secondDistance {
+                    return entities[$0].id.uuidString <
+                        entities[$1].id.uuidString
+                }
+
+                return firstDistance < secondDistance
             }
 
         entities[defenseIndex].currentTargetID = nearest.map {
@@ -514,22 +554,119 @@ final class SimulationEngine {
         pendingDamage: inout [UUID: Double]
     ) {
         let attacker = entities[attackerIndex]
+        let target = entities[targetIndex]
         let attackerDefinition = definition(for: attacker.kind)
 
         guard
             attacker.isAlive,
-            entities[targetIndex].isAlive,
+            target.isAlive,
             attacker.attackCooldown <= 0,
             attackerDefinition.attackDamage > 0
         else {
             return
         }
 
-        pendingDamage[entities[targetIndex].id, default: 0] +=
-            attackerDefinition.attackDamage
+        if
+            let projectileKind = attackerDefinition.projectileKind,
+            attackerDefinition.projectileSpeed > 0
+        {
+            let targetDefinition = definition(for: target.kind)
+            projectiles.append(
+                BattleProjectile(
+                    kind: projectileKind,
+                    sourceEntityID: attacker.id,
+                    sourceRole: attackerDefinition.role,
+                    targetEntityID: target.id,
+                    targetRole: targetDefinition.role,
+                    position: attacker.position,
+                    destination: target.position,
+                    speed: attackerDefinition.projectileSpeed,
+                    damage: attackerDefinition.attackDamage,
+                    splashRadius: attackerDefinition.splashRadius
+                )
+            )
+        } else {
+            pendingDamage[target.id, default: 0] +=
+                attackerDefinition.attackDamage
+        }
+
         entities[attackerIndex].attackCooldown =
             attackerDefinition.attackInterval
         attackCounts[attackerDefinition.role, default: 0] += 1
+    }
+
+    private func advanceProjectiles(
+        by deltaTime: TimeInterval,
+        pendingDamage: inout [UUID: Double]
+    ) {
+        var activeProjectiles: [BattleProjectile] = []
+        activeProjectiles.reserveCapacity(projectiles.count)
+
+        for var projectile in projectiles {
+            let remainingDistance = distance(
+                from: projectile.position,
+                to: projectile.destination
+            )
+            let travelDistance = projectile.speed * deltaTime
+
+            if
+                remainingDistance <= travelDistance ||
+                remainingDistance == 0
+            {
+                resolveImpact(
+                    of: projectile,
+                    pendingDamage: &pendingDamage
+                )
+                continue
+            }
+
+            let ratio = travelDistance / remainingDistance
+            projectile.position.x +=
+                (projectile.destination.x - projectile.position.x) * ratio
+            projectile.position.y +=
+                (projectile.destination.y - projectile.position.y) * ratio
+            activeProjectiles.append(projectile)
+        }
+
+        projectiles = activeProjectiles
+    }
+
+    private func resolveImpact(
+        of projectile: BattleProjectile,
+        pendingDamage: inout [UUID: Double]
+    ) {
+        if projectile.splashRadius > 0 {
+            for index in entities.indices
+            where entities[index].isAlive {
+                let entityRole = definition(for: entities[index].kind).role
+
+                guard
+                    entityRole == projectile.targetRole,
+                    distance(
+                        from: entities[index].position,
+                        to: projectile.destination
+                    ) <= projectile.splashRadius
+                else {
+                    continue
+                }
+
+                pendingDamage[entities[index].id, default: 0] +=
+                    projectile.damage
+            }
+            return
+        }
+
+        guard
+            let targetIndex = entities.indices.first(where: {
+                entities[$0].id == projectile.targetEntityID &&
+                    entities[$0].isAlive
+            })
+        else {
+            return
+        }
+
+        pendingDamage[entities[targetIndex].id, default: 0] +=
+            projectile.damage
     }
 
     private func reduceCooldowns(by deltaTime: TimeInterval) {
@@ -633,6 +770,10 @@ final class SimulationEngine {
         return breakTime * troop.movementSpeed
     }
 
+    private var hasAttackerProjectiles: Bool {
+        projectiles.contains { $0.sourceRole == .troop }
+    }
+
     private func finishIfNeeded() {
         let survivingTroops = livingIndices(with: .troop).count
         let remainingObjectives =
@@ -641,7 +782,11 @@ final class SimulationEngine {
 
         if
             remainingObjectives == 0 ||
-            (survivingTroops == 0 && pendingDeployments.isEmpty)
+            (
+                survivingTroops == 0 &&
+                pendingDeployments.isEmpty &&
+                !hasAttackerProjectiles
+            )
         {
             finish(timeExpired: false)
         }
@@ -659,6 +804,7 @@ final class SimulationEngine {
 
         let survivingTroops = livingIndices(with: .troop).count
         let survivingDefenses = livingIndices(with: .defense).count
+        projectiles = []
         let winner: BattleWinner =
             score.destructionPercentage >= 100
                 ? .attackers

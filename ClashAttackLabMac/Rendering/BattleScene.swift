@@ -12,6 +12,7 @@ final class BattleScene: SKScene {
     private let navigationGrid: NavigationGrid
     private let attackPlan: AttackPlan
     private var entityVisuals: [UUID: EntityVisual] = [:]
+    private var projectileVisuals: [UUID: SKShapeNode] = [:]
     private var deploymentMarkers: [UUID: SKNode] = [:]
     private var lastUpdateTime: TimeInterval?
 
@@ -230,11 +231,65 @@ final class BattleScene: SKScene {
         }
     }
 
+    private func reconcileProjectileVisuals() {
+        let currentIDs = Set(simulation.projectiles.map(\.id))
+        let removedIDs = projectileVisuals.keys.filter {
+            !currentIDs.contains($0)
+        }
+
+        for id in removedIDs {
+            projectileVisuals[id]?.removeFromParent()
+            projectileVisuals.removeValue(forKey: id)
+        }
+
+        for projectile in simulation.projectiles {
+            let node: SKShapeNode
+
+            if let existing = projectileVisuals[projectile.id] {
+                node = existing
+            } else {
+                node = makeProjectileNode(for: projectile.kind)
+                projectileVisuals[projectile.id] = node
+                addChild(node)
+            }
+
+            node.position = CGPoint(
+                x: projectile.position.x,
+                y: projectile.position.y
+            )
+        }
+    }
+
+    private func makeProjectileNode(
+        for kind: ProjectileKind
+    ) -> SKShapeNode {
+        let node: SKShapeNode
+
+        switch kind {
+        case .arrow:
+            node = SKShapeNode(rectOf: CGSize(width: 12, height: 4))
+            node.fillColor = .systemYellow
+        case .cannonball:
+            node = SKShapeNode(circleOfRadius: 7)
+            node.fillColor = .darkGray
+        case .mortarShell:
+            node = SKShapeNode(circleOfRadius: 10)
+            node.fillColor = .systemOrange
+            node.glowWidth = 4
+        }
+
+        node.strokeColor = .white
+        node.lineWidth = 1.5
+        node.zPosition = 30
+        return node
+    }
+
     private func createEntityVisual(for entity: BattleEntity) {
         let definition = simulation.definition(for: entity.kind)
         let root = SKNode()
         let body = makeBody(for: entity.kind)
         root.addChild(body)
+        addRangeRings(for: definition, to: root)
 
         let isWall = definition.role == .wall
         let healthWidth = isWall ? 34.0 : 88.0
@@ -290,6 +345,40 @@ final class BattleScene: SKScene {
         addChild(root)
     }
 
+    private func addRangeRings(
+        for definition: CombatDefinition,
+        to root: SKNode
+    ) {
+        guard
+            definition.role == .defense,
+            definition.attackRange > 0
+        else {
+            return
+        }
+
+        let maximumRing = SKShapeNode(
+            circleOfRadius: definition.attackRange
+        )
+        maximumRing.strokeColor = .systemRed.withAlphaComponent(0.16)
+        maximumRing.lineWidth = 2
+        maximumRing.fillColor = .clear
+        maximumRing.zPosition = -2
+        root.addChild(maximumRing)
+
+        guard definition.minimumAttackRange > 0 else {
+            return
+        }
+
+        let minimumRing = SKShapeNode(
+            circleOfRadius: definition.minimumAttackRange
+        )
+        minimumRing.strokeColor = .systemOrange.withAlphaComponent(0.28)
+        minimumRing.lineWidth = 2
+        minimumRing.fillColor = .clear
+        minimumRing.zPosition = -1
+        root.addChild(minimumRing)
+    }
+
     private func updateDeploymentMarkers() {
         let deployedIDs = Set(simulation.entities.map(\.id))
 
@@ -300,6 +389,7 @@ final class BattleScene: SKScene {
 
     private func updatePresentation() {
         reconcileEntityVisuals()
+        reconcileProjectileVisuals()
         updateDeploymentMarkers()
 
         let entitiesByID = Dictionary(
@@ -446,7 +536,8 @@ final class BattleScene: SKScene {
             return .systemRed
         case .archer:
             return .systemPink
-        case .cannon, .townHall, .goldStorage, .wall:
+        case .cannon, .archerTower, .mortar,
+             .townHall, .goldStorage, .wall:
             return .systemCyan
         }
     }
@@ -461,6 +552,10 @@ final class BattleScene: SKScene {
             return "A"
         case .cannon:
             return "C"
+        case .archerTower:
+            return "TA"
+        case .mortar:
+            return "MO"
         case .townHall:
             return "TH"
         case .goldStorage:
@@ -498,6 +593,25 @@ final class BattleScene: SKScene {
                 size: CGSize(width: 66, height: 66),
                 color: .darkGray,
                 text: "C"
+            )
+
+        case .archerTower:
+            return makeLabeledRectangle(
+                size: CGSize(width: 62, height: 78),
+                color: .systemTeal,
+                text: "TA"
+            )
+
+        case .mortar:
+            return makeLabeledCircle(
+                radius: 36,
+                color: SKColor(
+                    red: 0.35,
+                    green: 0.25,
+                    blue: 0.18,
+                    alpha: 1
+                ),
+                text: "MO"
             )
 
         case .townHall:

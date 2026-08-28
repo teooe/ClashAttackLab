@@ -8,52 +8,9 @@ struct ContentView: View {
         let attackPlan = PrototypeBattleMap.makeAttackPlan(
             navigationGrid: navigationGrid
         )
-
-        var baseEntities = [
-            BattleEntity(
-                kind: .cannon,
-                position: navigationGrid.worldPosition(
-                    for: GridCoordinate(column: 16, row: 3)
-                )
-            ),
-            BattleEntity(
-                kind: .cannon,
-                position: navigationGrid.worldPosition(
-                    for: GridCoordinate(column: 19, row: 8)
-                )
-            ),
-            BattleEntity(
-                kind: .cannon,
-                position: navigationGrid.worldPosition(
-                    for: GridCoordinate(column: 16, row: 13)
-                )
-            ),
-            BattleEntity(
-                kind: .townHall,
-                position: navigationGrid.worldPosition(
-                    for: GridCoordinate(column: 22, row: 8)
-                )
-            ),
-            BattleEntity(
-                kind: .goldStorage,
-                position: navigationGrid.worldPosition(
-                    for: GridCoordinate(column: 17, row: 7)
-                )
-            ),
-            BattleEntity(
-                kind: .goldStorage,
-                position: navigationGrid.worldPosition(
-                    for: GridCoordinate(column: 17, row: 12)
-                )
-            )
-        ]
-
-        baseEntities += PrototypeBattleMap.wallCoordinates().map {
-            BattleEntity(
-                kind: .wall,
-                position: navigationGrid.worldPosition(for: $0)
-            )
-        }
+        let baseEntities = PrototypeBattleMap.makeBaseEntities(
+            navigationGrid: navigationGrid
+        )
 
         let simulation = SimulationEngine(
             entities: baseEntities,
@@ -77,7 +34,7 @@ struct ContentView: View {
                     Text("Clash Attack Lab")
                         .font(.title2.bold())
 
-                    Text("Milestone 6 · Esercito misto e targeting per unità")
+                    Text("Milestone 7 · Difese specializzate e proiettili")
                         .foregroundStyle(.secondary)
                         .lineLimit(1)
                         .minimumScaleFactor(0.8)
@@ -120,36 +77,64 @@ struct ContentView: View {
 
             Divider()
 
-            HStack(spacing: 18) {
-                legendItem(
-                    symbol: "G",
-                    color: .orange,
-                    title: "Gigante",
-                    detail: "priorità difese"
-                )
+            VStack(spacing: 8) {
+                HStack(spacing: 18) {
+                    legendItem(
+                        symbol: "G",
+                        color: .orange,
+                        title: "Gigante",
+                        detail: "priorità difese"
+                    )
 
-                legendItem(
-                    symbol: "B",
-                    color: .red,
-                    title: "Barbaro",
-                    detail: "qualsiasi edificio"
-                )
+                    legendItem(
+                        symbol: "B",
+                        color: .red,
+                        title: "Barbaro",
+                        detail: "qualsiasi edificio"
+                    )
 
-                legendItem(
-                    symbol: "A",
-                    color: .pink,
-                    title: "Arciera",
-                    detail: "attacco a distanza"
-                )
+                    legendItem(
+                        symbol: "A",
+                        color: .pink,
+                        title: "Arciera",
+                        detail: "freccia a distanza"
+                    )
 
-                Spacer()
+                    Spacer()
 
-                VStack(alignment: .trailing, spacing: 2) {
                     Text("Preferenze bersaglio: documentate")
-                    Text("Statistiche e costo percorso: prototipo")
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
                 }
-                .font(.caption2)
-                .foregroundStyle(.secondary)
+
+                HStack(spacing: 18) {
+                    legendItem(
+                        symbol: "C",
+                        color: .gray,
+                        title: "Cannone",
+                        detail: "colpo singolo"
+                    )
+
+                    legendItem(
+                        symbol: "TA",
+                        color: .cyan,
+                        title: "Torre",
+                        detail: "alta frequenza"
+                    )
+
+                    legendItem(
+                        symbol: "MO",
+                        color: .brown,
+                        title: "Mortaio",
+                        detail: "area + raggio minimo"
+                    )
+
+                    Spacer()
+
+                    Text("Statistiche, proiettili e danno ad area: prototipo")
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                }
             }
             .padding(.horizontal)
             .padding(.vertical, 8)
@@ -172,9 +157,9 @@ struct ContentView: View {
             Text(symbol)
                 .font(.caption.bold())
                 .foregroundStyle(.white)
-                .frame(width: 24, height: 24)
+                .frame(width: 28, height: 24)
                 .background(color)
-                .clipShape(Circle())
+                .clipShape(Capsule())
 
             VStack(alignment: .leading, spacing: 1) {
                 Text(title)
