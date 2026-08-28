@@ -30,7 +30,7 @@ enum PrototypeBattleMap {
         navigationGrid: NavigationGrid
     ) -> AttackPlan {
         AttackPlan(
-            name: "Assalto prototipo a ondate",
+            name: "Assalto misto a tre ondate",
             deployments: [
                 DeploymentOrder(
                     kind: .giant,
@@ -40,18 +40,53 @@ enum PrototypeBattleMap {
                     deploymentTime: 0
                 ),
                 DeploymentOrder(
-                    kind: .giant,
+                    kind: .barbarian,
                     position: navigationGrid.worldPosition(
-                        for: GridCoordinate(column: 2, row: 7)
+                        for: GridCoordinate(column: 1, row: 3)
                     ),
-                    deploymentTime: 2
+                    deploymentTime: 0.6
+                ),
+                DeploymentOrder(
+                    kind: .archer,
+                    position: navigationGrid.worldPosition(
+                        for: GridCoordinate(column: 1, row: 5)
+                    ),
+                    deploymentTime: 1.2
                 ),
                 DeploymentOrder(
                     kind: .giant,
                     position: navigationGrid.worldPosition(
                         for: GridCoordinate(column: 2, row: 11)
                     ),
-                    deploymentTime: 4
+                    deploymentTime: 3
+                ),
+                DeploymentOrder(
+                    kind: .barbarian,
+                    position: navigationGrid.worldPosition(
+                        for: GridCoordinate(column: 1, row: 12)
+                    ),
+                    deploymentTime: 3.6
+                ),
+                DeploymentOrder(
+                    kind: .archer,
+                    position: navigationGrid.worldPosition(
+                        for: GridCoordinate(column: 1, row: 10)
+                    ),
+                    deploymentTime: 4.2
+                ),
+                DeploymentOrder(
+                    kind: .barbarian,
+                    position: navigationGrid.worldPosition(
+                        for: GridCoordinate(column: 2, row: 7)
+                    ),
+                    deploymentTime: 6
+                ),
+                DeploymentOrder(
+                    kind: .archer,
+                    position: navigationGrid.worldPosition(
+                        for: GridCoordinate(column: 1, row: 7)
+                    ),
+                    deploymentTime: 6.5
                 )
             ]
         )
