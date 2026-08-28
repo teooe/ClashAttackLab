@@ -6,6 +6,7 @@ final class SimulationEngine {
     private let gameData: any GameDataProviding
     private let navigationGrid: NavigationGrid
     private let pathfinder: AStarPathfinder
+    private let targetSelectionSystem: TargetSelectionSystem
     private let scoringSystem: BaseScoringSystem
     private let initialEntities: [BattleEntity]
     private let attackPlan: AttackPlan
@@ -38,6 +39,7 @@ final class SimulationEngine {
         gameData: any GameDataProviding,
         navigationGrid: NavigationGrid,
         pathfinder: AStarPathfinder = AStarPathfinder(),
+        targetSelectionSystem: TargetSelectionSystem? = nil,
         scoringSystem: BaseScoringSystem = BaseScoringSystem()
     ) {
         self.initialEntities = entities
@@ -46,6 +48,9 @@ final class SimulationEngine {
         self.gameData = gameData
         self.navigationGrid = navigationGrid
         self.pathfinder = pathfinder
+        self.targetSelectionSystem =
+            targetSelectionSystem ??
+            TargetSelectionSystem(pathfinder: pathfinder)
         self.scoringSystem = scoringSystem
         reset()
     }
@@ -145,9 +150,7 @@ final class SimulationEngine {
         let troopIndices = livingIndices(with: .troop)
         let defenseIndices = livingIndices(with: .defense)
         let buildingIndices = livingIndices(with: .building)
-        let objectiveIndices = defenseIndices.isEmpty
-            ? buildingIndices
-            : defenseIndices
+        let objectiveIndices = defenseIndices + buildingIndices
 
         guard !objectiveIndices.isEmpty else {
             finish(timeExpired: false)
@@ -337,52 +340,36 @@ final class SimulationEngine {
         }
     }
 
-    /// Documented preference: Giants prioritize defenses.
-    /// Approximation: among eligible objectives, choose the lowest weighted A* cost.
     private func resolveTroopObjective(
         for troopIndex: Int,
         among candidateIndices: [Int]
     ) -> Int? {
-        if
-            let lockedID = entities[troopIndex].currentTargetID,
-            let lockedIndex = candidateIndices.first(where: {
-                entities[$0].id == lockedID && entities[$0].isAlive
-            })
-        {
-            return lockedIndex
-        }
-
-        let breakableCells = livingWallCells()
-        let wallCost = estimatedWallTraversalCost(
-            for: entities[troopIndex].kind
+        let decision = targetSelectionSystem.selectTroopObjective(
+            for: troopIndex,
+            among: candidateIndices,
+            entities: entities,
+            gameData: gameData,
+            navigationGrid: navigationGrid,
+            breakableCells: livingWallCells(),
+            breakableTraversalCost: estimatedWallTraversalCost(
+                for: entities[troopIndex].kind
+            )
         )
 
-        let reachableTargets = candidateIndices.compactMap { index in
-            pathfinder.findPath(
-                from: entities[troopIndex].position,
-                to: entities[index].position,
-                in: navigationGrid,
-                breakableCells: breakableCells,
-                breakableTraversalCost: wallCost
-            ).map { result in
-                (index: index, result: result)
-            }
+        guard let decision else {
+            entities[troopIndex].currentTargetID = nil
+            movementPaths[entities[troopIndex].id] = []
+            return nil
         }
 
-        let best = reachableTargets.min {
-            $0.result.totalCost < $1.result.totalCost
+        entities[troopIndex].currentTargetID =
+            entities[decision.targetIndex].id
+
+        if let replacementPath = decision.replacementPath {
+            movementPaths[entities[troopIndex].id] = replacementPath
         }
 
-        entities[troopIndex].currentTargetID = best.map {
-            entities[$0.index].id
-        }
-
-        if let best {
-            movementPaths[entities[troopIndex].id] =
-                best.result.waypoints
-        }
-
-        return best?.index
+        return decision.targetIndex
     }
 
     private func resolveDefenseTarget(
