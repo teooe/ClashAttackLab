@@ -1,6 +1,6 @@
 import Foundation
 
-struct NavigationGrid {
+nonisolated struct NavigationGrid {
     let columns: Int
     let rows: Int
     let cellSize: Double

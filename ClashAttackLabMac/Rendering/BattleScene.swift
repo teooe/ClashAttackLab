@@ -10,7 +10,7 @@ final class BattleScene: SKScene {
 
     private let simulation: SimulationEngine
     private let navigationGrid: NavigationGrid
-    private let attackPlan: AttackPlan
+    private var attackPlan: AttackPlan
     private var entityVisuals: [UUID: EntityVisual] = [:]
     private var projectileVisuals: [UUID: SKShapeNode] = [:]
     private var deploymentMarkers: [UUID: SKNode] = [:]
@@ -74,6 +74,20 @@ final class BattleScene: SKScene {
 
     func restartSimulation() {
         simulation.reset()
+        lastUpdateTime = nil
+        updatePresentation()
+    }
+
+    func loadAttackPlan(_ attackPlan: AttackPlan) {
+        self.attackPlan = attackPlan
+        simulation.loadAttackPlan(attackPlan)
+
+        for marker in deploymentMarkers.values {
+            marker.removeFromParent()
+        }
+        deploymentMarkers.removeAll()
+        drawDeploymentMarkers()
+
         lastUpdateTime = nil
         updatePresentation()
     }
@@ -439,7 +453,7 @@ final class BattleScene: SKScene {
         switch simulation.status {
         case .ready:
             statusLabel.text =
-                "Pronto · \(armySummary()) · premi Avvia"
+                "Pronto · \(attackPlan.name) · \(armySummary()) · premi Avvia"
             resultLabel.isHidden = true
 
         case .running:

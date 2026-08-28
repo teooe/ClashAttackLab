@@ -1,6 +1,6 @@
 import Foundation
 
-enum BattleWinner {
+nonisolated enum BattleWinner {
     case attackers
     case defenses
 
@@ -14,7 +14,7 @@ enum BattleWinner {
     }
 }
 
-struct SimulationResult {
+nonisolated struct SimulationResult {
     let winner: BattleWinner
     let elapsedTime: TimeInterval
     let timeExpired: Bool
@@ -26,7 +26,7 @@ struct SimulationResult {
     let score: BaseScoreSnapshot
 }
 
-enum SimulationStatus {
+nonisolated enum SimulationStatus {
     case ready
     case running
     case paused

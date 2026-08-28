@@ -1,31 +1,9 @@
+import Foundation
 import SpriteKit
 import SwiftUI
 
 struct ContentView: View {
-    private let scene: BattleScene = {
-        let gameData = PrototypeGameData()
-        let navigationGrid = PrototypeBattleMap.makeNavigationGrid()
-        let attackPlan = PrototypeBattleMap.makeAttackPlan(
-            navigationGrid: navigationGrid
-        )
-        let baseEntities = PrototypeBattleMap.makeBaseEntities(
-            navigationGrid: navigationGrid
-        )
-
-        let simulation = SimulationEngine(
-            entities: baseEntities,
-            attackPlan: attackPlan,
-            gameData: gameData,
-            navigationGrid: navigationGrid
-        )
-
-        return BattleScene(
-            size: CGSize(width: 1_100, height: 760),
-            simulation: simulation,
-            navigationGrid: navigationGrid,
-            attackPlan: attackPlan
-        )
-    }()
+    @StateObject private var session = AttackLabSession()
 
     var body: some View {
         VStack(spacing: 0) {
@@ -34,7 +12,7 @@ struct ContentView: View {
                     Text("Clash Attack Lab")
                         .font(.title2.bold())
 
-                    Text("Milestone 7 · Difese specializzate e proiettili")
+                    Text("Milestone 8 · Confronto headless dei piani")
                         .foregroundStyle(.secondary)
                         .lineLimit(1)
                         .minimumScaleFactor(0.8)
@@ -43,31 +21,38 @@ struct ContentView: View {
                 Spacer()
 
                 Button {
-                    scene.startSimulation()
+                    session.findBestAttack()
+                } label: {
+                    Label("Trova attacco", systemImage: "wand.and.stars")
+                }
+                .buttonStyle(.borderedProminent)
+
+                Button {
+                    session.scene.startSimulation()
                 } label: {
                     Label("Avvia", systemImage: "play.fill")
                 }
 
                 Button {
-                    scene.togglePause()
+                    session.scene.togglePause()
                 } label: {
                     Label("Pausa / Riprendi", systemImage: "pause.fill")
                 }
 
                 Menu("Velocità") {
                     Button("1×") {
-                        scene.simulationSpeed = 1
+                        session.scene.simulationSpeed = 1
                     }
                     Button("2×") {
-                        scene.simulationSpeed = 2
+                        session.scene.simulationSpeed = 2
                     }
                     Button("4×") {
-                        scene.simulationSpeed = 4
+                        session.scene.simulationSpeed = 4
                     }
                 }
 
                 Button {
-                    scene.restartSimulation()
+                    session.scene.restartSimulation()
                 } label: {
                     Label("Riavvia", systemImage: "arrow.counterclockwise")
                 }
@@ -140,11 +125,112 @@ struct ContentView: View {
             .padding(.vertical, 8)
             .background(.thinMaterial)
 
+            if !session.evaluations.isEmpty {
+                Divider()
+                comparisonBar
+            }
+
             Divider()
 
-            SpriteView(scene: scene)
+            SpriteView(scene: session.scene)
                 .frame(minWidth: 840, minHeight: 600)
         }
+    }
+
+    private var comparisonBar: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack {
+                Label(
+                    "Piani simulati senza rendering",
+                    systemImage: "cpu"
+                )
+                .font(.caption.bold())
+
+                Spacer()
+
+                Text("Il migliore è già caricato: premi Avvia per rivederlo")
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
+            }
+
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 10) {
+                    ForEach(
+                        session.evaluations.indices,
+                        id: \.self
+                    ) { index in
+                        planCard(
+                            evaluation: session.evaluations[index],
+                            rank: index + 1
+                        )
+                    }
+                }
+            }
+        }
+        .padding(.horizontal)
+        .padding(.vertical, 10)
+        .background(Color.blue.opacity(0.06))
+    }
+
+    private func planCard(
+        evaluation: AttackPlanEvaluation,
+        rank: Int
+    ) -> some View {
+        let isSelected = session.selectedPlanID == evaluation.plan.id
+        let isBest = rank == 1
+
+        return Button {
+            session.select(evaluation)
+        } label: {
+            HStack(spacing: 10) {
+                Text("#\(rank)")
+                    .font(.headline.monospacedDigit())
+                    .foregroundStyle(isBest ? .green : .secondary)
+
+                VStack(alignment: .leading, spacing: 2) {
+                    HStack(spacing: 5) {
+                        Text(evaluation.plan.name)
+                            .font(.caption.bold())
+
+                        if isBest {
+                            Text("MIGLIORE")
+                                .font(.system(size: 8, weight: .bold))
+                                .foregroundStyle(.green)
+                        }
+                    }
+
+                    Text(
+                        String(
+                            format: "%d★ · %.0f%% · %.1f s · %d superstiti",
+                            evaluation.stars,
+                            evaluation.destructionPercentage,
+                            evaluation.result.elapsedTime,
+                            evaluation.result.survivingTroops
+                        )
+                    )
+                    .font(.caption2.monospacedDigit())
+                    .foregroundStyle(.secondary)
+                }
+            }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 8)
+            .background(
+                isSelected
+                    ? Color.accentColor.opacity(0.16)
+                    : Color.primary.opacity(0.045)
+            )
+            .clipShape(RoundedRectangle(cornerRadius: 9))
+            .overlay {
+                RoundedRectangle(cornerRadius: 9)
+                    .stroke(
+                        isSelected
+                            ? Color.accentColor.opacity(0.8)
+                            : Color.primary.opacity(0.1),
+                        lineWidth: 1
+                    )
+            }
+        }
+        .buttonStyle(.plain)
     }
 
     private func legendItem(

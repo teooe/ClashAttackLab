@@ -575,6 +575,110 @@ struct ClashAttackLabMacTests {
         #expect(second.hitPoints < maximum)
     }
 
+    @Test
+    func candidatePlansPreserveArmyAndSchedule() throws {
+        let grid = PrototypeBattleMap.makeNavigationGrid()
+        let plans = PrototypeBattleMap.makeCandidateAttackPlans(
+            navigationGrid: grid
+        )
+        let baseline = try #require(plans.first)
+        let baselineKinds = baseline.orderedDeployments.map(\.kind)
+        let baselineTimes = baseline.orderedDeployments.map(\.deploymentTime)
+        let baselineEntityIDs = baseline.orderedDeployments.map(\.entityID)
+
+        #expect(plans.count == 4)
+
+        for plan in plans.dropFirst() {
+            #expect(plan.orderedDeployments.map(\.kind) == baselineKinds)
+            #expect(
+                plan.orderedDeployments.map(\.deploymentTime) ==
+                    baselineTimes
+            )
+            #expect(
+                plan.orderedDeployments.map(\.entityID) ==
+                    baselineEntityIDs
+            )
+        }
+
+        let distinctPositionSets = Set(
+            plans.map { plan in
+                plan.orderedDeployments
+                    .map {
+                        "\($0.position.x),\($0.position.y)"
+                    }
+                    .joined(separator: "|")
+            }
+        )
+        #expect(distinctPositionSets.count == plans.count)
+    }
+
+    @Test
+    func headlessEvaluatorReturnsRankedResults() throws {
+        let grid = PrototypeBattleMap.makeNavigationGrid()
+        let plans = Array(
+            PrototypeBattleMap.makeCandidateAttackPlans(
+                navigationGrid: grid
+            )
+            .prefix(2)
+        )
+        let evaluator = AttackPlanEvaluator(
+            baseEntities: PrototypeBattleMap.makeBaseEntities(
+                navigationGrid: grid
+            ),
+            gameData: PrototypeGameData(),
+            navigationGrid: grid
+        )
+
+        let results = evaluator.evaluate(plans)
+        #expect(results.count == plans.count)
+
+        let first = try #require(results.first)
+        let second = try #require(results.dropFirst().first)
+
+        #expect(
+            first.stars > second.stars ||
+            (
+                first.stars == second.stars &&
+                first.destructionPercentage >=
+                    second.destructionPercentage
+            )
+        )
+        #expect(results.allSatisfy { $0.result.elapsedTime <= 60 })
+    }
+
+    @Test
+    func loadingAnotherPlanResetsSimulation() {
+        let grid = PrototypeBattleMap.makeNavigationGrid()
+        let plans = PrototypeBattleMap.makeCandidateAttackPlans(
+            navigationGrid: grid
+        )
+        let engine = makeDeploymentTestEngine(
+            grid: grid,
+            plan: plans[0]
+        )
+
+        engine.start()
+        engine.advance(by: 1)
+        #expect(engine.deployedTroopCount > 0)
+        #expect(engine.elapsedTime > 0)
+
+        engine.loadAttackPlan(plans[1])
+
+        if case .ready = engine.status {
+            // Stato atteso.
+        } else {
+            Issue.record("Il nuovo piano deve essere caricato in stato ready.")
+        }
+
+        #expect(engine.elapsedTime == 0)
+        #expect(engine.deployedTroopCount == 0)
+        #expect(
+            engine.pendingDeploymentCount ==
+                plans[1].totalDeploymentCount
+        )
+        #expect(engine.entities.count == 1)
+    }
+
     private func makeSingleTroopEngine(
         troopKind: BattleEntityKind,
         troopPosition: WorldPosition,

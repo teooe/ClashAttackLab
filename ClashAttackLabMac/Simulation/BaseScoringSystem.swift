@@ -1,6 +1,6 @@
 import Foundation
 
-struct BaseScoreSnapshot {
+nonisolated struct BaseScoreSnapshot {
     let destructionPercentage: Double
     let stars: Int
     let townHallDestroyed: Bool

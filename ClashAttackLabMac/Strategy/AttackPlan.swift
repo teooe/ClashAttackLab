@@ -1,6 +1,6 @@
 import Foundation
 
-struct DeploymentOrder: Identifiable {
+nonisolated struct DeploymentOrder: Identifiable {
     let id: UUID
     let entityID: UUID
     let kind: BattleEntityKind
@@ -22,9 +22,20 @@ struct DeploymentOrder: Identifiable {
     }
 }
 
-struct AttackPlan {
+nonisolated struct AttackPlan: Identifiable {
+    let id: UUID
     let name: String
     let deployments: [DeploymentOrder]
+
+    init(
+        id: UUID = UUID(),
+        name: String,
+        deployments: [DeploymentOrder]
+    ) {
+        self.id = id
+        self.name = name
+        self.deployments = deployments
+    }
 
     var orderedDeployments: [DeploymentOrder] {
         deployments.sorted {

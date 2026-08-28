@@ -9,7 +9,7 @@ final class SimulationEngine {
     private let targetSelectionSystem: TargetSelectionSystem
     private let scoringSystem: BaseScoringSystem
     private let initialEntities: [BattleEntity]
-    private let attackPlan: AttackPlan
+    private var attackPlan: AttackPlan
 
     private var accumulatedTime: TimeInterval = 0
     private var attackCounts: [BattleEntityRole: Int] = [:]
@@ -119,6 +119,11 @@ final class SimulationEngine {
             gameData: gameData
         )
         status = .ready
+    }
+
+    func loadAttackPlan(_ attackPlan: AttackPlan) {
+        self.attackPlan = attackPlan
+        reset()
     }
 
     func definition(for kind: BattleEntityKind) -> CombatDefinition {
