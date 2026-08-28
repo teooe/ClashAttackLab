@@ -7,6 +7,12 @@ final class AttackLabSession: ObservableObject {
     @Published private(set) var selectedPlanID: UUID?
     @Published private(set) var armyConfiguration: ArmyConfiguration
     @Published private(set) var baseLayout: PrototypeBaseLayout
+    @Published private(set) var isManualPlanning = false
+    @Published private(set) var manualPlan = ManualAttackPlan()
+    @Published private(set) var manualSelection:
+        ManualPlacementSelection = .troop(.giant)
+    @Published private(set) var manualNextDeploymentTime:
+        TimeInterval = 0
 
     let scene: BattleScene
 
@@ -14,11 +20,51 @@ final class AttackLabSession: ObservableObject {
         candidatePlans.count
     }
 
+    var manualTroopChoices: [BattleEntityKind] {
+        [
+            .giant,
+            .barbarian,
+            .archer,
+            .wallBreaker,
+            .wizard,
+            .balloon,
+            .dragon
+        ].filter { armyConfiguration.troopCount(for: $0) > 0 }
+    }
+
+    var manualSpellChoices: [BattleSpellKind] {
+        [.heal, .rage].filter {
+            armyConfiguration.spellCount(for: $0) > 0
+        }
+    }
+
+    var manualPlacementInstruction: String {
+        switch manualSelection {
+        case .troop:
+            return "clicca nella fascia ciano dell’arena"
+        case .spell:
+            return "clicca ovunque nell’arena"
+        }
+    }
+
+    var canPlaceManualSelection: Bool {
+        switch manualSelection {
+        case .troop(let kind):
+            return manualPlan.troopCount(for: kind) <
+                armyConfiguration.troopCount(for: kind)
+
+        case .spell(let kind):
+            return manualPlan.spellCount(for: kind) <
+                armyConfiguration.spellCount(for: kind)
+        }
+    }
+
     private let gameData: any GameDataProviding
     private let navigationGrid: NavigationGrid
     private var baseEntities: [BattleEntity]
     private var candidatePlans: [AttackPlan]
     private var evaluator: AttackPlanEvaluator
+    private var activePlan: AttackPlan
 
     init() {
         let gameData = PrototypeGameData()
@@ -41,6 +87,7 @@ final class AttackLabSession: ObservableObject {
         self.navigationGrid = navigationGrid
         self.baseEntities = baseEntities
         self.candidatePlans = candidatePlans
+        self.activePlan = initialPlan
         self.evaluator = AttackPlanEvaluator(
             baseEntities: baseEntities,
             gameData: gameData,
@@ -64,6 +111,10 @@ final class AttackLabSession: ObservableObject {
     }
 
     func findBestAttack() {
+        guard !isManualPlanning else {
+            return
+        }
+
         let rankedEvaluations = evaluator.evaluate(candidatePlans)
         evaluations = rankedEvaluations
 
@@ -90,10 +141,13 @@ final class AttackLabSession: ObservableObject {
             return
         }
 
+        finishManualMode(restoreActivePlan: false)
         armyConfiguration = configuration
         candidatePlans = generatedPlans
         evaluations = []
+        activePlan = firstPlan
         selectedPlanID = firstPlan.id
+        resetManualDraft()
         scene.loadAttackPlan(firstPlan)
     }
 
@@ -107,6 +161,7 @@ final class AttackLabSession: ObservableObject {
             layout: layout
         )
 
+        finishManualMode(restoreActivePlan: false)
         baseLayout = layout
         baseEntities = entities
         evaluator = AttackPlanEvaluator(
@@ -120,15 +175,165 @@ final class AttackLabSession: ObservableObject {
             return
         }
 
+        activePlan = initialPlan
         selectedPlanID = initialPlan.id
+        resetManualDraft()
         scene.loadScenario(
             entities: entities,
             attackPlan: initialPlan
         )
     }
 
+    func beginManualPlanning() {
+        guard !isManualPlanning else {
+            return
+        }
+
+        resetManualDraft()
+        isManualPlanning = true
+        scene.setManualPlacementHandler { [weak self] position in
+            self?.appendManualPlacement(at: position)
+        }
+        scene.setManualPlacementUsesWholeArena(
+            manualSelectionUsesWholeArena
+        )
+        scene.loadAttackPlan(manualPlan.makeAttackPlan())
+    }
+
+    func cancelManualPlanning() {
+        finishManualMode(restoreActivePlan: true)
+    }
+
+    func finishManualPlanning() {
+        guard manualPlan.totalOrderCount > 0 else {
+            return
+        }
+
+        let plan = manualPlan.makeAttackPlan()
+        activePlan = plan
+        selectedPlanID = plan.id
+        evaluations = []
+        finishManualMode(restoreActivePlan: false)
+        scene.loadAttackPlan(plan)
+    }
+
+    func selectManualPlacement(
+        _ selection: ManualPlacementSelection
+    ) {
+        manualSelection = selection
+        scene.setManualPlacementUsesWholeArena(
+            manualSelectionUsesWholeArena
+        )
+    }
+
+    func adjustManualDeploymentTime(by delta: TimeInterval) {
+        let updated = manualNextDeploymentTime + delta
+        manualNextDeploymentTime = min(59, max(0, updated))
+    }
+
+    func removeLastManualOrder() {
+        guard manualPlan.totalOrderCount > 0 else {
+            return
+        }
+
+        manualPlan.removeMostRecentOrder()
+        manualNextDeploymentTime = manualPlan.totalOrderCount == 0
+            ? 0
+            : min(59, manualPlan.latestDeploymentTime + 0.6)
+        scene.loadAttackPlan(manualPlan.makeAttackPlan())
+    }
+
+    func clearManualOrders() {
+        resetManualDraft()
+        scene.loadAttackPlan(manualPlan.makeAttackPlan())
+    }
+
+    func manualGridLabel(for position: WorldPosition) -> String {
+        guard let coordinate = navigationGrid.coordinate(for: position) else {
+            return "fuori griglia"
+        }
+
+        return "c\(coordinate.column) · r\(coordinate.row)"
+    }
+
     func select(_ evaluation: AttackPlanEvaluation) {
+        guard !isManualPlanning else {
+            return
+        }
+
+        activePlan = evaluation.plan
         selectedPlanID = evaluation.plan.id
         scene.loadAttackPlan(evaluation.plan)
+    }
+
+    private func appendManualPlacement(at position: WorldPosition) {
+        guard isManualPlanning, canPlaceManualSelection else {
+            return
+        }
+
+        manualPlan.append(
+            manualSelection,
+            at: position,
+            time: manualNextDeploymentTime
+        )
+        manualNextDeploymentTime = min(
+            59,
+            manualNextDeploymentTime + 0.6
+        )
+
+        if !canPlaceManualSelection {
+            manualSelection = defaultManualSelection
+            scene.setManualPlacementUsesWholeArena(
+                manualSelectionUsesWholeArena
+            )
+        }
+
+        scene.loadAttackPlan(manualPlan.makeAttackPlan())
+    }
+
+    private var manualSelectionUsesWholeArena: Bool {
+        if case .spell = manualSelection {
+            return true
+        }
+
+        return false
+    }
+
+    private func resetManualDraft() {
+        manualPlan = ManualAttackPlan()
+        manualNextDeploymentTime = 0
+        manualSelection = defaultManualSelection
+    }
+
+    private var defaultManualSelection: ManualPlacementSelection {
+        if let firstTroop = manualTroopChoices.first(where: {
+            manualPlan.troopCount(for: $0) <
+                armyConfiguration.troopCount(for: $0)
+        }) {
+            return .troop(firstTroop)
+        }
+
+        if let firstSpell = manualSpellChoices.first(where: {
+            manualPlan.spellCount(for: $0) <
+                armyConfiguration.spellCount(for: $0)
+        }) {
+            return .spell(firstSpell)
+        }
+
+        return .troop(.giant)
+    }
+
+    private func finishManualMode(restoreActivePlan: Bool) {
+        guard isManualPlanning else {
+            return
+        }
+
+        isManualPlanning = false
+        scene.setManualPlacementUsesWholeArena(false)
+        scene.setManualPlacementHandler(nil)
+
+        if restoreActivePlan {
+            scene.loadAttackPlan(activePlan)
+        }
     }
 }

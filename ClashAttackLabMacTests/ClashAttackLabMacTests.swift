@@ -1442,6 +1442,58 @@ struct ClashAttackLabMacTests {
         )
     }
 
+    @Test
+    func manualPlanBuildsAnIndependentOrderedAttack() {
+        let grid = PrototypeBattleMap.makeNavigationGrid()
+        var draft = ManualAttackPlan(name: "Test manuale")
+        let firstPosition = grid.worldPosition(
+            for: GridCoordinate(column: 1, row: 4)
+        )
+        let secondPosition = grid.worldPosition(
+            for: GridCoordinate(column: 2, row: 10)
+        )
+
+        draft.append(
+            .troop(.giant),
+            at: firstPosition,
+            time: 1.2
+        )
+        draft.append(
+            .spell(.rage),
+            at: secondPosition,
+            time: 0.6
+        )
+        draft.append(
+            .troop(.archer),
+            at: secondPosition,
+            time: 0.8
+        )
+
+        let plan = draft.makeAttackPlan()
+
+        #expect(plan.id == draft.id)
+        #expect(draft.totalOrderCount == 3)
+        #expect(draft.troopCount(for: .giant) == 1)
+        #expect(draft.troopCount(for: .archer) == 1)
+        #expect(draft.spellCount(for: .rage) == 1)
+        #expect(plan.totalDeploymentCount == 2)
+        #expect(plan.totalSpellCount == 1)
+        #expect(plan.orderedDeployments.map(\.kind) == [
+            .archer,
+            .giant
+        ])
+
+        draft.removeMostRecentOrder()
+
+        #expect(draft.totalOrderCount == 2)
+        #expect(draft.troopCount(for: .giant) == 0)
+        #expect(draft.troopCount(for: .archer) == 1)
+
+        draft.removeAllOrders()
+
+        #expect(draft.totalOrderCount == 0)
+    }
+
     private func makeSingleTroopEngine(
         troopKind: BattleEntityKind,
         troopPosition: WorldPosition,

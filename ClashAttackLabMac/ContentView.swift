@@ -15,7 +15,7 @@ struct ContentView: View {
                         .font(.title2.bold())
 
                     Text(
-                        "Milestone 15 · \(session.baseLayout.displayName) · Terra e aria"
+                        "Milestone 16 · \(session.baseLayout.displayName) · Piano manuale"
                     )
                         .foregroundStyle(.secondary)
                         .lineLimit(1)
@@ -47,10 +47,26 @@ struct ContentView: View {
                 }
 
                 Button {
+                    if session.isManualPlanning {
+                        session.cancelManualPlanning()
+                    } else {
+                        session.beginManualPlanning()
+                    }
+                } label: {
+                    Label(
+                        session.isManualPlanning
+                            ? "Annulla piano"
+                            : "Piano manuale",
+                        systemImage: "cursorarrow.rays"
+                    )
+                }
+
+                Button {
                     session.scene.startSimulation()
                 } label: {
                     Label("Avvia", systemImage: "play.fill")
                 }
+                .disabled(session.isManualPlanning)
 
                 Button {
                     session.scene.togglePause()
@@ -197,6 +213,11 @@ struct ContentView: View {
             .padding(.vertical, 8)
             .background(.thinMaterial)
 
+            if session.isManualPlanning {
+                Divider()
+                manualPlannerBar
+            }
+
             if !session.evaluations.isEmpty {
                 Divider()
                 comparisonBar
@@ -218,6 +239,301 @@ struct ContentView: View {
             BaseEditorView(layout: session.baseLayout) { layout in
                 session.applyBaseLayout(layout)
             }
+        }
+    }
+
+
+    private var manualPlannerBar: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            HStack(spacing: 10) {
+                Label(
+                    "Piano manuale",
+                    systemImage: "cursorarrow.rays"
+                )
+                .font(.headline)
+
+                Text(
+                    "Scegli una pedina, poi \(session.manualPlacementInstruction)."
+                )
+                .font(.caption)
+                .foregroundStyle(.secondary)
+
+                Spacer()
+
+                Text(
+                    String(
+                        format: "prossimo @ %.1f s",
+                        session.manualNextDeploymentTime
+                    )
+                )
+                .font(.caption.monospacedDigit())
+
+                Button("−0,5") {
+                    session.adjustManualDeploymentTime(by: -0.5)
+                }
+                .font(.caption)
+
+                Button("+0,5") {
+                    session.adjustManualDeploymentTime(by: 0.5)
+                }
+                .font(.caption)
+            }
+
+            HStack(spacing: 8) {
+                ForEach(session.manualTroopChoices, id: \.self) { kind in
+                    manualChoice(
+                        symbol: troopSymbol(for: kind),
+                        color: troopColor(for: kind),
+                        title: troopName(for: kind),
+                        remaining:
+                            session.armyConfiguration.troopCount(
+                                for: kind
+                            ) - session.manualPlan.troopCount(for: kind),
+                        isSelected:
+                            session.manualSelection == .troop(kind)
+                    ) {
+                        session.selectManualPlacement(.troop(kind))
+                    }
+                }
+
+                Divider()
+                    .frame(height: 30)
+
+                ForEach(session.manualSpellChoices, id: \.self) { kind in
+                    manualChoice(
+                        symbol: spellSymbol(for: kind),
+                        color: spellColor(for: kind),
+                        title: spellName(for: kind),
+                        remaining:
+                            session.armyConfiguration.spellCount(
+                                for: kind
+                            ) - session.manualPlan.spellCount(for: kind),
+                        isSelected:
+                            session.manualSelection == .spell(kind)
+                    ) {
+                        session.selectManualPlacement(.spell(kind))
+                    }
+                }
+            }
+
+            if session.manualPlan.totalOrderCount == 0 {
+                Text("Nessun ordine: scegli una truppa o un incantesimo e clicca nella fascia ciano.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            } else {
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 8) {
+                        ForEach(
+                            session.manualPlan.orderedDeployments
+                        ) { order in
+                            manualOrderChip(
+                                symbol: troopSymbol(for: order.kind),
+                                color: troopColor(for: order.kind),
+                                time: order.deploymentTime,
+                                location:
+                                    session.manualGridLabel(
+                                        for: order.position
+                                    )
+                            )
+                        }
+
+                        ForEach(
+                            session.manualPlan.orderedSpellDeployments
+                        ) { order in
+                            manualOrderChip(
+                                symbol: spellSymbol(for: order.kind),
+                                color: spellColor(for: order.kind),
+                                time: order.deploymentTime,
+                                location:
+                                    session.manualGridLabel(
+                                        for: order.position
+                                    )
+                            )
+                        }
+                    }
+                }
+            }
+
+            HStack {
+                Text(
+                    "\(session.manualPlan.totalOrderCount) ordini · la simulazione resta ferma finché non carichi il piano"
+                )
+                .font(.caption2)
+                .foregroundStyle(.secondary)
+
+                Spacer()
+
+                Button("Rimuovi ultimo") {
+                    session.removeLastManualOrder()
+                }
+                .disabled(session.manualPlan.totalOrderCount == 0)
+
+                Button("Svuota") {
+                    session.clearManualOrders()
+                }
+                .disabled(session.manualPlan.totalOrderCount == 0)
+
+                Button("Carica piano") {
+                    session.finishManualPlanning()
+                }
+                .buttonStyle(.borderedProminent)
+                .disabled(session.manualPlan.totalOrderCount == 0)
+            }
+        }
+        .padding(.horizontal)
+        .padding(.vertical, 10)
+        .background(Color.cyan.opacity(0.08))
+    }
+
+    private func manualChoice(
+        symbol: String,
+        color: Color,
+        title: String,
+        remaining: Int,
+        isSelected: Bool,
+        action: @escaping () -> Void
+    ) -> some View {
+        Button(action: action) {
+            HStack(spacing: 5) {
+                Text(symbol)
+                    .font(.caption.bold())
+                    .foregroundStyle(.white)
+                    .frame(width: 28, height: 22)
+                    .background(color)
+                    .clipShape(Capsule())
+
+                Text("\(title) ×\(max(0, remaining))")
+                    .font(.caption2.monospacedDigit())
+            }
+            .padding(.horizontal, 7)
+            .padding(.vertical, 5)
+            .background(
+                isSelected
+                    ? Color.accentColor.opacity(0.18)
+                    : Color.secondary.opacity(0.08)
+            )
+            .clipShape(RoundedRectangle(cornerRadius: 8))
+        }
+        .buttonStyle(.plain)
+        .disabled(remaining <= 0)
+        .opacity(remaining > 0 ? 1 : 0.38)
+    }
+
+    private func manualOrderChip(
+        symbol: String,
+        color: Color,
+        time: TimeInterval,
+        location: String
+    ) -> some View {
+        VStack(alignment: .leading, spacing: 2) {
+            HStack(spacing: 4) {
+                Text(symbol)
+                    .font(.caption2.bold())
+                    .foregroundStyle(color)
+
+                Text(String(format: "%.1f s", time))
+                    .font(.caption2.monospacedDigit())
+            }
+
+            Text(location)
+                .font(.system(size: 9, design: .monospaced))
+                .foregroundStyle(.secondary)
+        }
+        .padding(7)
+        .background(Color.secondary.opacity(0.08))
+        .clipShape(RoundedRectangle(cornerRadius: 7))
+    }
+
+    private func troopName(for kind: BattleEntityKind) -> String {
+        switch kind {
+        case .giant:
+            return "Gigante"
+        case .barbarian:
+            return "Barbaro"
+        case .archer:
+            return "Arciera"
+        case .wallBreaker:
+            return "Spaccamuro"
+        case .wizard:
+            return "Mago"
+        case .balloon:
+            return "Mongolfiera"
+        case .dragon:
+            return "Drago"
+        case .cannon, .archerTower, .mortar, .airDefense,
+             .townHall, .goldStorage, .wall:
+            return "Edificio"
+        }
+    }
+
+    private func troopSymbol(for kind: BattleEntityKind) -> String {
+        switch kind {
+        case .giant:
+            return "G"
+        case .barbarian:
+            return "B"
+        case .archer:
+            return "A"
+        case .wallBreaker:
+            return "WB"
+        case .wizard:
+            return "W"
+        case .balloon:
+            return "BL"
+        case .dragon:
+            return "DR"
+        case .cannon, .archerTower, .mortar, .airDefense,
+             .townHall, .goldStorage, .wall:
+            return "?"
+        }
+    }
+
+    private func troopColor(for kind: BattleEntityKind) -> Color {
+        switch kind {
+        case .giant:
+            return .orange
+        case .barbarian:
+            return .red
+        case .archer:
+            return .pink
+        case .wallBreaker:
+            return .green
+        case .wizard:
+            return .blue
+        case .balloon:
+            return .indigo
+        case .dragon:
+            return .mint
+        case .cannon, .archerTower, .mortar, .airDefense,
+             .townHall, .goldStorage, .wall:
+            return .gray
+        }
+    }
+
+    private func spellName(for kind: BattleSpellKind) -> String {
+        switch kind {
+        case .heal:
+            return "Cura"
+        case .rage:
+            return "Furia"
+        }
+    }
+
+    private func spellSymbol(for kind: BattleSpellKind) -> String {
+        switch kind {
+        case .heal:
+            return "H"
+        case .rage:
+            return "R"
+        }
+    }
+
+    private func spellColor(for kind: BattleSpellKind) -> Color {
+        switch kind {
+        case .heal:
+            return .green
+        case .rage:
+            return .purple
         }
     }
 

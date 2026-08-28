@@ -1,3 +1,4 @@
+import AppKit
 import SpriteKit
 
 final class BattleScene: SKScene {
@@ -18,6 +19,9 @@ final class BattleScene: SKScene {
     private var activeSpellVisuals: [UUID: SKNode] = [:]
     private var aliveEntityIDs: Set<UUID> = []
     private var lastUpdateTime: TimeInterval?
+    private var manualPlacementHandler: ((WorldPosition) -> Void)?
+    private var manualPlacementUsesWholeArena = false
+    private let manualPlacementZone = SKShapeNode()
 
     private let statusLabel = SKLabelNode(fontNamed: "AvenirNext-DemiBold")
     private let spellStatusLabel = SKLabelNode(fontNamed: "AvenirNext-Medium")
@@ -49,11 +53,36 @@ final class BattleScene: SKScene {
         backgroundColor = SKColor(red: 0.16, green: 0.34, blue: 0.18, alpha: 1)
         drawArena()
         drawNavigationGrid()
+        configureManualPlacementZone()
         drawDeploymentMarkers()
         drawSpellMarkers()
         configureLabels()
         createEntityNodes()
         updatePresentation()
+    }
+
+    override func mouseDown(with event: NSEvent) {
+        guard let manualPlacementHandler else {
+            return
+        }
+
+        let location = event.location(in: self)
+        let position = WorldPosition(
+            x: Double(location.x),
+            y: Double(location.y)
+        )
+
+        guard
+            let coordinate = navigationGrid.coordinate(for: position),
+            manualPlacementUsesWholeArena ||
+                (0...2).contains(coordinate.column)
+        else {
+            return
+        }
+
+        manualPlacementHandler(
+            navigationGrid.worldPosition(for: coordinate)
+        )
     }
 
     override func update(_ currentTime: TimeInterval) {
@@ -68,6 +97,19 @@ final class BattleScene: SKScene {
         self.lastUpdateTime = currentTime
         simulation.advance(by: deltaTime * simulationSpeed)
         updatePresentation()
+    }
+
+    func setManualPlacementHandler(
+        _ handler: ((WorldPosition) -> Void)?
+    ) {
+        manualPlacementHandler = handler
+        manualPlacementZone.isHidden = handler == nil
+        updateManualPlacementZone()
+    }
+
+    func setManualPlacementUsesWholeArena(_ value: Bool) {
+        manualPlacementUsesWholeArena = value
+        updateManualPlacementZone()
     }
 
     func startSimulation() {
@@ -140,6 +182,37 @@ final class BattleScene: SKScene {
         arena.strokeColor = .white.withAlphaComponent(0.35)
         arena.lineWidth = 3
         addChild(arena)
+    }
+
+    private func configureManualPlacementZone() {
+        manualPlacementZone.fillColor =
+            .systemCyan.withAlphaComponent(0.12)
+        manualPlacementZone.strokeColor =
+            .systemCyan.withAlphaComponent(0.78)
+        manualPlacementZone.lineWidth = 2
+        manualPlacementZone.zPosition = 4
+        addChild(manualPlacementZone)
+        updateManualPlacementZone()
+    }
+
+    private func updateManualPlacementZone() {
+        let width =
+            navigationGrid.cellSize *
+            Double(
+                manualPlacementUsesWholeArena
+                    ? navigationGrid.columns
+                    : 3
+            )
+        let zone = CGRect(
+            x: navigationGrid.origin.x,
+            y: navigationGrid.origin.y,
+            width: width,
+            height: navigationGrid.cellSize *
+                Double(navigationGrid.rows)
+        )
+        manualPlacementZone.path = CGPath(rect: zone, transform: nil)
+        manualPlacementZone.isHidden =
+            manualPlacementHandler == nil
     }
 
     private func drawNavigationGrid() {
