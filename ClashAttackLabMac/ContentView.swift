@@ -77,15 +77,13 @@ struct ContentView: View {
                     Text("Clash Attack Lab")
                         .font(.title2.bold())
 
-                    Text("Milestone 5 · Piano di deploy temporizzato")
+                    Text("Milestone 6 · Esercito misto e targeting per unità")
                         .foregroundStyle(.secondary)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.8)
                 }
 
                 Spacer()
-
-                Text("Dati e tempo: prototipo")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
 
                 Button {
                     scene.startSimulation()
@@ -122,8 +120,69 @@ struct ContentView: View {
 
             Divider()
 
+            HStack(spacing: 18) {
+                legendItem(
+                    symbol: "G",
+                    color: .orange,
+                    title: "Gigante",
+                    detail: "priorità difese"
+                )
+
+                legendItem(
+                    symbol: "B",
+                    color: .red,
+                    title: "Barbaro",
+                    detail: "qualsiasi edificio"
+                )
+
+                legendItem(
+                    symbol: "A",
+                    color: .pink,
+                    title: "Arciera",
+                    detail: "attacco a distanza"
+                )
+
+                Spacer()
+
+                VStack(alignment: .trailing, spacing: 2) {
+                    Text("Preferenze bersaglio: documentate")
+                    Text("Statistiche e costo percorso: prototipo")
+                }
+                .font(.caption2)
+                .foregroundStyle(.secondary)
+            }
+            .padding(.horizontal)
+            .padding(.vertical, 8)
+            .background(.thinMaterial)
+
+            Divider()
+
             SpriteView(scene: scene)
                 .frame(minWidth: 840, minHeight: 600)
+        }
+    }
+
+    private func legendItem(
+        symbol: String,
+        color: Color,
+        title: String,
+        detail: String
+    ) -> some View {
+        HStack(spacing: 7) {
+            Text(symbol)
+                .font(.caption.bold())
+                .foregroundStyle(.white)
+                .frame(width: 24, height: 24)
+                .background(color)
+                .clipShape(Circle())
+
+            VStack(alignment: .leading, spacing: 1) {
+                Text(title)
+                    .font(.caption.bold())
+                Text(detail)
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
+            }
         }
     }
 }
