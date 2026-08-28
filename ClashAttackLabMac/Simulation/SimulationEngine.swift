@@ -175,7 +175,9 @@ final class SimulationEngine {
         let troopIndices = livingIndices(with: .troop)
         let defenseIndices = livingIndices(with: .defense)
         let buildingIndices = livingIndices(with: .building)
+        let wallIndices = livingIndices(with: .wall)
         let objectiveIndices = defenseIndices + buildingIndices
+        let troopTargetIndices = objectiveIndices + wallIndices
 
         guard !objectiveIndices.isEmpty else {
             finish(timeExpired: false)
@@ -203,7 +205,7 @@ final class SimulationEngine {
         for troopIndex in troopIndices {
             actTroop(
                 at: troopIndex,
-                possibleObjectives: objectiveIndices,
+                possibleObjectives: troopTargetIndices,
                 deltaTime: deltaTime,
                 pendingDamage: &pendingDamage
             )
@@ -594,9 +596,22 @@ final class SimulationEngine {
                     splashRadius: attackerDefinition.splashRadius
                 )
             )
+        } else if attackerDefinition.splashRadius > 0 {
+            let targetRole = definition(for: target.kind).role
+            queueAreaDamage(
+                centeredAt: target.position,
+                targetRole: targetRole,
+                damage: attackerDefinition.attackDamage,
+                radius: attackerDefinition.splashRadius,
+                pendingDamage: &pendingDamage
+            )
         } else {
             pendingDamage[target.id, default: 0] +=
                 attackerDefinition.attackDamage
+        }
+
+        if attackerDefinition.selfDestructsOnAttack {
+            pendingDamage[attacker.id, default: 0] += attacker.hitPoints
         }
 
         entities[attackerIndex].attackCooldown =
@@ -645,23 +660,13 @@ final class SimulationEngine {
         pendingDamage: inout [UUID: Double]
     ) {
         if projectile.splashRadius > 0 {
-            for index in entities.indices
-            where entities[index].isAlive {
-                let entityRole = definition(for: entities[index].kind).role
-
-                guard
-                    entityRole == projectile.targetRole,
-                    distance(
-                        from: entities[index].position,
-                        to: projectile.destination
-                    ) <= projectile.splashRadius
-                else {
-                    continue
-                }
-
-                pendingDamage[entities[index].id, default: 0] +=
-                    projectile.damage
-            }
+            queueAreaDamage(
+                centeredAt: projectile.destination,
+                targetRole: projectile.targetRole,
+                damage: projectile.damage,
+                radius: projectile.splashRadius,
+                pendingDamage: &pendingDamage
+            )
             return
         }
 
@@ -676,6 +681,30 @@ final class SimulationEngine {
 
         pendingDamage[entities[targetIndex].id, default: 0] +=
             projectile.damage
+    }
+
+    private func queueAreaDamage(
+        centeredAt center: WorldPosition,
+        targetRole: BattleEntityRole,
+        damage: Double,
+        radius: Double,
+        pendingDamage: inout [UUID: Double]
+    ) {
+        for index in entities.indices where entities[index].isAlive {
+            let entityRole = definition(for: entities[index].kind).role
+
+            guard
+                entityRole == targetRole,
+                distance(
+                    from: entities[index].position,
+                    to: center
+                ) <= radius
+            else {
+                continue
+            }
+
+            pendingDamage[entities[index].id, default: 0] += damage
+        }
     }
 
     private func reduceCooldowns(by deltaTime: TimeInterval) {

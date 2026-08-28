@@ -9,9 +9,10 @@ struct TargetSelectionDecision {
 
 /// Chooses troop objectives without knowing anything about rendering.
 ///
-/// Documented rule:
+/// Documented rules:
 /// - Giants prefer defenses.
 /// - Barbarians and Archers have no favorite building category.
+/// - Wall Breakers prefer walls and fall back to buildings if none remain.
 ///
 /// Current approximation:
 /// - Among eligible targets, the best one is the target with the lowest
@@ -109,16 +110,28 @@ struct TargetSelectionSystem {
             entities.indices.contains($0) && entities[$0].isAlive
         }
 
+        let buildings = livingCandidates.filter {
+            let role = gameData.definition(for: entities[$0].kind).role
+            return role == .defense || role == .building
+        }
+
         switch preference {
         case .defenses:
-            let defenses = livingCandidates.filter {
+            let defenses = buildings.filter {
                 gameData.definition(for: entities[$0].kind).role == .defense
             }
 
-            return defenses.isEmpty ? livingCandidates : defenses
+            return defenses.isEmpty ? buildings : defenses
 
         case .anyBuilding:
-            return livingCandidates
+            return buildings
+
+        case .walls:
+            let walls = livingCandidates.filter {
+                gameData.definition(for: entities[$0].kind).role == .wall
+            }
+
+            return walls.isEmpty ? buildings : walls
         }
     }
 }

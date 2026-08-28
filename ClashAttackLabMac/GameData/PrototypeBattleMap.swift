@@ -107,30 +107,30 @@ nonisolated enum PrototypeBattleMap {
     static func makeCandidateAttackPlans(
         navigationGrid: NavigationGrid
     ) -> [AttackPlan] {
-        let sharedEntityIDs = (0..<8).map { _ in UUID() }
+        let sharedEntityIDs = (0..<10).map { _ in UUID() }
 
         return [
             makeAttackPlan(
                 name: "Fronte diviso",
-                rows: [4, 3, 5, 11, 12, 10, 7, 7],
+                rows: [4, 4, 3, 5, 11, 11, 12, 10, 7, 7],
                 entityIDs: sharedEntityIDs,
                 navigationGrid: navigationGrid
             ),
             makeAttackPlan(
                 name: "Breccia alta",
-                rows: [3, 2, 4, 4, 3, 5, 4, 2],
+                rows: [3, 3, 2, 4, 4, 4, 3, 5, 4, 2],
                 entityIDs: sharedEntityIDs,
                 navigationGrid: navigationGrid
             ),
             makeAttackPlan(
                 name: "Spinta centrale",
-                rows: [8, 7, 9, 8, 7, 9, 8, 9],
+                rows: [8, 8, 7, 9, 8, 8, 7, 9, 8, 9],
                 entityIDs: sharedEntityIDs,
                 navigationGrid: navigationGrid
             ),
             makeAttackPlan(
                 name: "Breccia bassa",
-                rows: [12, 11, 13, 11, 12, 10, 12, 13],
+                rows: [12, 12, 11, 13, 11, 11, 12, 10, 12, 13],
                 entityIDs: sharedEntityIDs,
                 navigationGrid: navigationGrid
             )
@@ -145,14 +145,19 @@ nonisolated enum PrototypeBattleMap {
     ) -> AttackPlan {
         let templates = [
             DeploymentTemplate(
-                kind: .giant,
+                kind: .wallBreaker,
                 column: 2,
                 deploymentTime: 0
             ),
             DeploymentTemplate(
+                kind: .giant,
+                column: 2,
+                deploymentTime: 0.4
+            ),
+            DeploymentTemplate(
                 kind: .barbarian,
                 column: 1,
-                deploymentTime: 0.6
+                deploymentTime: 1.0
             ),
             DeploymentTemplate(
                 kind: .archer,
@@ -160,29 +165,34 @@ nonisolated enum PrototypeBattleMap {
                 deploymentTime: 1.2
             ),
             DeploymentTemplate(
+                kind: .wallBreaker,
+                column: 2,
+                deploymentTime: 3.0
+            ),
+            DeploymentTemplate(
                 kind: .giant,
                 column: 2,
-                deploymentTime: 3
+                deploymentTime: 3.4
             ),
             DeploymentTemplate(
                 kind: .barbarian,
                 column: 1,
-                deploymentTime: 3.6
+                deploymentTime: 4.0
             ),
             DeploymentTemplate(
                 kind: .archer,
                 column: 1,
-                deploymentTime: 4.2
+                deploymentTime: 4.5
             ),
             DeploymentTemplate(
                 kind: .barbarian,
                 column: 2,
-                deploymentTime: 6
+                deploymentTime: 6.2
             ),
             DeploymentTemplate(
                 kind: .archer,
                 column: 1,
-                deploymentTime: 6.5
+                deploymentTime: 6.7
             )
         ]
 

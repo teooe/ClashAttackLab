@@ -17,6 +17,7 @@ nonisolated enum MechanicEvidence: String, Hashable {
 nonisolated enum TargetPreference: Hashable {
     case defenses
     case anyBuilding
+    case walls
 }
 
 nonisolated struct TargetingProfile {
@@ -37,6 +38,7 @@ nonisolated struct CombatDefinition {
     let projectileKind: ProjectileKind?
     let projectileSpeed: Double
     let splashRadius: Double
+    let selfDestructsOnAttack: Bool
 
     /// Nil for entities that do not choose offensive building targets.
     let targetingProfile: TargetingProfile?

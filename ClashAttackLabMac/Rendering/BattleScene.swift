@@ -14,6 +14,7 @@ final class BattleScene: SKScene {
     private var entityVisuals: [UUID: EntityVisual] = [:]
     private var projectileVisuals: [UUID: SKShapeNode] = [:]
     private var deploymentMarkers: [UUID: SKNode] = [:]
+    private var aliveEntityIDs: Set<UUID> = []
     private var lastUpdateTime: TimeInterval?
 
     private let statusLabel = SKLabelNode(fontNamed: "AvenirNext-DemiBold")
@@ -463,10 +464,51 @@ final class BattleScene: SKScene {
         return deltaX * deltaX + deltaY * deltaY
     }
 
+    private func showWallBreakerExplosions(
+        for entities: [BattleEntity]
+    ) {
+        let livingIDs = Set(
+            entities.filter(\.isAlive).map(\.id)
+        )
+        let newlyDefeatedIDs = aliveEntityIDs.subtracting(livingIDs)
+
+        for entity in entities
+        where
+            newlyDefeatedIDs.contains(entity.id) &&
+            entity.kind == .wallBreaker
+        {
+            let explosion = SKShapeNode(circleOfRadius: 30)
+            explosion.position = CGPoint(
+                x: entity.position.x,
+                y: entity.position.y
+            )
+            explosion.fillColor = .systemYellow.withAlphaComponent(0.5)
+            explosion.strokeColor = .systemOrange
+            explosion.lineWidth = 5
+            explosion.glowWidth = 10
+            explosion.zPosition = 35
+            explosion.setScale(0.25)
+            addChild(explosion)
+
+            explosion.run(
+                .sequence([
+                    .group([
+                        .scale(to: 2.2, duration: 0.28),
+                        .fadeOut(withDuration: 0.28)
+                    ]),
+                    .removeFromParent()
+                ])
+            )
+        }
+
+        aliveEntityIDs = livingIDs
+    }
+
     private func updatePresentation() {
         reconcileEntityVisuals()
         reconcileProjectileVisuals()
         updateDeploymentMarkers()
+        showWallBreakerExplosions(for: simulation.entities)
 
         let displayPositions = separatedDisplayPositions(
             for: simulation.entities
@@ -634,6 +676,8 @@ final class BattleScene: SKScene {
             return .systemRed
         case .archer:
             return .systemPink
+        case .wallBreaker:
+            return .systemGreen
         case .cannon, .archerTower, .mortar,
              .townHall, .goldStorage, .wall:
             return .systemCyan
@@ -648,6 +692,8 @@ final class BattleScene: SKScene {
             return "B"
         case .archer:
             return "A"
+        case .wallBreaker:
+            return "WB"
         case .cannon:
             return "C"
         case .archerTower:
@@ -684,6 +730,13 @@ final class BattleScene: SKScene {
                 radius: 20,
                 color: .systemPink,
                 text: "A"
+            )
+
+        case .wallBreaker:
+            return makeLabeledCircle(
+                radius: 18,
+                color: .systemGreen,
+                text: "WB"
             )
 
         case .cannon:

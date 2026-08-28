@@ -12,7 +12,7 @@ struct ContentView: View {
                     Text("Clash Attack Lab")
                         .font(.title2.bold())
 
-                    Text("Milestone 8 · Confronto headless dei piani")
+                    Text("Milestone 9 · Spaccamuro e brecce specializzate")
                         .foregroundStyle(.secondary)
                         .lineLimit(1)
                         .minimumScaleFactor(0.8)
@@ -83,6 +83,13 @@ struct ContentView: View {
                         color: .pink,
                         title: "Arciera",
                         detail: "freccia a distanza"
+                    )
+
+                    legendItem(
+                        symbol: "WB",
+                        color: .green,
+                        title: "Spaccamuro",
+                        detail: "esplosione sui muri"
                     )
 
                     Spacer()

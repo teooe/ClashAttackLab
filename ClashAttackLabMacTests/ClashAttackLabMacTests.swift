@@ -197,17 +197,23 @@ struct ClashAttackLabMacTests {
 
         advance(engine, ticks: 75)
 
-        #expect(engine.deployedTroopCount == 3)
+        #expect(engine.deployedTroopCount == 4)
         #expect(
             Set(
                 engine.entities
                     .filter {
                         $0.kind == .giant ||
                             $0.kind == .barbarian ||
-                            $0.kind == .archer
+                            $0.kind == .archer ||
+                            $0.kind == .wallBreaker
                     }
                     .map(\.kind)
-            ) == Set([.giant, .barbarian, .archer])
+            ) == Set([
+                .giant,
+                .barbarian,
+                .archer,
+                .wallBreaker
+            ])
         )
 
         advance(engine, ticks: 330)
@@ -279,13 +285,134 @@ struct ClashAttackLabMacTests {
         let archerProfile = try #require(
             gameData.definition(for: .archer).targetingProfile
         )
+        let wallBreakerProfile = try #require(
+            gameData.definition(for: .wallBreaker).targetingProfile
+        )
 
         #expect(giantProfile.preference == .defenses)
         #expect(barbarianProfile.preference == .anyBuilding)
         #expect(archerProfile.preference == .anyBuilding)
+        #expect(wallBreakerProfile.preference == .walls)
         #expect(giantProfile.evidence == .documented)
         #expect(barbarianProfile.evidence == .documented)
         #expect(archerProfile.evidence == .documented)
+        #expect(wallBreakerProfile.evidence == .documented)
+    }
+
+    @Test
+    func wallBreakerPrioritizesWallOverCloserDefense() throws {
+        let grid = PrototypeBattleMap.makeNavigationGrid()
+        let start = grid.worldPosition(
+            for: GridCoordinate(column: 2, row: 8)
+        )
+        let cannon = BattleEntity(
+            kind: .cannon,
+            position: grid.worldPosition(
+                for: GridCoordinate(column: 4, row: 8)
+            )
+        )
+        let wall = BattleEntity(
+            kind: .wall,
+            position: grid.worldPosition(
+                for: GridCoordinate(column: 8, row: 8)
+            )
+        )
+        let engine = makeSingleTroopEngine(
+            troopKind: .wallBreaker,
+            troopPosition: start,
+            objectives: [cannon, wall],
+            grid: grid
+        )
+
+        engine.start()
+        engine.advance(by: 1.0 / 60.0)
+
+        let wallBreaker = try #require(
+            engine.entities.first { $0.kind == .wallBreaker }
+        )
+        #expect(wallBreaker.currentTargetID == wall.id)
+    }
+
+    @Test
+    func wallBreakerExplosionDestroysNearbyWallsAndItself() throws {
+        let grid = PrototypeBattleMap.makeNavigationGrid()
+        let start = grid.worldPosition(
+            for: GridCoordinate(column: 5, row: 8)
+        )
+        let wallCoordinates = [
+            GridCoordinate(column: 6, row: 7),
+            GridCoordinate(column: 6, row: 8),
+            GridCoordinate(column: 6, row: 9)
+        ]
+        let walls = wallCoordinates.map {
+            BattleEntity(
+                kind: .wall,
+                position: grid.worldPosition(for: $0)
+            )
+        }
+        let townHall = BattleEntity(
+            kind: .townHall,
+            position: grid.worldPosition(
+                for: GridCoordinate(column: 12, row: 8)
+            )
+        )
+        let engine = makeSingleTroopEngine(
+            troopKind: .wallBreaker,
+            troopPosition: start,
+            objectives: walls + [townHall],
+            grid: grid
+        )
+
+        engine.start()
+        engine.advance(by: 1.0 / 60.0)
+
+        let remainingWalls = engine.entities.filter {
+            $0.kind == .wall && $0.isAlive
+        }
+        let wallBreaker = try #require(
+            engine.entities.first { $0.kind == .wallBreaker }
+        )
+
+        #expect(remainingWalls.isEmpty)
+        #expect(!wallBreaker.isAlive)
+        #expect(engine.livingTroopCount == 0)
+    }
+
+    @Test
+    func wallBreakerFallsBackToBuildingWhenNoWallsRemain() throws {
+        let grid = PrototypeBattleMap.makeNavigationGrid()
+        let start = grid.worldPosition(
+            for: GridCoordinate(column: 5, row: 8)
+        )
+        let townHall = BattleEntity(
+            kind: .townHall,
+            position: grid.worldPosition(
+                for: GridCoordinate(column: 6, row: 8)
+            )
+        )
+        let engine = makeSingleTroopEngine(
+            troopKind: .wallBreaker,
+            troopPosition: start,
+            objectives: [townHall],
+            grid: grid
+        )
+
+        engine.start()
+        engine.advance(by: 1.0 / 60.0)
+
+        let damagedTownHall = try #require(
+            engine.entities.first { $0.id == townHall.id }
+        )
+        let wallBreaker = try #require(
+            engine.entities.first { $0.kind == .wallBreaker }
+        )
+        let maximumHitPoints = PrototypeGameData()
+            .definition(for: .townHall)
+            .maxHitPoints
+
+        #expect(damagedTownHall.hitPoints < maximumHitPoints)
+        #expect(!wallBreaker.isAlive)
+        #expect(engine.livingTroopCount == 0)
     }
 
     @Test

@@ -9,6 +9,7 @@ nonisolated enum BattleEntityKind: Hashable {
     case giant
     case barbarian
     case archer
+    case wallBreaker
     case cannon
     case archerTower
     case mortar

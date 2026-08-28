@@ -22,6 +22,7 @@ nonisolated struct PrototypeGameData: GameDataProviding {
                 projectileKind: nil,
                 projectileSpeed: 0,
                 splashRadius: 0,
+                selfDestructsOnAttack: false,
                 targetingProfile: TargetingProfile(
                     preference: .defenses,
                     evidence: .documented
@@ -42,6 +43,7 @@ nonisolated struct PrototypeGameData: GameDataProviding {
                 projectileKind: nil,
                 projectileSpeed: 0,
                 splashRadius: 0,
+                selfDestructsOnAttack: false,
                 targetingProfile: TargetingProfile(
                     preference: .anyBuilding,
                     evidence: .documented
@@ -62,8 +64,30 @@ nonisolated struct PrototypeGameData: GameDataProviding {
                 projectileKind: .arrow,
                 projectileSpeed: 650,
                 splashRadius: 0,
+                selfDestructsOnAttack: false,
                 targetingProfile: TargetingProfile(
                     preference: .anyBuilding,
+                    evidence: .documented
+                )
+            )
+
+        case .wallBreaker:
+            return CombatDefinition(
+                displayName: "Spaccamuro",
+                role: .troop,
+                maxHitPoints: 160,
+                movementSpeed: 185,
+                attackDamage: 320,
+                minimumAttackRange: 0,
+                attackRange: 65,
+                attackInterval: 1.0,
+                canMove: true,
+                projectileKind: nil,
+                projectileSpeed: 0,
+                splashRadius: 72,
+                selfDestructsOnAttack: true,
+                targetingProfile: TargetingProfile(
+                    preference: .walls,
                     evidence: .documented
                 )
             )
@@ -82,6 +106,7 @@ nonisolated struct PrototypeGameData: GameDataProviding {
                 projectileKind: .cannonball,
                 projectileSpeed: 600,
                 splashRadius: 0,
+                selfDestructsOnAttack: false,
                 targetingProfile: nil
             )
 
@@ -99,6 +124,7 @@ nonisolated struct PrototypeGameData: GameDataProviding {
                 projectileKind: .arrow,
                 projectileSpeed: 700,
                 splashRadius: 0,
+                selfDestructsOnAttack: false,
                 targetingProfile: nil
             )
 
@@ -116,6 +142,7 @@ nonisolated struct PrototypeGameData: GameDataProviding {
                 projectileKind: .mortarShell,
                 projectileSpeed: 360,
                 splashRadius: 95,
+                selfDestructsOnAttack: false,
                 targetingProfile: nil
             )
 
@@ -133,6 +160,7 @@ nonisolated struct PrototypeGameData: GameDataProviding {
                 projectileKind: nil,
                 projectileSpeed: 0,
                 splashRadius: 0,
+                selfDestructsOnAttack: false,
                 targetingProfile: nil
             )
 
@@ -150,6 +178,7 @@ nonisolated struct PrototypeGameData: GameDataProviding {
                 projectileKind: nil,
                 projectileSpeed: 0,
                 splashRadius: 0,
+                selfDestructsOnAttack: false,
                 targetingProfile: nil
             )
 
@@ -167,6 +196,7 @@ nonisolated struct PrototypeGameData: GameDataProviding {
                 projectileKind: nil,
                 projectileSpeed: 0,
                 splashRadius: 0,
+                selfDestructsOnAttack: false,
                 targetingProfile: nil
             )
         }
