@@ -7,6 +7,8 @@ struct WorldPosition: Equatable {
 
 enum BattleEntityKind: Hashable {
     case giant
+    case barbarian
+    case archer
     case cannon
     case townHall
     case goldStorage
