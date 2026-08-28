@@ -61,13 +61,49 @@ nonisolated struct CombatDefinition {
     let selfDestructsOnAttack: Bool
 
     /// Ground troops navigate with A*. Air troops fly directly over walls.
-    let movementDomain: MovementDomain = .ground
+    let movementDomain: MovementDomain
 
     /// Defines which troop movement domains a defense can acquire.
-    let attackTargetLayer: AttackTargetLayer = .both
+    let attackTargetLayer: AttackTargetLayer
 
     /// Nil for entities that do not choose offensive building targets.
     let targetingProfile: TargetingProfile?
+
+    init(
+        displayName: String,
+        role: BattleEntityRole,
+        maxHitPoints: Double,
+        movementSpeed: Double,
+        attackDamage: Double,
+        minimumAttackRange: Double,
+        attackRange: Double,
+        attackInterval: TimeInterval,
+        canMove: Bool,
+        projectileKind: ProjectileKind?,
+        projectileSpeed: Double,
+        splashRadius: Double,
+        selfDestructsOnAttack: Bool,
+        movementDomain: MovementDomain = .ground,
+        attackTargetLayer: AttackTargetLayer = .both,
+        targetingProfile: TargetingProfile?
+    ) {
+        self.displayName = displayName
+        self.role = role
+        self.maxHitPoints = maxHitPoints
+        self.movementSpeed = movementSpeed
+        self.attackDamage = attackDamage
+        self.minimumAttackRange = minimumAttackRange
+        self.attackRange = attackRange
+        self.attackInterval = attackInterval
+        self.canMove = canMove
+        self.projectileKind = projectileKind
+        self.projectileSpeed = projectileSpeed
+        self.splashRadius = splashRadius
+        self.selfDestructsOnAttack = selfDestructsOnAttack
+        self.movementDomain = movementDomain
+        self.attackTargetLayer = attackTargetLayer
+        self.targetingProfile = targetingProfile
+    }
 
     var countsForDestruction: Bool {
         role == .defense || role == .building
