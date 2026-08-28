@@ -181,14 +181,19 @@ final class BattleScene: SKScene {
             )
             root.zPosition = 8
 
+            let markerColor = deploymentMarkerColor(for: order.kind)
             let marker = SKShapeNode(circleOfRadius: 22)
-            marker.fillColor = .systemCyan.withAlphaComponent(0.12)
-            marker.strokeColor = .systemCyan
+            marker.fillColor = markerColor.withAlphaComponent(0.16)
+            marker.strokeColor = markerColor
             marker.lineWidth = 2
             root.addChild(marker)
 
             let label = SKLabelNode(
-                text: String(format: "%.0f s", order.deploymentTime)
+                text: String(
+                    format: "%@ %.1f s",
+                    shortSymbol(for: order.kind),
+                    order.deploymentTime
+                )
             )
             label.fontName = "AvenirNext-Bold"
             label.fontSize = 12
@@ -344,14 +349,15 @@ final class BattleScene: SKScene {
         switch simulation.status {
         case .ready:
             statusLabel.text =
-                "Piano: \(attackPlan.name) · premi Avvia"
+                "Pronto · \(armySummary()) · premi Avvia"
             resultLabel.isHidden = true
 
         case .running:
             statusLabel.text = String(
-                format: "Tempo: %.1f s · Deploy: %d · In attesa: %d",
+                format: "Tempo: %.1f s · Schierate: %d/%d · In attesa: %d",
                 simulation.remainingTime,
                 simulation.deployedTroopCount,
+                attackPlan.totalDeploymentCount,
                 simulation.pendingDeploymentCount
             )
             resultLabel.isHidden = true
@@ -420,6 +426,50 @@ final class BattleScene: SKScene {
         line.path = path
     }
 
+    private func armySummary() -> String {
+        attackPlan.troopKindsInDeploymentOrder
+            .map { kind in
+                let name = simulation.definition(for: kind).displayName
+                let count = attackPlan.deploymentCount(for: kind)
+                return "\(name) ×\(count)"
+            }
+            .joined(separator: " · ")
+    }
+
+    private func deploymentMarkerColor(
+        for kind: BattleEntityKind
+    ) -> SKColor {
+        switch kind {
+        case .giant:
+            return .systemOrange
+        case .barbarian:
+            return .systemRed
+        case .archer:
+            return .systemPink
+        case .cannon, .townHall, .goldStorage, .wall:
+            return .systemCyan
+        }
+    }
+
+    private func shortSymbol(for kind: BattleEntityKind) -> String {
+        switch kind {
+        case .giant:
+            return "G"
+        case .barbarian:
+            return "B"
+        case .archer:
+            return "A"
+        case .cannon:
+            return "C"
+        case .townHall:
+            return "TH"
+        case .goldStorage:
+            return "D"
+        case .wall:
+            return "M"
+        }
+    }
+
     private func makeBody(for kind: BattleEntityKind) -> SKNode {
         switch kind {
         case .giant:
@@ -427,6 +477,20 @@ final class BattleScene: SKScene {
                 radius: 30,
                 color: .systemOrange,
                 text: "G"
+            )
+
+        case .barbarian:
+            return makeLabeledCircle(
+                radius: 22,
+                color: .systemRed,
+                text: "B"
+            )
+
+        case .archer:
+            return makeLabeledCircle(
+                radius: 20,
+                color: .systemPink,
+                text: "A"
             )
 
         case .cannon:
