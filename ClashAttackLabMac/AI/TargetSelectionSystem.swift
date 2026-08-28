@@ -40,8 +40,7 @@ struct TargetSelectionSystem {
         let troop = entities[troopIndex]
         let preference =
             gameData.definition(for: troop.kind)
-                .targetingProfile?
-                .preference ?? .anyBuilding
+                .targetingProfile?.preference ?? .anyBuilding
         let eligibleIndices = eligibleObjectives(
             from: candidateIndices,
             preference: preference,
