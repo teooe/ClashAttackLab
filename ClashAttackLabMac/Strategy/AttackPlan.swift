@@ -53,6 +53,6 @@ struct AttackPlan {
     }
 
     func deploymentCount(for kind: BattleEntityKind) -> Int {
-        deployments.count { $0.kind == kind }
+        deployments.filter { $0.kind == kind }.count
     }
 }
