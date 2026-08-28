@@ -87,7 +87,28 @@ final class BattleScene: SKScene {
     func loadAttackPlan(_ attackPlan: AttackPlan) {
         self.attackPlan = attackPlan
         simulation.loadAttackPlan(attackPlan)
+        refreshDeploymentMarkers()
 
+        lastUpdateTime = nil
+        updatePresentation()
+    }
+
+    func loadScenario(
+        entities: [BattleEntity],
+        attackPlan: AttackPlan
+    ) {
+        self.attackPlan = attackPlan
+        simulation.loadScenario(
+            entities: entities,
+            attackPlan: attackPlan
+        )
+        refreshDeploymentMarkers()
+
+        lastUpdateTime = nil
+        updatePresentation()
+    }
+
+    private func refreshDeploymentMarkers() {
         for marker in deploymentMarkers.values {
             marker.removeFromParent()
         }
@@ -98,9 +119,6 @@ final class BattleScene: SKScene {
         spellMarkers.removeAll()
         drawDeploymentMarkers()
         drawSpellMarkers()
-
-        lastUpdateTime = nil
-        updatePresentation()
     }
 
     private func drawArena() {

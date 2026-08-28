@@ -1239,6 +1239,97 @@ struct ClashAttackLabMacTests {
         #expect(engine.entities.count == 1)
     }
 
+    @Test
+    func curatedBaseLayoutsKeepComparableObjectiveInventory() {
+        let grid = PrototypeBattleMap.makeNavigationGrid()
+        let layouts = PrototypeBaseLayout.allCases
+        var wallSignatures: Set<String> = []
+
+        for layout in layouts {
+            let entities = PrototypeBattleMap.makeBaseEntities(
+                navigationGrid: grid,
+                layout: layout
+            )
+
+            #expect(
+                entities.filter { $0.kind == .cannon }.count == 2
+            )
+            #expect(
+                entities.filter { $0.kind == .archerTower }.count == 2
+            )
+            #expect(
+                entities.filter { $0.kind == .mortar }.count == 1
+            )
+            #expect(
+                entities.filter { $0.kind == .townHall }.count == 1
+            )
+            #expect(
+                entities.filter { $0.kind == .goldStorage }.count == 2
+            )
+
+            let signature = PrototypeBattleMap.wallCoordinates(
+                for: layout
+            )
+            .map { coordinate in
+                "\(coordinate.column),\(coordinate.row)"
+            }
+            .sorted()
+            .joined(separator: "|")
+            wallSignatures.insert(signature)
+        }
+
+        #expect(wallSignatures.count == layouts.count)
+    }
+
+    @Test
+    func loadingAnotherBaseResetsBattleToTheNewScenario() throws {
+        let grid = PrototypeBattleMap.makeNavigationGrid()
+        let plan = try #require(
+            PrototypeBattleMap.makeCandidateAttackPlans(
+                navigationGrid: grid
+            ).first
+        )
+        let fortress = PrototypeBattleMap.makeBaseEntities(
+            navigationGrid: grid,
+            layout: .fortress
+        )
+        let corridor = PrototypeBattleMap.makeBaseEntities(
+            navigationGrid: grid,
+            layout: .corridor
+        )
+        let engine = SimulationEngine(
+            entities: fortress,
+            attackPlan: plan,
+            gameData: PrototypeGameData(),
+            navigationGrid: grid
+        )
+
+        engine.start()
+        engine.advance(by: 1)
+
+        #expect(engine.deployedTroopCount > 0)
+        #expect(engine.elapsedTime > 0)
+
+        engine.loadScenario(
+            entities: corridor,
+            attackPlan: plan
+        )
+
+        guard case .ready = engine.status else {
+            Issue.record("Il caricamento della base deve tornare ready.")
+            return
+        }
+
+        #expect(engine.elapsedTime == 0)
+        #expect(engine.deployedTroopCount == 0)
+        #expect(engine.pendingDeploymentCount == plan.totalDeploymentCount)
+        #expect(engine.entities.count == corridor.count)
+        #expect(
+            engine.entities.filter { $0.kind == .wall }.count ==
+                PrototypeBattleMap.wallCoordinates(for: .corridor).count
+        )
+    }
+
     private func makeSingleTroopEngine(
         troopKind: BattleEntityKind,
         troopPosition: WorldPosition,

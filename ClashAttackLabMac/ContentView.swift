@@ -5,6 +5,7 @@ import SwiftUI
 struct ContentView: View {
     @StateObject private var session = AttackLabSession()
     @State private var showingArmyBuilder = false
+    @State private var showingBaseLibrary = false
 
     var body: some View {
         VStack(spacing: 0) {
@@ -13,7 +14,9 @@ struct ContentView: View {
                     Text("Clash Attack Lab")
                         .font(.title2.bold())
 
-                    Text("Milestone 13 · Army Builder e Mago ad area")
+                    Text(
+                        "Milestone 14 · \(session.baseLayout.displayName) · Libreria basi"
+                    )
                         .foregroundStyle(.secondary)
                         .lineLimit(1)
                         .minimumScaleFactor(0.8)
@@ -35,6 +38,12 @@ struct ContentView: View {
                     showingArmyBuilder = true
                 } label: {
                     Label("Esercito", systemImage: "person.3.fill")
+                }
+
+                Button {
+                    showingBaseLibrary = true
+                } label: {
+                    Label("Base", systemImage: "square.grid.3x3.fill")
                 }
 
                 Button {
@@ -182,13 +191,18 @@ struct ContentView: View {
                 session.applyArmyConfiguration(configuration)
             }
         }
+        .sheet(isPresented: $showingBaseLibrary) {
+            BaseEditorView(layout: session.baseLayout) { layout in
+                session.applyBaseLayout(layout)
+            }
+        }
     }
 
     private var comparisonBar: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
                 Label(
-                    "Piani simulati senza rendering",
+                    "Piani simulati · \(session.baseLayout.displayName)",
                     systemImage: "cpu"
                 )
                 .font(.caption.bold())

@@ -6,6 +6,7 @@ final class AttackLabSession: ObservableObject {
     @Published private(set) var evaluations: [AttackPlanEvaluation] = []
     @Published private(set) var selectedPlanID: UUID?
     @Published private(set) var armyConfiguration: ArmyConfiguration
+    @Published private(set) var baseLayout: PrototypeBaseLayout
 
     let scene: BattleScene
 
@@ -13,15 +14,19 @@ final class AttackLabSession: ObservableObject {
         candidatePlans.count
     }
 
+    private let gameData: any GameDataProviding
     private let navigationGrid: NavigationGrid
+    private var baseEntities: [BattleEntity]
     private var candidatePlans: [AttackPlan]
-    private let evaluator: AttackPlanEvaluator
+    private var evaluator: AttackPlanEvaluator
 
     init() {
         let gameData = PrototypeGameData()
         let navigationGrid = PrototypeBattleMap.makeNavigationGrid()
+        let layout = PrototypeBaseLayout.fortress
         let baseEntities = PrototypeBattleMap.makeBaseEntities(
-            navigationGrid: navigationGrid
+            navigationGrid: navigationGrid,
+            layout: layout
         )
         let configuration = ArmyConfiguration.prototypeDefault
         let candidatePlans = AttackPlanGenerator(
@@ -31,7 +36,10 @@ final class AttackLabSession: ObservableObject {
         let initialPlan = candidatePlans[0]
 
         self.armyConfiguration = configuration
+        self.baseLayout = layout
+        self.gameData = gameData
         self.navigationGrid = navigationGrid
+        self.baseEntities = baseEntities
         self.candidatePlans = candidatePlans
         self.evaluator = AttackPlanEvaluator(
             baseEntities: baseEntities,
@@ -87,6 +95,36 @@ final class AttackLabSession: ObservableObject {
         evaluations = []
         selectedPlanID = firstPlan.id
         scene.loadAttackPlan(firstPlan)
+    }
+
+    func applyBaseLayout(_ layout: PrototypeBaseLayout) {
+        guard layout != baseLayout else {
+            return
+        }
+
+        let entities = PrototypeBattleMap.makeBaseEntities(
+            navigationGrid: navigationGrid,
+            layout: layout
+        )
+
+        baseLayout = layout
+        baseEntities = entities
+        evaluator = AttackPlanEvaluator(
+            baseEntities: entities,
+            gameData: gameData,
+            navigationGrid: navigationGrid
+        )
+        evaluations = []
+
+        guard let initialPlan = candidatePlans.first else {
+            return
+        }
+
+        selectedPlanID = initialPlan.id
+        scene.loadScenario(
+            entities: entities,
+            attackPlan: initialPlan
+        )
     }
 
     func select(_ evaluation: AttackPlanEvaluation) {

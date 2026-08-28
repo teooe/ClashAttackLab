@@ -8,7 +8,7 @@ final class SimulationEngine {
     private let pathfinder: AStarPathfinder
     private let targetSelectionSystem: TargetSelectionSystem
     private let scoringSystem: BaseScoringSystem
-    private let initialEntities: [BattleEntity]
+    private var initialEntities: [BattleEntity]
     private var attackPlan: AttackPlan
 
     private var accumulatedTime: TimeInterval = 0
@@ -144,6 +144,15 @@ final class SimulationEngine {
     }
 
     func loadAttackPlan(_ attackPlan: AttackPlan) {
+        self.attackPlan = attackPlan
+        reset()
+    }
+
+    func loadScenario(
+        entities: [BattleEntity],
+        attackPlan: AttackPlan
+    ) {
+        initialEntities = entities
         self.attackPlan = attackPlan
         reset()
     }
