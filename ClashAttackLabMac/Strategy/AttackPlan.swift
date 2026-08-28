@@ -35,4 +35,24 @@ struct AttackPlan {
             return $0.deploymentTime < $1.deploymentTime
         }
     }
+
+    var totalDeploymentCount: Int {
+        deployments.count
+    }
+
+    var troopKindsInDeploymentOrder: [BattleEntityKind] {
+        var seen: Set<BattleEntityKind> = []
+
+        return orderedDeployments.compactMap { deployment in
+            guard seen.insert(deployment.kind).inserted else {
+                return nil
+            }
+
+            return deployment.kind
+        }
+    }
+
+    func deploymentCount(for kind: BattleEntityKind) -> Int {
+        deployments.count { $0.kind == kind }
+    }
 }
