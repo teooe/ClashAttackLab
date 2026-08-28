@@ -231,7 +231,7 @@ struct ClashAttackLabMacTests {
 
         advance(engine, ticks: 75)
 
-        #expect(engine.deployedTroopCount == 4)
+        #expect(engine.deployedTroopCount == 5)
         #expect(
             Set(
                 engine.entities
@@ -239,14 +239,16 @@ struct ClashAttackLabMacTests {
                         $0.kind == .giant ||
                             $0.kind == .barbarian ||
                             $0.kind == .archer ||
-                            $0.kind == .wallBreaker
+                            $0.kind == .wallBreaker ||
+                            $0.kind == .wizard
                     }
                     .map(\.kind)
             ) == Set([
                 .giant,
                 .barbarian,
                 .archer,
-                .wallBreaker
+                .wallBreaker,
+                .wizard
             ])
         )
 
@@ -556,15 +558,20 @@ struct ClashAttackLabMacTests {
         let wallBreakerProfile = try #require(
             gameData.definition(for: .wallBreaker).targetingProfile
         )
+        let wizardProfile = try #require(
+            gameData.definition(for: .wizard).targetingProfile
+        )
 
         #expect(giantProfile.preference == .defenses)
         #expect(barbarianProfile.preference == .anyBuilding)
         #expect(archerProfile.preference == .anyBuilding)
         #expect(wallBreakerProfile.preference == .walls)
+        #expect(wizardProfile.preference == .anyBuilding)
         #expect(giantProfile.evidence == .documented)
         #expect(barbarianProfile.evidence == .documented)
         #expect(archerProfile.evidence == .documented)
         #expect(wallBreakerProfile.evidence == .documented)
+        #expect(wizardProfile.evidence == .approximation)
     }
 
     @Test
@@ -816,6 +823,53 @@ struct ClashAttackLabMacTests {
     }
 
     @Test
+    func wizardFireballDamagesNearbyBuildings() throws {
+        let grid = PrototypeBattleMap.makeNavigationGrid()
+        let start = grid.worldPosition(
+            for: GridCoordinate(column: 2, row: 8)
+        )
+        let primaryStorage = BattleEntity(
+            kind: .goldStorage,
+            position: grid.worldPosition(
+                for: GridCoordinate(column: 6, row: 8)
+            )
+        )
+        let nearbyStorage = BattleEntity(
+            kind: .goldStorage,
+            position: grid.worldPosition(
+                for: GridCoordinate(column: 6, row: 9)
+            )
+        )
+        let engine = makeSingleTroopEngine(
+            troopKind: .wizard,
+            troopPosition: start,
+            objectives: [primaryStorage, nearbyStorage],
+            grid: grid
+        )
+
+        engine.start()
+        engine.advance(by: 1.0 / 60.0)
+
+        let fireball = try #require(engine.projectiles.first)
+        #expect(fireball.kind == .fireball)
+
+        advance(engine, ticks: 30)
+
+        let damagedPrimary = try #require(
+            engine.entities.first { $0.id == primaryStorage.id }
+        )
+        let damagedNearby = try #require(
+            engine.entities.first { $0.id == nearbyStorage.id }
+        )
+        let maximum = PrototypeGameData()
+            .definition(for: .goldStorage)
+            .maxHitPoints
+
+        #expect(damagedPrimary.hitPoints < maximum)
+        #expect(damagedNearby.hitPoints < maximum)
+    }
+
+    @Test
     func archerTowerDelaysDamageUntilArrowImpact() throws {
         let grid = PrototypeBattleMap.makeNavigationGrid()
         let tower = BattleEntity(
@@ -995,7 +1049,7 @@ struct ClashAttackLabMacTests {
             baseline.orderedSpellDeployments.map(\.id)
 
         #expect(plans.count == 24)
-        #expect(baseline.totalDeploymentCount == 10)
+        #expect(baseline.totalDeploymentCount == 12)
         #expect(baseline.totalSpellCount == 2)
 
         for plan in plans.dropFirst() {
@@ -1035,6 +1089,81 @@ struct ClashAttackLabMacTests {
 
         #expect(distinctSchedules.count == 3)
         #expect(distinctCandidates.count == plans.count)
+    }
+
+    @Test
+    func armyConfigurationEnforcesPrototypeCapacity() {
+        let defaultArmy = ArmyConfiguration.prototypeDefault
+        let oversizedArmy = ArmyConfiguration(
+            giants: 7,
+            barbarians: 3,
+            archers: 3,
+            wallBreakers: 2,
+            wizards: 2,
+            healSpells: 1,
+            rageSpells: 1
+        )
+        let emptyArmy = ArmyConfiguration(
+            giants: 0,
+            barbarians: 0,
+            archers: 0,
+            wallBreakers: 0,
+            wizards: 0,
+            healSpells: 0,
+            rageSpells: 0
+        )
+
+        #expect(defaultArmy.isValid)
+        #expect(defaultArmy.troopCapacityUsed == 28)
+        #expect(!oversizedArmy.isValid)
+        #expect(!emptyArmy.isValid)
+        #expect(
+            emptyArmy.validationMessage ==
+                "Aggiungi almeno una truppa."
+        )
+    }
+
+    @Test
+    func generatorUsesTheChosenArmyComposition() throws {
+        let grid = PrototypeBattleMap.makeNavigationGrid()
+        let customArmy = ArmyConfiguration(
+            giants: 1,
+            barbarians: 0,
+            archers: 0,
+            wallBreakers: 0,
+            wizards: 2,
+            healSpells: 0,
+            rageSpells: 1
+        )
+        let plans = PrototypeBattleMap.makeCandidateAttackPlans(
+            navigationGrid: grid,
+            armyConfiguration: customArmy
+        )
+        let baseline = try #require(plans.first)
+
+        #expect(customArmy.isValid)
+        #expect(plans.count == 24)
+        #expect(
+            baseline.orderedDeployments.map(\.kind) ==
+                customArmy.deploymentSequence
+        )
+        #expect(
+            baseline.orderedSpellDeployments.map(\.kind) ==
+                customArmy.spellSequence
+        )
+        #expect(baseline.totalDeploymentCount == 3)
+        #expect(baseline.totalSpellCount == 1)
+
+        for plan in plans.dropFirst() {
+            #expect(
+                plan.orderedDeployments.map(\.kind) ==
+                    customArmy.deploymentSequence
+            )
+            #expect(
+                plan.orderedSpellDeployments.map(\.kind) ==
+                    customArmy.spellSequence
+            )
+        }
     }
 
     @Test

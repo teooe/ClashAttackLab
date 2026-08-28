@@ -4,6 +4,7 @@ import SwiftUI
 
 struct ContentView: View {
     @StateObject private var session = AttackLabSession()
+    @State private var showingArmyBuilder = false
 
     var body: some View {
         VStack(spacing: 0) {
@@ -12,7 +13,7 @@ struct ContentView: View {
                     Text("Clash Attack Lab")
                         .font(.title2.bold())
 
-                    Text("Milestone 12 · Incantesimi, ricerca e analisi")
+                    Text("Milestone 13 · Army Builder e Mago ad area")
                         .foregroundStyle(.secondary)
                         .lineLimit(1)
                         .minimumScaleFactor(0.8)
@@ -29,6 +30,12 @@ struct ContentView: View {
                     )
                 }
                 .buttonStyle(.borderedProminent)
+
+                Button {
+                    showingArmyBuilder = true
+                } label: {
+                    Label("Esercito", systemImage: "person.3.fill")
+                }
 
                 Button {
                     session.scene.startSimulation()
@@ -95,11 +102,12 @@ struct ContentView: View {
                         detail: "esplosione sui muri"
                     )
 
-                    Spacer()
-
-                    Text("Preferenze bersaglio: documentate")
-                        .font(.caption2)
-                        .foregroundStyle(.secondary)
+                    legendItem(
+                        symbol: "W",
+                        color: .blue,
+                        title: "Mago",
+                        detail: "proiettile ad area"
+                    )
                 }
 
                 HStack(spacing: 18) {
@@ -166,6 +174,13 @@ struct ContentView: View {
 
             SpriteView(scene: session.scene)
                 .frame(minWidth: 840, minHeight: 600)
+        }
+        .sheet(isPresented: $showingArmyBuilder) {
+            ArmyEditorView(
+                configuration: session.armyConfiguration
+            ) { configuration in
+                session.applyArmyConfiguration(configuration)
+            }
         }
     }
 

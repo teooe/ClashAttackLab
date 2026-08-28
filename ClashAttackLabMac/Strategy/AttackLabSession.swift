@@ -5,6 +5,7 @@ import SpriteKit
 final class AttackLabSession: ObservableObject {
     @Published private(set) var evaluations: [AttackPlanEvaluation] = []
     @Published private(set) var selectedPlanID: UUID?
+    @Published private(set) var armyConfiguration: ArmyConfiguration
 
     let scene: BattleScene
 
@@ -12,7 +13,8 @@ final class AttackLabSession: ObservableObject {
         candidatePlans.count
     }
 
-    private let candidatePlans: [AttackPlan]
+    private let navigationGrid: NavigationGrid
+    private var candidatePlans: [AttackPlan]
     private let evaluator: AttackPlanEvaluator
 
     init() {
@@ -21,11 +23,15 @@ final class AttackLabSession: ObservableObject {
         let baseEntities = PrototypeBattleMap.makeBaseEntities(
             navigationGrid: navigationGrid
         )
-        let candidatePlans = PrototypeBattleMap.makeCandidateAttackPlans(
-            navigationGrid: navigationGrid
-        )
+        let configuration = ArmyConfiguration.prototypeDefault
+        let candidatePlans = AttackPlanGenerator(
+            navigationGrid: navigationGrid,
+            armyConfiguration: configuration
+        ).generate()
         let initialPlan = candidatePlans[0]
 
+        self.armyConfiguration = configuration
+        self.navigationGrid = navigationGrid
         self.candidatePlans = candidatePlans
         self.evaluator = AttackPlanEvaluator(
             baseEntities: baseEntities,
@@ -58,6 +64,29 @@ final class AttackLabSession: ObservableObject {
         }
 
         select(best)
+    }
+
+    func applyArmyConfiguration(
+        _ configuration: ArmyConfiguration
+    ) {
+        guard configuration.isValid else {
+            return
+        }
+
+        let generatedPlans = AttackPlanGenerator(
+            navigationGrid: navigationGrid,
+            armyConfiguration: configuration
+        ).generate()
+
+        guard let firstPlan = generatedPlans.first else {
+            return
+        }
+
+        armyConfiguration = configuration
+        candidatePlans = generatedPlans
+        evaluations = []
+        selectedPlanID = firstPlan.id
+        scene.loadAttackPlan(firstPlan)
     }
 
     func select(_ evaluation: AttackPlanEvaluation) {

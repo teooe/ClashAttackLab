@@ -122,6 +122,27 @@ nonisolated struct PrototypeGameData: GameDataProviding {
                 )
             )
 
+        case .wizard:
+            return CombatDefinition(
+                displayName: "Mago",
+                role: .troop,
+                maxHitPoints: 260,
+                movementSpeed: 125,
+                attackDamage: 95,
+                minimumAttackRange: 0,
+                attackRange: 180,
+                attackInterval: 1.35,
+                canMove: true,
+                projectileKind: .fireball,
+                projectileSpeed: 520,
+                splashRadius: 65,
+                selfDestructsOnAttack: false,
+                targetingProfile: TargetingProfile(
+                    preference: .anyBuilding,
+                    evidence: .approximation
+                )
+            )
+
         case .cannon:
             return CombatDefinition(
                 displayName: "Cannone",

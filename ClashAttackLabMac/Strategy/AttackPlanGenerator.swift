@@ -2,8 +2,9 @@ import Foundation
 
 /// Produces deterministic candidate plans from independent strategy axes.
 ///
-/// The same troop and spell identifiers are reused in every candidate so the
-/// headless comparison changes only placement and timing, never army content.
+/// Every candidate uses the exact ArmyConfiguration selected by the user.
+/// Identifiers are reused across plans so headless ranking changes only
+/// placement and timing, never the army being compared.
 nonisolated struct AttackPlanGenerator {
     private struct Formation {
         let name: String
@@ -13,9 +14,8 @@ nonisolated struct AttackPlanGenerator {
 
     private struct Tempo {
         let name: String
-        let troopTimes: [TimeInterval]
-        let healTime: TimeInterval
-        let rageTime: TimeInterval
+        let waveGap: TimeInterval
+        let withinWaveDelay: TimeInterval
     }
 
     private struct BreachStyle {
@@ -24,14 +24,27 @@ nonisolated struct AttackPlanGenerator {
     }
 
     private let navigationGrid: NavigationGrid
+    private let armyConfiguration: ArmyConfiguration
 
-    init(navigationGrid: NavigationGrid) {
+    init(
+        navigationGrid: NavigationGrid,
+        armyConfiguration: ArmyConfiguration = .prototypeDefault
+    ) {
         self.navigationGrid = navigationGrid
+        self.armyConfiguration = armyConfiguration
     }
 
     func generate() -> [AttackPlan] {
-        let entityIDs = (0..<10).map { _ in UUID() }
-        let spellIDs = (0..<2).map { _ in UUID() }
+        precondition(
+            armyConfiguration.isValid,
+            armyConfiguration.validationMessage ??
+                "Configurazione esercito non valida."
+        )
+
+        let troopKinds = armyConfiguration.deploymentSequence
+        let spellKinds = armyConfiguration.spellSequence
+        let entityIDs = troopKinds.map { _ in UUID() }
+        let spellIDs = spellKinds.map { _ in UUID() }
 
         return formations.flatMap { formation in
             tempos.flatMap { tempo in
@@ -40,6 +53,8 @@ nonisolated struct AttackPlanGenerator {
                         formation: formation,
                         tempo: tempo,
                         breachStyle: breachStyle,
+                        troopKinds: troopKinds,
+                        spellKinds: spellKinds,
                         entityIDs: entityIDs,
                         spellIDs: spellIDs
                     )
@@ -61,30 +76,18 @@ nonisolated struct AttackPlanGenerator {
         [
             Tempo(
                 name: "Rapida",
-                troopTimes: [
-                    0, 0.3, 0.8, 1.0, 2.4,
-                    2.7, 3.2, 3.6, 4.8, 5.1
-                ],
-                healTime: 4.8,
-                rageTime: 7.4
+                waveGap: 2.4,
+                withinWaveDelay: 0.3
             ),
             Tempo(
                 name: "Bilanciata",
-                troopTimes: [
-                    0, 0.4, 1.0, 1.2, 3.0,
-                    3.4, 4.0, 4.5, 6.2, 6.7
-                ],
-                healTime: 6.0,
-                rageTime: 9.0
+                waveGap: 3.0,
+                withinWaveDelay: 0.4
             ),
             Tempo(
                 name: "Paziente",
-                troopTimes: [
-                    0, 0.6, 1.4, 1.8, 4.2,
-                    4.8, 5.6, 6.2, 8.2, 8.8
-                ],
-                healTime: 7.4,
-                rageTime: 10.8
+                waveGap: 4.2,
+                withinWaveDelay: 0.6
             )
         ]
     }
@@ -106,86 +109,118 @@ nonisolated struct AttackPlanGenerator {
         formation: Formation,
         tempo: Tempo,
         breachStyle: BreachStyle,
+        troopKinds: [BattleEntityKind],
+        spellKinds: [BattleSpellKind],
         entityIDs: [UUID],
         spellIDs: [UUID]
     ) -> AttackPlan {
-        let first = formation.firstRow
-        let second = formation.secondRow
-        let offset = breachStyle.wallBreakerOffset
-        let rows = [
-            clampedRow(first - offset),
-            clampedRow(first),
-            clampedRow(first - 1),
-            clampedRow(first + 1),
-            clampedRow(second + offset),
-            clampedRow(second),
-            clampedRow(second + 1),
-            clampedRow(second - 1),
-            clampedRow(first),
-            clampedRow(second)
-        ]
-        let kinds: [BattleEntityKind] = [
-            .wallBreaker,
-            .giant,
-            .barbarian,
-            .archer,
-            .wallBreaker,
-            .giant,
-            .barbarian,
-            .archer,
-            .barbarian,
-            .archer
-        ]
-        let columns = [2, 2, 1, 1, 2, 2, 1, 1, 2, 1]
+        let waveSize = max(
+            1,
+            armyConfiguration.distinctTroopKindCount
+        )
+        let deployments = troopKinds.indices.map { index in
+            let kind = troopKinds[index]
+            let wave = index / waveSize
+            let slot = index % waveSize
+            let baseRow = wave.isMultiple(of: 2)
+                ? formation.firstRow
+                : formation.secondRow
+            let row = deploymentRow(
+                for: kind,
+                baseRow: baseRow,
+                wave: wave,
+                breachStyle: breachStyle
+            )
 
-        precondition(rows.count == kinds.count)
-        precondition(kinds.count == tempo.troopTimes.count)
-        precondition(entityIDs.count == kinds.count)
-        precondition(spellIDs.count == 2)
-
-        let deployments = kinds.indices.map { index in
-            DeploymentOrder(
+            return DeploymentOrder(
                 entityID: entityIDs[index],
-                kind: kinds[index],
+                kind: kind,
                 position: navigationGrid.worldPosition(
                     for: GridCoordinate(
-                        column: columns[index],
-                        row: rows[index]
+                        column: deploymentColumn(for: kind),
+                        row: row
                     )
                 ),
-                deploymentTime: tempo.troopTimes[index]
+                deploymentTime:
+                    Double(wave) * tempo.waveGap +
+                    Double(slot) * tempo.withinWaveDelay
             )
         }
-        let spellDeployments = [
-            SpellDeploymentOrder(
-                id: spellIDs[0],
-                kind: .heal,
+        let lastTroopTime =
+            deployments.map(\.deploymentTime).max() ?? 0
+        let firstSpellTime = max(
+            1.5,
+            lastTroopTime * 0.65 + 1.5
+        )
+        let spellDeployments = spellKinds.indices.map { index in
+            let kind = spellKinds[index]
+            let supportsFirstLane = index.isMultiple(of: 2)
+            let row = supportsFirstLane
+                ? formation.firstRow
+                : formation.secondRow
+            let column = kind == .heal ? 13 : 18
+
+            return SpellDeploymentOrder(
+                id: spellIDs[index],
+                kind: kind,
                 position: navigationGrid.worldPosition(
                     for: GridCoordinate(
-                        column: 13,
-                        row: clampedRow(first)
+                        column: column,
+                        row: clampedRow(row)
                     )
                 ),
-                deploymentTime: tempo.healTime
-            ),
-            SpellDeploymentOrder(
-                id: spellIDs[1],
-                kind: .rage,
-                position: navigationGrid.worldPosition(
-                    for: GridCoordinate(
-                        column: 18,
-                        row: clampedRow(second)
-                    )
-                ),
-                deploymentTime: tempo.rageTime
+                deploymentTime:
+                    firstSpellTime + Double(index) * 2.2
             )
-        ]
+        }
 
         return AttackPlan(
             name: "\(formation.name) · \(tempo.name) · \(breachStyle.name)",
             deployments: deployments,
             spellDeployments: spellDeployments
         )
+    }
+
+    private func deploymentRow(
+        for kind: BattleEntityKind,
+        baseRow: Int,
+        wave: Int,
+        breachStyle: BreachStyle
+    ) -> Int {
+        let direction = wave.isMultiple(of: 2) ? -1 : 1
+        let offset: Int
+
+        switch kind {
+        case .wallBreaker:
+            offset = direction * breachStyle.wallBreakerOffset
+        case .giant:
+            offset = 0
+        case .barbarian:
+            offset = direction
+        case .archer:
+            offset = -direction
+        case .wizard:
+            offset = -direction * 2
+        case .cannon, .archerTower, .mortar,
+             .townHall, .goldStorage, .wall:
+            offset = 0
+        }
+
+        return clampedRow(baseRow + offset)
+    }
+
+    private func deploymentColumn(
+        for kind: BattleEntityKind
+    ) -> Int {
+        switch kind {
+        case .giant, .wallBreaker:
+            return 2
+        case .barbarian, .archer, .wizard:
+            return 1
+        case .cannon, .archerTower, .mortar,
+             .townHall, .goldStorage, .wall:
+            return 1
+        }
     }
 
     private func clampedRow(_ row: Int) -> Int {

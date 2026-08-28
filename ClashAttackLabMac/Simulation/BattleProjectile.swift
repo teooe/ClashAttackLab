@@ -4,6 +4,7 @@ nonisolated enum ProjectileKind: Hashable {
     case arrow
     case cannonball
     case mortarShell
+    case fireball
 }
 
 nonisolated struct BattleProjectile: Identifiable {

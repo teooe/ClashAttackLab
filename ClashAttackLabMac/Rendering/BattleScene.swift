@@ -419,6 +419,10 @@ final class BattleScene: SKScene {
             node = SKShapeNode(circleOfRadius: 10)
             node.fillColor = .systemOrange
             node.glowWidth = 4
+        case .fireball:
+            node = SKShapeNode(circleOfRadius: 8)
+            node.fillColor = .systemBlue
+            node.glowWidth = 7
         }
 
         node.strokeColor = .white
@@ -873,6 +877,8 @@ final class BattleScene: SKScene {
             return .systemPink
         case .wallBreaker:
             return .systemGreen
+        case .wizard:
+            return .systemBlue
         case .cannon, .archerTower, .mortar,
              .townHall, .goldStorage, .wall:
             return .systemCyan
@@ -889,6 +895,8 @@ final class BattleScene: SKScene {
             return "A"
         case .wallBreaker:
             return "WB"
+        case .wizard:
+            return "W"
         case .cannon:
             return "C"
         case .archerTower:
@@ -932,6 +940,13 @@ final class BattleScene: SKScene {
                 radius: 18,
                 color: .systemGreen,
                 text: "WB"
+            )
+
+        case .wizard:
+            return makeLabeledCircle(
+                radius: 22,
+                color: .systemBlue,
+                text: "W"
             )
 
         case .cannon:

@@ -99,10 +99,12 @@ nonisolated enum PrototypeBattleMap {
     }
 
     static func makeCandidateAttackPlans(
-        navigationGrid: NavigationGrid
+        navigationGrid: NavigationGrid,
+        armyConfiguration: ArmyConfiguration = .prototypeDefault
     ) -> [AttackPlan] {
         AttackPlanGenerator(
-            navigationGrid: navigationGrid
+            navigationGrid: navigationGrid,
+            armyConfiguration: armyConfiguration
         ).generate()
     }
 }
