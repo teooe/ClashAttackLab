@@ -68,6 +68,26 @@ struct ArmyEditorView: View {
                 .padding(.vertical, 4)
             }
 
+            GroupBox("Aria") {
+                VStack(spacing: 12) {
+                    troopRow(
+                        symbol: "BL",
+                        color: .indigo,
+                        title: "Mongolfiera",
+                        cost: 3,
+                        value: $draft.balloons
+                    )
+                    troopRow(
+                        symbol: "DR",
+                        color: .mint,
+                        title: "Drago",
+                        cost: 2,
+                        value: $draft.dragons
+                    )
+                }
+                .padding(.vertical, 4)
+            }
+
             GroupBox("Incantesimi") {
                 VStack(spacing: 12) {
                     spellRow(

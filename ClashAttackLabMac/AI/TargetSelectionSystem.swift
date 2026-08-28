@@ -9,15 +9,11 @@ struct TargetSelectionDecision {
 
 /// Chooses troop objectives without knowing anything about rendering.
 ///
-/// Documented rules:
-/// - Giants prefer defenses.
-/// - Barbarians and Archers have no favorite building category.
-/// - Wall Breakers prefer walls and fall back to buildings if none remain.
-///
-/// Current approximation:
-/// - Among eligible targets, the best one is the target with the lowest
-///   weighted A* route cost.
-/// - The target remains locked until it is destroyed or becomes invalid.
+/// Rules currently modeled:
+/// - Ground troops compare weighted A* routes and may choose a breccia.
+/// - Air troops compare direct distance and fly over walls.
+/// - A selected objective stays locked until it becomes invalid.
+/// - Target preferences remain prototype inputs unless separately documented.
 struct TargetSelectionSystem {
     private let pathfinder: AStarPathfinder
 
@@ -39,9 +35,9 @@ struct TargetSelectionSystem {
         }
 
         let troop = entities[troopIndex]
+        let troopDefinition = gameData.definition(for: troop.kind)
         let preference =
-            gameData.definition(for: troop.kind)
-                .targetingProfile?.preference ?? .anyBuilding
+            troopDefinition.targetingProfile?.preference ?? .anyBuilding
         let eligibleIndices = eligibleObjectives(
             from: candidateIndices,
             preference: preference,
@@ -62,6 +58,14 @@ struct TargetSelectionSystem {
             return TargetSelectionDecision(
                 targetIndex: lockedIndex,
                 replacementPath: nil
+            )
+        }
+
+        if troopDefinition.movementDomain == .air {
+            return directFlightDecision(
+                from: troop,
+                among: eligibleIndices,
+                entities: entities
             )
         }
 
@@ -100,6 +104,39 @@ struct TargetSelectionSystem {
         )
     }
 
+    private func directFlightDecision(
+        from troop: BattleEntity,
+        among eligibleIndices: [Int],
+        entities: [BattleEntity]
+    ) -> TargetSelectionDecision? {
+        let best = eligibleIndices.min { first, second in
+            let firstDistance = directDistance(
+                from: troop.position,
+                to: entities[first].position
+            )
+            let secondDistance = directDistance(
+                from: troop.position,
+                to: entities[second].position
+            )
+
+            if firstDistance == secondDistance {
+                return entities[first].id.uuidString <
+                    entities[second].id.uuidString
+            }
+
+            return firstDistance < secondDistance
+        }
+
+        guard let best else {
+            return nil
+        }
+
+        return TargetSelectionDecision(
+            targetIndex: best,
+            replacementPath: [entities[best].position]
+        )
+    }
+
     private func eligibleObjectives(
         from candidateIndices: [Int],
         preference: TargetPreference,
@@ -133,5 +170,14 @@ struct TargetSelectionSystem {
 
             return walls.isEmpty ? buildings : walls
         }
+    }
+
+    private func directDistance(
+        from first: WorldPosition,
+        to second: WorldPosition
+    ) -> Double {
+        let deltaX = second.x - first.x
+        let deltaY = second.y - first.y
+        return (deltaX * deltaX + deltaY * deltaY).squareRoot()
     }
 }

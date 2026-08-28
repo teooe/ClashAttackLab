@@ -15,7 +15,7 @@ struct ContentView: View {
                         .font(.title2.bold())
 
                     Text(
-                        "Milestone 14 · \(session.baseLayout.displayName) · Libreria basi"
+                        "Milestone 15 · \(session.baseLayout.displayName) · Terra e aria"
                     )
                         .foregroundStyle(.secondary)
                         .lineLimit(1)
@@ -87,36 +87,58 @@ struct ContentView: View {
                         symbol: "G",
                         color: .orange,
                         title: "Gigante",
-                        detail: "priorità difese"
+                        detail: "terra · difese"
                     )
 
                     legendItem(
                         symbol: "B",
                         color: .red,
                         title: "Barbaro",
-                        detail: "qualsiasi edificio"
+                        detail: "terra · edifici"
                     )
 
                     legendItem(
                         symbol: "A",
                         color: .pink,
                         title: "Arciera",
-                        detail: "freccia a distanza"
+                        detail: "terra · distanza"
                     )
 
                     legendItem(
                         symbol: "WB",
                         color: .green,
                         title: "Spaccamuro",
-                        detail: "esplosione sui muri"
+                        detail: "terra · muri"
                     )
 
                     legendItem(
                         symbol: "W",
                         color: .blue,
                         title: "Mago",
-                        detail: "proiettile ad area"
+                        detail: "terra · area"
                     )
+                }
+
+                HStack(spacing: 18) {
+                    legendItem(
+                        symbol: "BL",
+                        color: .indigo,
+                        title: "Mongolfiera",
+                        detail: "aria · difese"
+                    )
+
+                    legendItem(
+                        symbol: "DR",
+                        color: .mint,
+                        title: "Drago",
+                        detail: "aria · edifici"
+                    )
+
+                    Spacer()
+
+                    Text("Ciano = traiettoria aerea diretta sui muri")
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
                 }
 
                 HStack(spacing: 18) {
@@ -136,7 +158,7 @@ struct ContentView: View {
 
                     Spacer()
 
-                    Text("Comportamento documentato · valori numerici prototipo")
+                    Text("Comportamenti e valori: prototipo esplicito")
                         .font(.caption2)
                         .foregroundStyle(.secondary)
                 }
@@ -146,28 +168,29 @@ struct ContentView: View {
                         symbol: "C",
                         color: .gray,
                         title: "Cannone",
-                        detail: "colpo singolo"
+                        detail: "solo terra"
                     )
 
                     legendItem(
                         symbol: "TA",
                         color: .cyan,
                         title: "Torre",
-                        detail: "alta frequenza"
+                        detail: "terra + aria"
                     )
 
                     legendItem(
                         symbol: "MO",
                         color: .brown,
                         title: "Mortaio",
-                        detail: "area + raggio minimo"
+                        detail: "solo terra"
                     )
 
-                    Spacer()
-
-                    Text("Statistiche, proiettili e danno ad area: prototipo")
-                        .font(.caption2)
-                        .foregroundStyle(.secondary)
+                    legendItem(
+                        symbol: "AD",
+                        color: .indigo,
+                        title: "Difesa aerea",
+                        detail: "solo aria"
+                    )
                 }
             }
             .padding(.horizontal)

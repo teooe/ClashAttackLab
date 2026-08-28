@@ -11,9 +11,12 @@ nonisolated enum BattleEntityKind: Hashable {
     case archer
     case wallBreaker
     case wizard
+    case balloon
+    case dragon
     case cannon
     case archerTower
     case mortar
+    case airDefense
     case townHall
     case goldStorage
     case wall

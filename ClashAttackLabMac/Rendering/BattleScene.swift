@@ -441,6 +441,18 @@ final class BattleScene: SKScene {
             node = SKShapeNode(circleOfRadius: 8)
             node.fillColor = .systemBlue
             node.glowWidth = 7
+        case .bomb:
+            node = SKShapeNode(circleOfRadius: 10)
+            node.fillColor = .darkGray
+            node.glowWidth = 3
+        case .dragonFire:
+            node = SKShapeNode(circleOfRadius: 10)
+            node.fillColor = .systemGreen
+            node.glowWidth = 9
+        case .airBolt:
+            node = SKShapeNode(rectOf: CGSize(width: 14, height: 5))
+            node.fillColor = .systemIndigo
+            node.glowWidth = 5
         }
 
         node.strokeColor = .white
@@ -490,10 +502,14 @@ final class BattleScene: SKScene {
         root.addChild(healthLabel)
 
         let targetLine = SKShapeNode()
-        targetLine.strokeColor =
-            definition.role == .troop
-                ? .systemYellow
-                : .systemRed
+        if definition.role == .troop {
+            targetLine.strokeColor =
+                definition.movementDomain == .air
+                    ? .systemCyan
+                    : .systemYellow
+        } else {
+            targetLine.strokeColor = .systemRed
+        }
         targetLine.lineWidth = 2
         targetLine.alpha = 0.48
         targetLine.zPosition = 5
@@ -897,7 +913,11 @@ final class BattleScene: SKScene {
             return .systemGreen
         case .wizard:
             return .systemBlue
-        case .cannon, .archerTower, .mortar,
+        case .balloon:
+            return .systemIndigo
+        case .dragon:
+            return .systemMint
+        case .cannon, .archerTower, .mortar, .airDefense,
              .townHall, .goldStorage, .wall:
             return .systemCyan
         }
@@ -915,12 +935,18 @@ final class BattleScene: SKScene {
             return "WB"
         case .wizard:
             return "W"
+        case .balloon:
+            return "BL"
+        case .dragon:
+            return "DR"
         case .cannon:
             return "C"
         case .archerTower:
             return "TA"
         case .mortar:
             return "MO"
+        case .airDefense:
+            return "AD"
         case .townHall:
             return "TH"
         case .goldStorage:
@@ -967,6 +993,20 @@ final class BattleScene: SKScene {
                 text: "W"
             )
 
+        case .balloon:
+            return makeLabeledCircle(
+                radius: 27,
+                color: .systemIndigo,
+                text: "BL"
+            )
+
+        case .dragon:
+            return makeLabeledCircle(
+                radius: 32,
+                color: .systemMint,
+                text: "DR"
+            )
+
         case .cannon:
             return makeLabeledRectangle(
                 size: CGSize(width: 66, height: 66),
@@ -991,6 +1031,13 @@ final class BattleScene: SKScene {
                     alpha: 1
                 ),
                 text: "MO"
+            )
+
+        case .airDefense:
+            return makeLabeledRectangle(
+                size: CGSize(width: 70, height: 70),
+                color: .systemIndigo,
+                text: "AD"
             )
 
         case .townHall:

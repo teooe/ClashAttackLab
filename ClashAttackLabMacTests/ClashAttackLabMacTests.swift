@@ -1114,7 +1114,7 @@ struct ClashAttackLabMacTests {
         )
 
         #expect(defaultArmy.isValid)
-        #expect(defaultArmy.troopCapacityUsed == 28)
+        #expect(defaultArmy.troopCapacityUsed == 30)
         #expect(!oversizedArmy.isValid)
         #expect(!emptyArmy.isValid)
         #expect(
@@ -1261,6 +1261,9 @@ struct ClashAttackLabMacTests {
                 entities.filter { $0.kind == .mortar }.count == 1
             )
             #expect(
+                entities.filter { $0.kind == .airDefense }.count == 2
+            )
+            #expect(
                 entities.filter { $0.kind == .townHall }.count == 1
             )
             #expect(
@@ -1327,6 +1330,115 @@ struct ClashAttackLabMacTests {
         #expect(
             engine.entities.filter { $0.kind == .wall }.count ==
                 PrototypeBattleMap.wallCoordinates(for: .corridor).count
+        )
+    }
+
+    @Test
+    func balloonFliesAcrossAnIntactWall() throws {
+        let grid = PrototypeBattleMap.makeNavigationGrid()
+        let balloonID = UUID()
+        let wall = BattleEntity(
+            kind: .wall,
+            position: grid.worldPosition(
+                for: GridCoordinate(column: 6, row: 8)
+            )
+        )
+        let cannon = BattleEntity(
+            kind: .cannon,
+            position: grid.worldPosition(
+                for: GridCoordinate(column: 10, row: 8)
+            )
+        )
+        let plan = AttackPlan(
+            name: "Volo diretto",
+            deployments: [
+                DeploymentOrder(
+                    entityID: balloonID,
+                    kind: .balloon,
+                    position: grid.worldPosition(
+                        for: GridCoordinate(column: 2, row: 8)
+                    ),
+                    deploymentTime: 0
+                )
+            ]
+        )
+        let engine = SimulationEngine(
+            entities: [wall, cannon],
+            attackPlan: plan,
+            gameData: PrototypeGameData(),
+            navigationGrid: grid
+        )
+
+        engine.start()
+        advance(engine, ticks: 120)
+
+        let balloon = try #require(
+            engine.entities.first { $0.id == balloonID }
+        )
+        let remainingWall = try #require(
+            engine.entities.first { $0.id == wall.id }
+        )
+
+        #expect(balloon.currentTargetID == cannon.id)
+        #expect(balloon.position.x > wall.position.x)
+        #expect(remainingWall.isAlive)
+        #expect(balloon.blockingWallID == nil)
+    }
+
+    @Test
+    func airDefenseTargetsOnlyAirTroops() throws {
+        let grid = PrototypeBattleMap.makeNavigationGrid()
+        let giantID = UUID()
+        let balloonID = UUID()
+        let airDefense = BattleEntity(
+            kind: .airDefense,
+            position: grid.worldPosition(
+                for: GridCoordinate(column: 10, row: 8)
+            )
+        )
+        let plan = AttackPlan(
+            name: "Bersaglio antiaereo",
+            deployments: [
+                DeploymentOrder(
+                    entityID: giantID,
+                    kind: .giant,
+                    position: grid.worldPosition(
+                        for: GridCoordinate(column: 5, row: 8)
+                    ),
+                    deploymentTime: 0
+                ),
+                DeploymentOrder(
+                    entityID: balloonID,
+                    kind: .balloon,
+                    position: grid.worldPosition(
+                        for: GridCoordinate(column: 6, row: 8)
+                    ),
+                    deploymentTime: 0
+                )
+            ]
+        )
+        let engine = SimulationEngine(
+            entities: [airDefense],
+            attackPlan: plan,
+            gameData: PrototypeGameData(),
+            navigationGrid: grid
+        )
+
+        engine.start()
+        engine.advance(by: 1.0 / 60.0)
+
+        let projectile = try #require(engine.projectiles.first)
+        let giant = try #require(
+            engine.entities.first { $0.id == giantID }
+        )
+
+        #expect(projectile.kind == .airBolt)
+        #expect(projectile.targetEntityID == balloonID)
+        #expect(
+            giant.hitPoints ==
+                PrototypeGameData()
+                    .definition(for: .giant)
+                    .maxHitPoints
         )
     }
 

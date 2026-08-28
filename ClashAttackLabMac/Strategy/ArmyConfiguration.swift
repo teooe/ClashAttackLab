@@ -13,21 +13,48 @@ nonisolated struct ArmyConfiguration: Equatable {
     var archers: Int
     var wallBreakers: Int
     var wizards: Int
+    var balloons: Int
+    var dragons: Int
     var healSpells: Int
     var rageSpells: Int
 
+    init(
+        giants: Int,
+        barbarians: Int,
+        archers: Int,
+        wallBreakers: Int,
+        wizards: Int,
+        healSpells: Int,
+        rageSpells: Int,
+        balloons: Int = 0,
+        dragons: Int = 0
+    ) {
+        self.giants = giants
+        self.barbarians = barbarians
+        self.archers = archers
+        self.wallBreakers = wallBreakers
+        self.wizards = wizards
+        self.balloons = balloons
+        self.dragons = dragons
+        self.healSpells = healSpells
+        self.rageSpells = rageSpells
+    }
+
     static let prototypeDefault = ArmyConfiguration(
         giants: 2,
-        barbarians: 3,
-        archers: 3,
+        barbarians: 2,
+        archers: 2,
         wallBreakers: 2,
-        wizards: 2,
+        wizards: 1,
         healSpells: 1,
-        rageSpells: 1
+        rageSpells: 1,
+        balloons: 2,
+        dragons: 1
     )
 
     var totalTroops: Int {
-        giants + barbarians + archers + wallBreakers + wizards
+        giants + barbarians + archers + wallBreakers + wizards +
+            balloons + dragons
     }
 
     var troopCapacityUsed: Int {
@@ -35,7 +62,9 @@ nonisolated struct ArmyConfiguration: Equatable {
             barbarians +
             archers +
             wallBreakers * 2 +
-            wizards * 4
+            wizards * 4 +
+            balloons * 3 +
+            dragons * 2
     }
 
     var spellCapacityUsed: Int {
@@ -48,7 +77,9 @@ nonisolated struct ArmyConfiguration: Equatable {
             barbarians,
             archers,
             wallBreakers,
-            wizards
+            wizards,
+            balloons,
+            dragons
         ].filter { $0 > 0 }.count
     }
 
@@ -91,7 +122,11 @@ nonisolated struct ArmyConfiguration: Equatable {
             return wallBreakers
         case .wizard:
             return wizards
-        case .cannon, .archerTower, .mortar,
+        case .balloon:
+            return balloons
+        case .dragon:
+            return dragons
+        case .cannon, .archerTower, .mortar, .airDefense,
              .townHall, .goldStorage, .wall:
             return 0
         }
@@ -112,14 +147,18 @@ nonisolated struct ArmyConfiguration: Equatable {
             .giant: giants,
             .barbarian: barbarians,
             .archer: archers,
-            .wizard: wizards
+            .wizard: wizards,
+            .balloon: balloons,
+            .dragon: dragons
         ]
         let preferredOrder: [BattleEntityKind] = [
             .wallBreaker,
             .giant,
             .barbarian,
             .archer,
-            .wizard
+            .wizard,
+            .balloon,
+            .dragon
         ]
         var result: [BattleEntityKind] = []
 
@@ -146,6 +185,8 @@ nonisolated struct ArmyConfiguration: Equatable {
             archers,
             wallBreakers,
             wizards,
+            balloons,
+            dragons,
             healSpells,
             rageSpells
         ].allSatisfy { $0 >= 0 }

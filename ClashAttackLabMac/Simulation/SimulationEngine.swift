@@ -349,7 +349,8 @@ final class SimulationEngine {
             for: defenseIndex,
             among: possibleTargets,
             minimumRange: definition.minimumAttackRange,
-            acquisitionRange: definition.attackRange
+            acquisitionRange: definition.attackRange,
+            targetLayer: definition.attackTargetLayer
         )
 
         guard let targetIndex else {
@@ -378,21 +379,6 @@ final class SimulationEngine {
             return
         }
 
-        if
-            let blockingWallIndex = livingIndex(
-                withID: entities[troopIndex].blockingWallID,
-                role: .wall
-            )
-        {
-            handleBlockingWall(
-                troopIndex: troopIndex,
-                wallIndex: blockingWallIndex,
-                deltaTime: deltaTime,
-                pendingDamage: &pendingDamage
-            )
-            return
-        }
-
         let troopDefinition = definition(for: entities[troopIndex].kind)
         let objectiveDistance = distance(
             from: entities[troopIndex].position,
@@ -404,6 +390,34 @@ final class SimulationEngine {
             performAttackIfPossible(
                 attackerIndex: troopIndex,
                 targetIndex: objectiveIndex,
+                pendingDamage: &pendingDamage
+            )
+            return
+        }
+
+        if troopDefinition.movementDomain == .air {
+            movementPaths[entities[troopIndex].id] = [
+                entities[objectiveIndex].position
+            ]
+            moveDirectly(
+                entityAt: troopIndex,
+                toward: entities[objectiveIndex].position,
+                stoppingAt: troopDefinition.attackRange,
+                deltaTime: deltaTime
+            )
+            return
+        }
+
+        if
+            let blockingWallIndex = livingIndex(
+                withID: entities[troopIndex].blockingWallID,
+                role: .wall
+            )
+        {
+            handleBlockingWall(
+                troopIndex: troopIndex,
+                wallIndex: blockingWallIndex,
+                deltaTime: deltaTime,
                 pendingDamage: &pendingDamage
             )
             return
@@ -506,13 +520,20 @@ final class SimulationEngine {
         for defenseIndex: Int,
         among candidateIndices: [Int],
         minimumRange: Double,
-        acquisitionRange: Double
+        acquisitionRange: Double,
+        targetLayer: AttackTargetLayer
     ) -> Int? {
         let defensePosition = entities[defenseIndex].position
+        let layerCandidates = candidateIndices.filter { index in
+            entities.indices.contains(index) &&
+                targetLayer.accepts(
+                    definition(for: entities[index].kind).movementDomain
+                )
+        }
 
         if
             let lockedID = entities[defenseIndex].currentTargetID,
-            let lockedIndex = candidateIndices.first(where: {
+            let lockedIndex = layerCandidates.first(where: {
                 entities[$0].id == lockedID && entities[$0].isAlive
             })
         {
@@ -529,7 +550,7 @@ final class SimulationEngine {
             }
         }
 
-        let nearest = candidateIndices
+        let nearest = layerCandidates
             .filter {
                 guard entities[$0].isAlive else {
                     return false

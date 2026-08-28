@@ -143,6 +143,50 @@ nonisolated struct PrototypeGameData: GameDataProviding {
                 )
             )
 
+        case .balloon:
+            return CombatDefinition(
+                displayName: "Mongolfiera",
+                role: .troop,
+                maxHitPoints: 520,
+                movementSpeed: 115,
+                attackDamage: 185,
+                minimumAttackRange: 0,
+                attackRange: 88,
+                attackInterval: 2.0,
+                canMove: true,
+                projectileKind: .bomb,
+                projectileSpeed: 380,
+                splashRadius: 70,
+                selfDestructsOnAttack: false,
+                movementDomain: .air,
+                targetingProfile: TargetingProfile(
+                    preference: .defenses,
+                    evidence: .prototype
+                )
+            )
+
+        case .dragon:
+            return CombatDefinition(
+                displayName: "Drago",
+                role: .troop,
+                maxHitPoints: 920,
+                movementSpeed: 120,
+                attackDamage: 120,
+                minimumAttackRange: 0,
+                attackRange: 175,
+                attackInterval: 1.45,
+                canMove: true,
+                projectileKind: .dragonFire,
+                projectileSpeed: 500,
+                splashRadius: 68,
+                selfDestructsOnAttack: false,
+                movementDomain: .air,
+                targetingProfile: TargetingProfile(
+                    preference: .anyBuilding,
+                    evidence: .prototype
+                )
+            )
+
         case .cannon:
             return CombatDefinition(
                 displayName: "Cannone",
@@ -158,6 +202,7 @@ nonisolated struct PrototypeGameData: GameDataProviding {
                 projectileSpeed: 600,
                 splashRadius: 0,
                 selfDestructsOnAttack: false,
+                attackTargetLayer: .ground,
                 targetingProfile: nil
             )
 
@@ -194,6 +239,26 @@ nonisolated struct PrototypeGameData: GameDataProviding {
                 projectileSpeed: 360,
                 splashRadius: 95,
                 selfDestructsOnAttack: false,
+                attackTargetLayer: .ground,
+                targetingProfile: nil
+            )
+
+        case .airDefense:
+            return CombatDefinition(
+                displayName: "Difesa aerea",
+                role: .defense,
+                maxHitPoints: 650,
+                movementSpeed: 0,
+                attackDamage: 56,
+                minimumAttackRange: 0,
+                attackRange: 370,
+                attackInterval: 1.05,
+                canMove: false,
+                projectileKind: .airBolt,
+                projectileSpeed: 720,
+                splashRadius: 0,
+                selfDestructsOnAttack: false,
+                attackTargetLayer: .air,
                 targetingProfile: nil
             )
 

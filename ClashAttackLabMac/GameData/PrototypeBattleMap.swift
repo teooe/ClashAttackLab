@@ -105,6 +105,8 @@ nonisolated enum PrototypeBattleMap {
                 (.archerTower, GridCoordinate(column: 19, row: 4)),
                 (.archerTower, GridCoordinate(column: 19, row: 12)),
                 (.mortar, GridCoordinate(column: 18, row: 8)),
+                (.airDefense, GridCoordinate(column: 20, row: 7)),
+                (.airDefense, GridCoordinate(column: 20, row: 9)),
                 (.townHall, GridCoordinate(column: 22, row: 8)),
                 (.goldStorage, GridCoordinate(column: 16, row: 7)),
                 (.goldStorage, GridCoordinate(column: 16, row: 12))
@@ -117,6 +119,8 @@ nonisolated enum PrototypeBattleMap {
                 (.archerTower, GridCoordinate(column: 20, row: 5)),
                 (.archerTower, GridCoordinate(column: 20, row: 11)),
                 (.mortar, GridCoordinate(column: 18, row: 8)),
+                (.airDefense, GridCoordinate(column: 18, row: 7)),
+                (.airDefense, GridCoordinate(column: 18, row: 9)),
                 (.townHall, GridCoordinate(column: 22, row: 8)),
                 (.goldStorage, GridCoordinate(column: 16, row: 7)),
                 (.goldStorage, GridCoordinate(column: 16, row: 9))
@@ -129,6 +133,8 @@ nonisolated enum PrototypeBattleMap {
                 (.archerTower, GridCoordinate(column: 20, row: 3)),
                 (.archerTower, GridCoordinate(column: 20, row: 13)),
                 (.mortar, GridCoordinate(column: 18, row: 8)),
+                (.airDefense, GridCoordinate(column: 20, row: 6)),
+                (.airDefense, GridCoordinate(column: 20, row: 10)),
                 (.townHall, GridCoordinate(column: 22, row: 8)),
                 (.goldStorage, GridCoordinate(column: 17, row: 6)),
                 (.goldStorage, GridCoordinate(column: 17, row: 10))
