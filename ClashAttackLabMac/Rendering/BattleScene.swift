@@ -401,11 +401,76 @@ final class BattleScene: SKScene {
         }
     }
 
+    private func separatedDisplayPositions(
+        for entities: [BattleEntity]
+    ) -> [UUID: WorldPosition] {
+        var result = Dictionary(
+            uniqueKeysWithValues: entities.map { ($0.id, $0.position) }
+        )
+        let livingTroops = entities
+            .filter {
+                $0.isAlive &&
+                    simulation.definition(for: $0.kind).role == .troop
+            }
+            .sorted { $0.id.uuidString < $1.id.uuidString }
+
+        var clusters: [[BattleEntity]] = []
+        let overlapDistance = 18.0
+
+        for troop in livingTroops {
+            if let clusterIndex = clusters.firstIndex(where: { cluster in
+                cluster.contains { member in
+                    squaredDistance(
+                        from: troop.position,
+                        to: member.position
+                    ) <= overlapDistance * overlapDistance
+                }
+            }) {
+                clusters[clusterIndex].append(troop)
+            } else {
+                clusters.append([troop])
+            }
+        }
+
+        for cluster in clusters where cluster.count > 1 {
+            let radius = min(
+                44.0,
+                18.0 + Double(cluster.count) * 4.0
+            )
+
+            for (index, troop) in cluster.enumerated() {
+                let angle =
+                    (Double(index) / Double(cluster.count)) *
+                    Double.pi *
+                    2 -
+                    Double.pi / 2
+                result[troop.id] = WorldPosition(
+                    x: troop.position.x + cos(angle) * radius,
+                    y: troop.position.y + sin(angle) * radius
+                )
+            }
+        }
+
+        return result
+    }
+
+    private func squaredDistance(
+        from first: WorldPosition,
+        to second: WorldPosition
+    ) -> Double {
+        let deltaX = second.x - first.x
+        let deltaY = second.y - first.y
+        return deltaX * deltaX + deltaY * deltaY
+    }
+
     private func updatePresentation() {
         reconcileEntityVisuals()
         reconcileProjectileVisuals()
         updateDeploymentMarkers()
 
+        let displayPositions = separatedDisplayPositions(
+            for: simulation.entities
+        )
         let entitiesByID = Dictionary(
             uniqueKeysWithValues: simulation.entities.map { ($0.id, $0) }
         )
@@ -418,9 +483,11 @@ final class BattleScene: SKScene {
             let definition = simulation.definition(for: entity.kind)
             let healthFraction = simulation.healthFraction(for: entity)
 
+            let displayPosition =
+                displayPositions[entity.id] ?? entity.position
             visual.root.position = CGPoint(
-                x: entity.position.x,
-                y: entity.position.y
+                x: displayPosition.x,
+                y: displayPosition.y
             )
             visual.root.alpha = entity.isAlive ? 1 : 0.08
             visual.healthFill.xScale = healthFraction
@@ -433,10 +500,15 @@ final class BattleScene: SKScene {
                 entity.blockingWallID ??
                 entity.currentTargetID
 
+            let target = visibleTargetID.flatMap { entitiesByID[$0] }
             updateTargetPath(
                 visual.targetLine,
                 from: entity,
-                target: visibleTargetID.flatMap { entitiesByID[$0] }
+                displayPosition: displayPosition,
+                target: target,
+                targetDisplayPosition: target.flatMap {
+                    displayPositions[$0.id]
+                }
             )
         }
 
@@ -458,8 +530,9 @@ final class BattleScene: SKScene {
 
         case .running:
             statusLabel.text = String(
-                format: "Tempo: %.1f s · Schierate: %d/%d · In attesa: %d",
+                format: "Tempo: %.1f s · Vive: %d · Schierate: %d/%d · In attesa: %d",
                 simulation.remainingTime,
+                simulation.livingTroopCount,
                 simulation.deployedTroopCount,
                 attackPlan.totalDeploymentCount,
                 simulation.pendingDeploymentCount
@@ -468,8 +541,9 @@ final class BattleScene: SKScene {
 
         case .paused:
             statusLabel.text = String(
-                format: "In pausa · %.1f s rimasti",
-                simulation.remainingTime
+                format: "In pausa · %.1f s rimasti · Vive: %d",
+                simulation.remainingTime,
+                simulation.livingTroopCount
             )
             resultLabel.isHidden = true
 
@@ -493,7 +567,9 @@ final class BattleScene: SKScene {
     private func updateTargetPath(
         _ line: SKShapeNode,
         from entity: BattleEntity,
-        target: BattleEntity?
+        displayPosition: WorldPosition,
+        target: BattleEntity?,
+        targetDisplayPosition: WorldPosition?
     ) {
         let definition = simulation.definition(for: entity.kind)
 
@@ -510,7 +586,10 @@ final class BattleScene: SKScene {
 
         let path = CGMutablePath()
         path.move(
-            to: CGPoint(x: entity.position.x, y: entity.position.y)
+            to: CGPoint(
+                x: displayPosition.x,
+                y: displayPosition.y
+            )
         )
 
         let movementPath = simulation.movementPath(for: entity.id)
@@ -522,8 +601,13 @@ final class BattleScene: SKScene {
                 )
             }
         } else {
+            let targetPosition =
+                targetDisplayPosition ?? target.position
             path.addLine(
-                to: CGPoint(x: target.position.x, y: target.position.y)
+                to: CGPoint(
+                    x: targetPosition.x,
+                    y: targetPosition.y
+                )
             )
         }
 

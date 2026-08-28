@@ -34,6 +34,10 @@ final class SimulationEngine {
         attackPlan.deployments.count - pendingDeployments.count
     }
 
+    var livingTroopCount: Int {
+        livingIndices(with: .troop).count
+    }
+
     init(
         entities: [BattleEntity],
         attackPlan: AttackPlan,
