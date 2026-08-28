@@ -164,7 +164,7 @@ struct ClashAttackLabMacTests {
     }
 
     @Test
-    func simulationDeploysTroopsAtScheduledTimes() {
+    func simulationDeploysMixedTroopsAtScheduledTimes() {
         let grid = PrototypeBattleMap.makeNavigationGrid()
         let plan = PrototypeBattleMap.makeAttackPlan(
             navigationGrid: grid
@@ -174,14 +174,20 @@ struct ClashAttackLabMacTests {
             plan: plan
         )
 
-        #expect(engine.pendingDeploymentCount == 3)
+        #expect(
+            engine.pendingDeploymentCount ==
+                plan.totalDeploymentCount
+        )
         #expect(engine.deployedTroopCount == 0)
-        #expect(engine.entities.filter { $0.kind == .giant }.isEmpty)
+        #expect(engine.entities.count == 1)
 
         engine.start()
         engine.advance(by: 1.0 / 60.0)
 
-        #expect(engine.pendingDeploymentCount == 2)
+        #expect(
+            engine.pendingDeploymentCount ==
+                plan.totalDeploymentCount - 1
+        )
         #expect(engine.deployedTroopCount == 1)
         #expect(
             engine.entities.contains {
@@ -189,25 +195,32 @@ struct ClashAttackLabMacTests {
             }
         )
 
-        advance(engine, ticks: 125)
+        advance(engine, ticks: 75)
 
-        #expect(engine.pendingDeploymentCount == 1)
-        #expect(engine.deployedTroopCount == 2)
-        #expect(
-            engine.entities.contains {
-                $0.id == plan.orderedDeployments[1].entityID
-            }
-        )
-
-        advance(engine, ticks: 121)
-
-        #expect(engine.pendingDeploymentCount == 0)
         #expect(engine.deployedTroopCount == 3)
         #expect(
-            engine.entities.contains {
-                $0.id == plan.orderedDeployments[2].entityID
-            }
+            Set(
+                engine.entities
+                    .filter {
+                        $0.kind == .giant ||
+                            $0.kind == .barbarian ||
+                            $0.kind == .archer
+                    }
+                    .map(\.kind)
+            ) == Set([.giant, .barbarian, .archer])
         )
+
+        advance(engine, ticks: 330)
+
+        #expect(engine.pendingDeploymentCount == 0)
+        #expect(
+            engine.deployedTroopCount ==
+                plan.totalDeploymentCount
+        )
+
+        let deployedIDs = Set(engine.entities.map(\.id))
+        let plannedIDs = Set(plan.deployments.map(\.entityID))
+        #expect(plannedIDs.isSubset(of: deployedIDs))
     }
 
     @Test
@@ -245,9 +258,166 @@ struct ClashAttackLabMacTests {
         }
 
         #expect(engine.elapsedTime == 0)
-        #expect(engine.pendingDeploymentCount == 3)
+        #expect(
+            engine.pendingDeploymentCount ==
+                plan.totalDeploymentCount
+        )
         #expect(engine.deployedTroopCount == 0)
-        #expect(engine.entities.filter { $0.kind == .giant }.isEmpty)
+        #expect(engine.entities.count == 1)
+    }
+
+    @Test
+    func targetingProfilesKeepEvidenceSeparateFromPrototypeStats() throws {
+        let gameData = PrototypeGameData()
+
+        let giantProfile = try #require(
+            gameData.definition(for: .giant).targetingProfile
+        )
+        let barbarianProfile = try #require(
+            gameData.definition(for: .barbarian).targetingProfile
+        )
+        let archerProfile = try #require(
+            gameData.definition(for: .archer).targetingProfile
+        )
+
+        #expect(giantProfile.preference == .defenses)
+        #expect(barbarianProfile.preference == .anyBuilding)
+        #expect(archerProfile.preference == .anyBuilding)
+        #expect(giantProfile.evidence == .documented)
+        #expect(barbarianProfile.evidence == .documented)
+        #expect(archerProfile.evidence == .documented)
+    }
+
+    @Test
+    func giantPrioritizesDefenseOverCloserStorage() throws {
+        let grid = PrototypeBattleMap.makeNavigationGrid()
+        let start = grid.worldPosition(
+            for: GridCoordinate(column: 2, row: 5)
+        )
+        let storage = BattleEntity(
+            kind: .goldStorage,
+            position: grid.worldPosition(
+                for: GridCoordinate(column: 4, row: 5)
+            )
+        )
+        let cannon = BattleEntity(
+            kind: .cannon,
+            position: grid.worldPosition(
+                for: GridCoordinate(column: 9, row: 5)
+            )
+        )
+        let engine = makeSingleTroopEngine(
+            troopKind: .giant,
+            troopPosition: start,
+            objectives: [storage, cannon],
+            grid: grid
+        )
+
+        engine.start()
+        engine.advance(by: 1.0 / 60.0)
+
+        let giant = try #require(
+            engine.entities.first { $0.kind == .giant }
+        )
+        #expect(giant.currentTargetID == cannon.id)
+    }
+
+    @Test
+    func barbarianChoosesCloserBuildingWithoutDefensePreference() throws {
+        let grid = PrototypeBattleMap.makeNavigationGrid()
+        let start = grid.worldPosition(
+            for: GridCoordinate(column: 2, row: 5)
+        )
+        let storage = BattleEntity(
+            kind: .goldStorage,
+            position: grid.worldPosition(
+                for: GridCoordinate(column: 4, row: 5)
+            )
+        )
+        let cannon = BattleEntity(
+            kind: .cannon,
+            position: grid.worldPosition(
+                for: GridCoordinate(column: 9, row: 5)
+            )
+        )
+        let engine = makeSingleTroopEngine(
+            troopKind: .barbarian,
+            troopPosition: start,
+            objectives: [storage, cannon],
+            grid: grid
+        )
+
+        engine.start()
+        engine.advance(by: 1.0 / 60.0)
+
+        let barbarian = try #require(
+            engine.entities.first { $0.kind == .barbarian }
+        )
+        #expect(barbarian.currentTargetID == storage.id)
+    }
+
+    @Test
+    func archerAttacksFromRangeWithoutMoving() throws {
+        let grid = PrototypeBattleMap.makeNavigationGrid()
+        let start = grid.worldPosition(
+            for: GridCoordinate(column: 2, row: 5)
+        )
+        let storage = BattleEntity(
+            kind: .goldStorage,
+            position: grid.worldPosition(
+                for: GridCoordinate(column: 6, row: 5)
+            )
+        )
+        let engine = makeSingleTroopEngine(
+            troopKind: .archer,
+            troopPosition: start,
+            objectives: [storage],
+            grid: grid
+        )
+
+        engine.start()
+        engine.advance(by: 1.0 / 60.0)
+
+        let archer = try #require(
+            engine.entities.first { $0.kind == .archer }
+        )
+        let damagedStorage = try #require(
+            engine.entities.first { $0.id == storage.id }
+        )
+
+        #expect(archer.currentTargetID == storage.id)
+        #expect(archer.position == start)
+        #expect(
+            damagedStorage.hitPoints <
+                PrototypeGameData()
+                    .definition(for: .goldStorage)
+                    .maxHitPoints
+        )
+    }
+
+    private func makeSingleTroopEngine(
+        troopKind: BattleEntityKind,
+        troopPosition: WorldPosition,
+        objectives: [BattleEntity],
+        grid: NavigationGrid
+    ) -> SimulationEngine {
+        let plan = AttackPlan(
+            name: "Targeting test",
+            deployments: [
+                DeploymentOrder(
+                    kind: troopKind,
+                    position: troopPosition,
+                    deploymentTime: 0
+                )
+            ]
+        )
+
+        return SimulationEngine(
+            entities: objectives,
+            attackPlan: plan,
+            gameData: PrototypeGameData(),
+            navigationGrid: grid
+        )
     }
 
     private func makeDeploymentTestEngine(
