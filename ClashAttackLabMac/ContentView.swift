@@ -6,6 +6,7 @@ struct ContentView: View {
     @StateObject private var session = AttackLabSession()
     @State private var showingArmyBuilder = false
     @State private var showingBaseLibrary = false
+    @State private var showingPlanLibrary = false
 
     var body: some View {
         VStack(spacing: 0) {
@@ -44,6 +45,12 @@ struct ContentView: View {
                     showingBaseLibrary = true
                 } label: {
                     Label("Base", systemImage: "square.grid.3x3.fill")
+                }
+
+                Button {
+                    showingPlanLibrary = true
+                } label: {
+                    Label("Piani", systemImage: "tray.full")
                 }
 
                 Button {
@@ -239,6 +246,9 @@ struct ContentView: View {
             BaseEditorView(layout: session.baseLayout) { layout in
                 session.applyBaseLayout(layout)
             }
+        }
+        .sheet(isPresented: $showingPlanLibrary) {
+            PlanLibraryView(session: session)
         }
     }
 

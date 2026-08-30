@@ -1,7 +1,7 @@
 import Foundation
 
 /// Spell categories currently supported by the prototype battle engine.
-nonisolated enum BattleSpellKind: Hashable {
+nonisolated enum BattleSpellKind: Hashable, Codable {
     case heal
     case rage
 }

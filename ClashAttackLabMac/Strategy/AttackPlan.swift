@@ -1,6 +1,6 @@
 import Foundation
 
-nonisolated struct DeploymentOrder: Identifiable {
+nonisolated struct DeploymentOrder: Identifiable, Codable {
     let id: UUID
     let entityID: UUID
     let kind: BattleEntityKind
@@ -22,7 +22,7 @@ nonisolated struct DeploymentOrder: Identifiable {
     }
 }
 
-nonisolated struct SpellDeploymentOrder: Identifiable {
+nonisolated struct SpellDeploymentOrder: Identifiable, Codable {
     let id: UUID
     let kind: BattleSpellKind
     let position: WorldPosition
@@ -41,7 +41,7 @@ nonisolated struct SpellDeploymentOrder: Identifiable {
     }
 }
 
-nonisolated struct AttackPlan: Identifiable {
+nonisolated struct AttackPlan: Identifiable, Codable {
     let id: UUID
     let name: String
     let deployments: [DeploymentOrder]
@@ -85,6 +85,12 @@ nonisolated struct AttackPlan: Identifiable {
 
     var totalSpellCount: Int {
         spellDeployments.count
+    }
+
+    var latestDeploymentTime: TimeInterval {
+        (deployments.map(\.deploymentTime) +
+            spellDeployments.map(\.deploymentTime)
+        ).max() ?? 0
     }
 
     var troopKindsInDeploymentOrder: [BattleEntityKind] {

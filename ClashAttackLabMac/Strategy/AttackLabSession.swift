@@ -13,6 +13,8 @@ final class AttackLabSession: ObservableObject {
         ManualPlacementSelection = .troop(.giant)
     @Published private(set) var manualNextDeploymentTime:
         TimeInterval = 0
+    @Published private(set) var savedPlans: [AttackPlan] = []
+    @Published private(set) var comparisonEvaluations: [AttackPlanEvaluation] = []
 
     let scene: BattleScene
 
@@ -65,6 +67,7 @@ final class AttackLabSession: ObservableObject {
     private var candidatePlans: [AttackPlan]
     private var evaluator: AttackPlanEvaluator
     private var activePlan: AttackPlan
+    private let planLibrary = AttackPlanLibrary()
 
     init() {
         let gameData = PrototypeGameData()
@@ -108,6 +111,49 @@ final class AttackLabSession: ObservableObject {
             attackPlan: initialPlan
         )
         self.selectedPlanID = initialPlan.id
+        self.savedPlans = planLibrary.plans
+    }
+
+    func compareSavedPlans(_ plans: [AttackPlan]) {
+        guard !plans.isEmpty else {
+            comparisonEvaluations = []
+            return
+        }
+
+        comparisonEvaluations = evaluator.evaluate(plans)
+    }
+
+    func saveCurrentPlan() {
+        planLibrary.save(activePlan)
+        savedPlans = planLibrary.plans
+    }
+
+    func loadSavedPlan(_ plan: AttackPlan) {
+        guard !isManualPlanning else { return }
+        activePlan = plan
+        selectedPlanID = plan.id
+        evaluations = []
+        scene.loadAttackPlan(plan)
+    }
+
+    func renameSavedPlan(_ plan: AttackPlan, to name: String) {
+        planLibrary.rename(plan, to: name)
+        savedPlans = planLibrary.plans
+    }
+
+    func duplicateSavedPlan(_ plan: AttackPlan) {
+        _ = planLibrary.duplicate(plan)
+        savedPlans = planLibrary.plans
+    }
+
+    func deleteSavedPlan(_ plan: AttackPlan) {
+        planLibrary.delete(plan)
+        savedPlans = planLibrary.plans
+    }
+
+    func moveSavedPlans(from offsets: IndexSet, to destination: Int) {
+        planLibrary.move(from: offsets, to: destination)
+        savedPlans = planLibrary.plans
     }
 
     func findBestAttack() {

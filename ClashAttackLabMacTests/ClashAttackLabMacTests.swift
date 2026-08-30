@@ -1547,3 +1547,35 @@ struct ClashAttackLabMacTests {
         }
     }
 }
+
+
+@Test
+func attackPlanRoundTripsThroughLocalStorageFormat() throws {
+    let plan = AttackPlan(
+        name: "Piano persistente",
+        deployments: [
+            DeploymentOrder(
+                kind: .giant,
+                position: WorldPosition(x: 12, y: 24),
+                deploymentTime: 1.5
+            )
+        ],
+        spellDeployments: [
+            SpellDeploymentOrder(
+                kind: .rage,
+                position: WorldPosition(x: 36, y: 48),
+                deploymentTime: 2.0
+            )
+        ]
+    )
+
+    let data = try JSONEncoder().encode(plan)
+    let decoded = try JSONDecoder().decode(AttackPlan.self, from: data)
+
+    #expect(decoded.name == plan.name)
+    #expect(decoded.totalDeploymentCount == 1)
+    #expect(decoded.totalSpellCount == 1)
+    #expect(decoded.deployments.first?.kind == .giant)
+    #expect(decoded.spellDeployments.first?.kind == .rage)
+    #expect(decoded.deployments.first?.position == WorldPosition(x: 12, y: 24))
+}
