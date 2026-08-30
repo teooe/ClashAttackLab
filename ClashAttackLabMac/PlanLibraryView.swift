@@ -37,7 +37,7 @@ struct PlanLibraryView: View {
                     )
                 } label: {
                     Label(
-                        "Confronta ((selectedPlanIDs.count))",
+                        "Confronta \(selectedPlanIDs.count)",
                         systemImage: "arrow.left.arrow.right"
                     )
                 }
@@ -45,7 +45,7 @@ struct PlanLibraryView: View {
 
                 Spacer()
 
-                Text("(session.savedPlans.count) salvati")
+                Text("\(session.savedPlans.count) salvati")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
@@ -80,7 +80,7 @@ struct PlanLibraryView: View {
                                 Text(plan.name)
                                     .font(.headline)
                                 Text(
-                                    "(plan.totalDeploymentCount) truppe · (plan.totalSpellCount) incantesimi · ultimo ordine (String(format: "%.1f", plan.latestDeploymentTime)) s"
+                                    "\(plan.totalDeploymentCount) truppe · \(plan.totalSpellCount) incantesimi · ultimo ordine \(String(format: "%.1f", plan.latestDeploymentTime)) s"
                                 )
                                 .font(.caption)
                                 .foregroundStyle(.secondary)
@@ -132,11 +132,11 @@ struct PlanLibraryView: View {
                             VStack(alignment: .leading, spacing: 5) {
                                 Text(evaluation.plan.name)
                                     .font(.subheadline.bold())
-                                Text("⭐ (evaluation.stars) · (evaluation.destructionPercentage, specifier: "%.1f")%")
-                                Text("Superstiti: (evaluation.result.survivingTroops)")
-                                Text("Persi: (evaluation.result.metrics.troopsLost)")
-                                Text("Durata: (evaluation.result.elapsedTime, specifier: "%.1f") s")
-                                Text("Danno: (evaluation.result.metrics.damageToBase, specifier: "%.0f")")
+                                Text("⭐ \(evaluation.stars) · \(evaluation.destructionPercentage, specifier: "%.1f")%")
+                                Text("Superstiti: \(evaluation.result.survivingTroops)")
+                                Text("Persi: \(evaluation.result.metrics.troopsLost)")
+                                Text("Durata: \(evaluation.result.elapsedTime, specifier: "%.1f") s")
+                                Text("Danno: \(evaluation.result.metrics.damageToBase, specifier: "%.0f")")
                             }
                             .font(.caption)
                             .padding(10)
