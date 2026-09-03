@@ -49,6 +49,10 @@ struct BaseEditorView: View {
     }
 
     var body: some View {
+        let validation = draftSnapshot.validationReport(
+            on: navigationGrid
+        )
+
         VStack(alignment: .leading, spacing: 16) {
             VStack(alignment: .leading, spacing: 5) {
                 Label(
@@ -170,7 +174,30 @@ struct BaseEditorView: View {
                 .background(Color.black.opacity(0.12))
                 .clipShape(RoundedRectangle(cornerRadius: 10))
             }
-            .frame(height: 290)
+            .frame(height: 260)
+
+            if !validation.messages.isEmpty {
+                VStack(alignment: .leading, spacing: 4) {
+                    ForEach(validation.messages) { message in
+                        Label(
+                            message.text,
+                            systemImage: message.severity == .error
+                                ? "xmark.octagon.fill"
+                                : "exclamationmark.triangle.fill"
+                        )
+                        .font(.caption)
+                        .foregroundStyle(
+                            message.severity == .error
+                                ? Color.red
+                                : Color.orange
+                        )
+                    }
+                }
+                .padding(10)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(Color.secondary.opacity(0.08))
+                .clipShape(RoundedRectangle(cornerRadius: 10))
+            }
 
             Divider()
 
@@ -189,7 +216,7 @@ struct BaseEditorView: View {
                 Button("Salva in libreria") {
                     onSaveSnapshot(draftSnapshot)
                 }
-                .disabled(!draftSnapshot.isValid(on: navigationGrid))
+                .disabled(!validation.isBuildable)
 
                 Spacer()
 
@@ -207,10 +234,11 @@ struct BaseEditorView: View {
                     dismiss()
                 }
                 .buttonStyle(.borderedProminent)
+                .disabled(!validation.isBuildable)
             }
         }
         .padding(20)
-        .frame(width: 980, height: 620)
+        .frame(width: 980, height: 690)
         .fileImporter(
             isPresented: $showingImporter,
             allowedContentTypes: [.json]

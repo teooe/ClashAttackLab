@@ -2002,3 +2002,49 @@ func savedBasePlanAnalysisCalculatesMetricsAcrossCustomBases() {
     #expect(analysis.averageSurvivors == 3)
     #expect(analysis.threeStarCount == 0)
 }
+
+
+@Test
+func baseValidationRejectsMissingTownHallAndDefense() {
+    let grid = PrototypeBattleMap.makeNavigationGrid()
+    let snapshot = BaseSnapshot(
+        name: "Incompleta",
+        objects: [
+            BaseObjectSnapshot(
+                kind: .goldStorage,
+                column: 10,
+                row: 8
+            )
+        ]
+    )
+
+    let report = snapshot.validationReport(on: grid)
+
+    #expect(!report.isBuildable)
+    #expect(report.errors.count == 2)
+}
+
+@Test
+func baseValidationWarnsWhenDeployStripIsOccupied() {
+    let grid = PrototypeBattleMap.makeNavigationGrid()
+    let snapshot = BaseSnapshot(
+        name: "Avviso",
+        objects: [
+            BaseObjectSnapshot(
+                kind: .townHall,
+                column: 20,
+                row: 8
+            ),
+            BaseObjectSnapshot(
+                kind: .cannon,
+                column: 1,
+                row: 4
+            )
+        ]
+    )
+
+    let report = snapshot.validationReport(on: grid)
+
+    #expect(report.isBuildable)
+    #expect(!report.warnings.isEmpty)
+}

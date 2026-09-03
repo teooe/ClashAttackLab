@@ -112,13 +112,14 @@ nonisolated struct BaseSnapshot: Identifiable, Codable, Equatable {
         }
     }
 
+    func validationReport(
+        on grid: NavigationGrid
+    ) -> BaseSnapshotValidationReport {
+        BaseSnapshotValidationReport.validate(self, on: grid)
+    }
+
     func isValid(on grid: NavigationGrid) -> Bool {
-        isValid &&
-            objects.allSatisfy {
-                grid.contains(
-                    GridCoordinate(column: $0.column, row: $0.row)
-                )
-            }
+        validationReport(on: grid).isBuildable
     }
 
     mutating func place(
