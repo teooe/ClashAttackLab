@@ -2078,7 +2078,7 @@ func duplicatedBaseCreatesASecondPersistentLibraryEntry() {
 
     #expect(library.bases.count == 2)
     #expect(original.id != copy.id)
-    #expect(library.bases.map(.name).contains("Originale copia"))
+    #expect(library.bases.map(\.name).contains("Originale copia"))
 
     library.clear()
 }
