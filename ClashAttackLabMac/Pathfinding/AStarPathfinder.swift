@@ -1,11 +1,11 @@
 import Foundation
 
-struct PathfindingResult {
+nonisolated struct PathfindingResult {
     let waypoints: [WorldPosition]
     let totalCost: Double
 }
 
-struct AStarPathfinder {
+nonisolated struct AStarPathfinder {
     func findPath(
         from startPosition: WorldPosition,
         to goalPosition: WorldPosition,
