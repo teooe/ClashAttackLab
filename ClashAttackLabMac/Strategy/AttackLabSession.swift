@@ -17,6 +17,7 @@ final class AttackLabSession: ObservableObject {
     @Published private(set) var comparisonEvaluations: [AttackPlanEvaluation] = []
     @Published private(set) var lastSimulationResult: SimulationResult?
     @Published private(set) var attackHistory: [AttackHistoryEntry] = []
+    @Published private(set) var currentPlanAnalysis: AttackPlanRobustnessAnalysis?
 
     let scene: BattleScene
 
@@ -127,6 +128,37 @@ final class AttackLabSession: ObservableObject {
             )
             self.attackHistory = self.historyStore.entries
         }
+    }
+
+    func analyzeCurrentPlanAcrossBases() {
+        guard !isManualPlanning else { return }
+
+        let plan = activePlan
+        let entries = PrototypeBaseLayout.allCases.compactMap { layout in
+            let entities = PrototypeBattleMap.makeBaseEntities(
+                navigationGrid: navigationGrid,
+                layout: layout
+            )
+            let layoutEvaluator = AttackPlanEvaluator(
+                baseEntities: entities,
+                gameData: gameData,
+                navigationGrid: navigationGrid
+            )
+
+            guard let evaluation = layoutEvaluator.evaluate([plan]).first else {
+                return nil
+            }
+
+            return BaseAttackEvaluation(
+                layout: layout,
+                evaluation: evaluation
+            )
+        }
+
+        currentPlanAnalysis = AttackPlanRobustnessAnalysis(
+            plan: plan,
+            entries: entries
+        )
     }
 
     func clearAttackHistory() {

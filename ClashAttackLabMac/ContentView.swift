@@ -8,6 +8,7 @@ struct ContentView: View {
     @State private var showingBaseLibrary = false
     @State private var showingPlanLibrary = false
     @State private var showingAttackHistory = false
+    @State private var showingStrategyAnalysis = false
 
     var body: some View {
         VStack(spacing: 0) {
@@ -58,6 +59,12 @@ struct ContentView: View {
                     showingAttackHistory = true
                 } label: {
                     Label("Storico", systemImage: "clock.arrow.circlepath")
+                }
+
+                Button {
+                    showingStrategyAnalysis = true
+                } label: {
+                    Label("Analisi", systemImage: "chart.bar.xaxis")
                 }
 
                 Button {
@@ -264,6 +271,9 @@ struct ContentView: View {
         }
         .sheet(isPresented: $showingAttackHistory) {
             AttackHistoryView(session: session)
+        }
+        .sheet(isPresented: $showingStrategyAnalysis) {
+            StrategyAnalysisView(session: session)
         }
     }
 

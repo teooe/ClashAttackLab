@@ -1641,3 +1641,75 @@ func attackHistoryEntryCapturesCompletedBattleMetrics() {
     #expect(entry.troopsLost == 3)
     #expect(entry.spellsCast == 1)
 }
+
+
+@Test
+func robustnessAnalysisCalculatesAveragesAcrossBases() {
+    let plan = AttackPlan(name: "Robustezza", deployments: [])
+
+    func evaluation(
+        stars: Int,
+        destruction: Double,
+        survivors: Int,
+        duration: TimeInterval
+    ) -> AttackPlanEvaluation {
+        let score = BaseScoreSnapshot(
+            destructionPercentage: destruction,
+            stars: stars,
+            townHallDestroyed: stars >= 2,
+            destroyedBuildings: 0,
+            totalBuildings: 0
+        )
+        let metrics = BattleSummaryMetrics(
+            damageToBase: destruction,
+            hitPointsLostByArmy: 0,
+            troopsLost: 0,
+            destroyedWalls: 0,
+            spellsCast: 0
+        )
+        let result = SimulationResult(
+            winner: .attackers,
+            elapsedTime: duration,
+            timeExpired: false,
+            finishReason: .totalDestruction,
+            deployedTroops: survivors,
+            survivingTroops: survivors,
+            survivingDefenses: 0,
+            troopAttackCount: 0,
+            defenseAttackCount: 0,
+            score: score,
+            metrics: metrics
+        )
+        return AttackPlanEvaluation(plan: plan, result: result)
+    }
+
+    let analysis = AttackPlanRobustnessAnalysis(
+        plan: plan,
+        entries: [
+            BaseAttackEvaluation(
+                layout: .fortress,
+                evaluation: evaluation(
+                    stars: 3,
+                    destruction: 100,
+                    survivors: 5,
+                    duration: 20
+                )
+            ),
+            BaseAttackEvaluation(
+                layout: .corridor,
+                evaluation: evaluation(
+                    stars: 1,
+                    destruction: 50,
+                    survivors: 3,
+                    duration: 40
+                )
+            )
+        ]
+    )
+
+    #expect(analysis.averageStars == 2)
+    #expect(analysis.averageDestruction == 75)
+    #expect(analysis.averageSurvivors == 4)
+    #expect(analysis.averageDuration == 30)
+    #expect(analysis.threeStarCount == 1)
+}
