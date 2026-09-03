@@ -345,6 +345,24 @@ struct ContentView: View {
                                         for: order.position
                                     )
                             )
+                            .contextMenu {
+                                Button("Anticipa di 0,5 s") {
+                                    session.updateManualOrderTime(
+                                        id: order.id,
+                                        to: order.deploymentTime - 0.5
+                                    )
+                                }
+                                Button("Ritarda di 0,5 s") {
+                                    session.updateManualOrderTime(
+                                        id: order.id,
+                                        to: order.deploymentTime + 0.5
+                                    )
+                                }
+                                Divider()
+                                Button("Rimuovi ordine", role: .destructive) {
+                                    session.removeManualOrder(id: order.id)
+                                }
+                            }
                         }
 
                         ForEach(
@@ -359,6 +377,24 @@ struct ContentView: View {
                                         for: order.position
                                     )
                             )
+                            .contextMenu {
+                                Button("Anticipa di 0,5 s") {
+                                    session.updateManualOrderTime(
+                                        id: order.id,
+                                        to: order.deploymentTime - 0.5
+                                    )
+                                }
+                                Button("Ritarda di 0,5 s") {
+                                    session.updateManualOrderTime(
+                                        id: order.id,
+                                        to: order.deploymentTime + 0.5
+                                    )
+                                }
+                                Divider()
+                                Button("Rimuovi ordine", role: .destructive) {
+                                    session.removeManualOrder(id: order.id)
+                                }
+                            }
                         }
                     }
                 }

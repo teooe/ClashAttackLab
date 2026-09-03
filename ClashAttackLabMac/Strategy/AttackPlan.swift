@@ -190,6 +190,35 @@ nonisolated struct ManualAttackPlan: Identifiable {
         }
     }
 
+    mutating func removeOrder(id: UUID) {
+        deployments.removeAll { $0.id == id }
+        spellDeployments.removeAll { $0.id == id }
+    }
+
+    mutating func updateOrderTime(id: UUID, to time: TimeInterval) {
+        if let index = deployments.firstIndex(where: { $0.id == id }) {
+            let order = deployments[index]
+            deployments[index] = DeploymentOrder(
+                id: order.id,
+                entityID: order.entityID,
+                kind: order.kind,
+                position: order.position,
+                deploymentTime: min(59, max(0, time))
+            )
+            return
+        }
+
+        if let index = spellDeployments.firstIndex(where: { $0.id == id }) {
+            let order = spellDeployments[index]
+            spellDeployments[index] = SpellDeploymentOrder(
+                id: order.id,
+                kind: order.kind,
+                position: order.position,
+                deploymentTime: min(59, max(0, time))
+            )
+        }
+    }
+
     mutating func removeMostRecentOrder() {
         let troopTime = deployments.map(\.deploymentTime).max()
         let spellTime = spellDeployments.map(\.deploymentTime).max()

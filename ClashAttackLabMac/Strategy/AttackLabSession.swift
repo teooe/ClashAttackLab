@@ -301,6 +301,18 @@ final class AttackLabSession: ObservableObject {
         manualNextDeploymentTime = min(59, max(0, updated))
     }
 
+    func removeManualOrder(id: UUID) {
+        guard isManualPlanning else { return }
+        manualPlan.removeOrder(id: id)
+        scene.loadAttackPlan(manualPlan.makeAttackPlan())
+    }
+
+    func updateManualOrderTime(id: UUID, to time: TimeInterval) {
+        guard isManualPlanning else { return }
+        manualPlan.updateOrderTime(id: id, to: time)
+        scene.loadAttackPlan(manualPlan.makeAttackPlan())
+    }
+
     func removeLastManualOrder() {
         guard manualPlan.totalOrderCount > 0 else {
             return

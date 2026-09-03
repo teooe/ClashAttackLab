@@ -1579,3 +1579,19 @@ func attackPlanRoundTripsThroughLocalStorageFormat() throws {
     #expect(decoded.spellDeployments.first?.kind == .rage)
     #expect(decoded.deployments.first?.position == WorldPosition(x: 12, y: 24))
 }
+
+
+@Test
+func manualPlanSupportsTargetedOrderEditing() {
+    var draft = ManualAttackPlan()
+    draft.append(
+        .troop(.giant),
+        at: WorldPosition(x: 10, y: 10),
+        time: 2
+    )
+    let storedID = draft.orderedDeployments[0].id
+    draft.updateOrderTime(id: storedID, to: 4.5)
+    #expect(draft.orderedDeployments[0].deploymentTime == 4.5)
+    draft.removeOrder(id: storedID)
+    #expect(draft.totalOrderCount == 0)
+}
