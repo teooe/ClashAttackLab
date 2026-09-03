@@ -2082,3 +2082,39 @@ func duplicatedBaseCreatesASecondPersistentLibraryEntry() {
 
     library.clear()
 }
+
+
+@Test
+func armyEntryAdvisorDistinguishesGroundAndAirRecommendations() {
+    let grid = PrototypeBattleMap.makeNavigationGrid()
+    let advisor = ArmyEntryAdvisor(
+        navigationGrid: grid,
+        gameData: PrototypeGameData()
+    )
+    let army = ArmyConfiguration(
+        giants: 1,
+        barbarians: 0,
+        archers: 0,
+        wallBreakers: 0,
+        wizards: 0,
+        healSpells: 0,
+        rageSpells: 0,
+        balloons: 1,
+        dragons: 1
+    )
+    let advice = advisor.analyze(
+        entities: PrototypeBattleMap.makeBaseEntities(
+            navigationGrid: grid,
+            layout: .fortress
+        ),
+        armyConfiguration: army,
+        baseName: "Fortezza"
+    )
+
+    #expect(advice.recommendations.count == 3)
+    #expect(advice.recommendation(for: .giant)?.movementDomain == .ground)
+    #expect(advice.recommendation(for: .balloon)?.movementDomain == .air)
+    #expect(advice.recommendation(for: .balloon)?.wallCrossings == 0)
+    #expect(advice.preferredRecommendation != nil)
+    #expect(advice.recommendations.allSatisfy { $0.pathCost > 0 })
+}

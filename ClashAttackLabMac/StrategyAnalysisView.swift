@@ -7,6 +7,7 @@ struct StrategyAnalysisView: View {
     @State private var showingRefinement = false
     @State private var showingTournament = false
     @State private var showingBaseReconnaissance = false
+    @State private var showingArmyEntryAdvice = false
     @State private var showingSavedBaseAnalysis = false
 
     var body: some View {
@@ -59,6 +60,12 @@ struct StrategyAnalysisView: View {
                 Button("Basi locali") {
                     session.analyzeCurrentPlanAcrossSavedBases()
                     showingSavedBaseAnalysis = true
+                }
+                .disabled(session.isManualPlanning)
+
+                Button("Ingresso") {
+                    session.analyzeArmyEntryOptions()
+                    showingArmyEntryAdvice = true
                 }
                 .disabled(session.isManualPlanning)
 
@@ -147,6 +154,9 @@ struct StrategyAnalysisView: View {
         }
         .sheet(isPresented: $showingBaseReconnaissance) {
             BaseReconnaissanceView(session: session)
+        }
+        .sheet(isPresented: $showingArmyEntryAdvice) {
+            ArmyEntryAdviceView(session: session)
         }
         .sheet(isPresented: $showingSavedBaseAnalysis) {
             SavedBaseAnalysisView(session: session)

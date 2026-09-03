@@ -23,6 +23,7 @@ final class AttackLabSession: ObservableObject {
     @Published private(set) var refinementReport: AttackPlanRefinementReport?
     @Published private(set) var generatedPlanRankings: [AttackPlanRobustnessAnalysis] = []
     @Published private(set) var baseReconnaissance: BaseReconnaissance?
+    @Published private(set) var armyEntryAdvice: ArmyEntryAdvice?
     @Published private(set) var savedBases: [BaseSnapshot] = []
     @Published private(set) var savedBasePlanAnalysis: SavedBasePlanAnalysis?
 
@@ -160,6 +161,21 @@ final class AttackLabSession: ObservableObject {
         ).analyze(
             entities: baseEntities,
             layoutName: activeBaseSnapshot.name
+        )
+    }
+
+    func analyzeArmyEntryOptions() {
+        guard !isManualPlanning else {
+            return
+        }
+
+        armyEntryAdvice = ArmyEntryAdvisor(
+            navigationGrid: navigationGrid,
+            gameData: gameData
+        ).analyze(
+            entities: baseEntities,
+            armyConfiguration: armyConfiguration,
+            baseName: activeBaseSnapshot.name
         )
     }
 
@@ -458,6 +474,7 @@ final class AttackLabSession: ObservableObject {
 
         finishManualMode(restoreActivePlan: false)
         armyConfiguration = configuration
+        armyEntryAdvice = nil
         candidatePlans = generatedPlans
         evaluations = []
         activePlan = firstPlan
@@ -486,6 +503,7 @@ final class AttackLabSession: ObservableObject {
         )
         evaluations = []
         baseReconnaissance = nil
+        armyEntryAdvice = nil
 
         guard let initialPlan = candidatePlans.first else {
             return
@@ -519,6 +537,7 @@ final class AttackLabSession: ObservableObject {
         evaluations = []
         currentPlanAnalysis = nil
         baseReconnaissance = nil
+        armyEntryAdvice = nil
 
         evaluator = AttackPlanEvaluator(
             baseEntities: entities,
