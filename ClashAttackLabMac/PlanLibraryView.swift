@@ -94,6 +94,12 @@ struct PlanLibraryView: View {
                             }
                             .buttonStyle(.bordered)
 
+                            Button("Modifica") {
+                                session.editSavedPlan(plan)
+                                dismiss()
+                            }
+                            .buttonStyle(.bordered)
+
                             Menu {
                                 Button("Rinomina") {
                                     planToRename = plan

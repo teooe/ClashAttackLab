@@ -136,6 +136,30 @@ final class AttackLabSession: ObservableObject {
         scene.loadAttackPlan(plan)
     }
 
+    func editSavedPlan(_ plan: AttackPlan) {
+        guard !isManualPlanning else { return }
+
+        manualPlan = ManualAttackPlan(
+            id: plan.id,
+            name: plan.name,
+            deployments: plan.deployments,
+            spellDeployments: plan.spellDeployments
+        )
+        manualNextDeploymentTime = min(
+            59,
+            manualPlan.latestDeploymentTime + 0.6
+        )
+        manualSelection = defaultManualSelection
+        isManualPlanning = true
+        scene.setManualPlacementHandler { [weak self] position in
+            self?.appendManualPlacement(at: position)
+        }
+        scene.setManualPlacementUsesWholeArena(
+            manualSelectionUsesWholeArena
+        )
+        scene.loadAttackPlan(manualPlan.makeAttackPlan())
+    }
+
     func renameSavedPlan(_ plan: AttackPlan, to name: String) {
         planLibrary.rename(plan, to: name)
         savedPlans = planLibrary.plans
