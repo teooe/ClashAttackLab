@@ -47,7 +47,8 @@ struct BaseLibraryManagerView: View {
                 }
             }
             .padding(18)
-            .frame(width: 290, maxHeight: .infinity, alignment: .topLeading)
+            .frame(width: 290)
+            .frame(maxHeight: .infinity, alignment: .topLeading)
             .background(Color.secondary.opacity(0.08))
 
             Divider()
