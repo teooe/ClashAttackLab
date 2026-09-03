@@ -265,10 +265,11 @@ struct ContentView: View {
             BaseEditorView(
                 layout: session.baseLayout,
                 snapshot: session.activeBaseSnapshot,
+                navigationGrid: session.editorNavigationGrid,
                 onApply: { layout in
                     session.applyBaseLayout(layout)
                 },
-                onImport: { snapshot in
+                onApplySnapshot: { snapshot in
                     session.applyImportedBase(snapshot)
                 }
             )

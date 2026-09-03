@@ -1,108 +1,167 @@
+import Foundation
 import SwiftUI
 import UniformTypeIdentifiers
 
 struct BaseEditorView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var selection: PrototypeBaseLayout
+    @State private var draftSnapshot: BaseSnapshot
+    @State private var selectedKind: BattleEntityKind = .wall
+    @State private var eraseMode = false
     @State private var showingImporter = false
     @State private var showingExporter = false
     @State private var exportDocument: BaseSnapshotDocument?
 
-    let currentSnapshot: BaseSnapshot
+    let navigationGrid: NavigationGrid
     private let onApply: (PrototypeBaseLayout) -> Void
-    private let onImport: (BaseSnapshot) -> Void
+    private let onApplySnapshot: (BaseSnapshot) -> Void
 
     init(
         layout: PrototypeBaseLayout,
         snapshot: BaseSnapshot,
+        navigationGrid: NavigationGrid,
         onApply: @escaping (PrototypeBaseLayout) -> Void,
-        onImport: @escaping (BaseSnapshot) -> Void
+        onApplySnapshot: @escaping (BaseSnapshot) -> Void
     ) {
         _selection = State(initialValue: layout)
-        self.currentSnapshot = snapshot
+        _draftSnapshot = State(initialValue: snapshot)
+        self.navigationGrid = navigationGrid
         self.onApply = onApply
-        self.onImport = onImport
+        self.onApplySnapshot = onApplySnapshot
+    }
+
+    private var editableKinds: [BattleEntityKind] {
+        [
+            .wall,
+            .cannon,
+            .archerTower,
+            .mortar,
+            .airDefense,
+            .townHall,
+            .goldStorage
+        ]
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 18) {
+        VStack(alignment: .leading, spacing: 16) {
             VStack(alignment: .leading, spacing: 5) {
                 Label(
-                    "Libreria basi",
+                    "Editor della base",
                     systemImage: "square.grid.3x3.fill"
                 )
                 .font(.title2.bold())
 
                 Text(
-                    "Scegli una base prototipo oppure importa/esporta una base JSON."
+                    "Seleziona un elemento e clicca una cella. Cliccando una seconda volta lo sostituisci."
                 )
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
             }
 
-            VStack(spacing: 10) {
-                ForEach(PrototypeBaseLayout.allCases) { layout in
-                    Button {
-                        selection = layout
-                    } label: {
-                        HStack(spacing: 12) {
-                            Image(
-                                systemName: selection == layout
-                                    ? "checkmark.circle.fill"
-                                    : "circle"
-                            )
-                            .font(.title3)
-                            .foregroundStyle(
-                                selection == layout
-                                    ? Color.accentColor
-                                    : Color.secondary
-                            )
-
-                            VStack(
-                                alignment: .leading,
-                                spacing: 3
-                            ) {
-                                Text(layout.displayName)
-                                    .font(.headline)
-
-                                Text(layout.summary)
-                                    .font(.caption)
-                                    .foregroundStyle(.secondary)
-                            }
-
-                            Spacer()
+            HStack(spacing: 10) {
+                Menu {
+                    ForEach(editableKinds, id: \.self) { kind in
+                        Button {
+                            selectedKind = kind
+                            eraseMode = false
+                        } label: {
+                            Label(title(for: kind), systemImage: icon(for: kind))
                         }
-                        .padding(14)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .background(
-                            selection == layout
-                                ? Color.accentColor.opacity(0.12)
-                                : Color.secondary.opacity(0.07)
-                        )
-                        .clipShape(
-                            RoundedRectangle(cornerRadius: 12)
-                        )
                     }
-                    .buttonStyle(.plain)
+                } label: {
+                    Label(
+                        eraseMode
+                            ? "Gomma"
+                            : title(for: selectedKind),
+                        systemImage: eraseMode
+                            ? "eraser"
+                            : icon(for: selectedKind)
+                    )
                 }
+
+                Toggle("Gomma", isOn: $eraseMode)
+                    .toggleStyle(.switch)
+
+                Spacer()
+
+                Text(
+                    "\(draftSnapshot.objectiveCount) strutture · \(draftSnapshot.wallCount) muri"
+                )
+                .font(.caption.monospacedDigit())
+                .foregroundStyle(.secondary)
             }
+
+            ScrollView([.horizontal, .vertical]) {
+                VStack(spacing: 2) {
+                    ForEach(0..<navigationGrid.rows, id: \.self) { row in
+                        HStack(spacing: 2) {
+                            ForEach(
+                                0..<navigationGrid.columns,
+                                id: \.self
+                            ) { column in
+                                let object = draftSnapshot.object(
+                                    atColumn: column,
+                                    row: row
+                                )
+
+                                Button {
+                                    if eraseMode {
+                                        draftSnapshot.removeObject(
+                                            atColumn: column,
+                                            row: row
+                                        )
+                                    } else {
+                                        draftSnapshot.place(
+                                            selectedKind,
+                                            atColumn: column,
+                                            row: row
+                                        )
+                                    }
+                                } label: {
+                                    Text(
+                                        object.map {
+                                            symbol(for: $0.kind)
+                                        } ?? "·"
+                                    )
+                                    .font(.caption2.bold())
+                                    .foregroundStyle(
+                                        object == nil
+                                            ? Color.secondary.opacity(0.45)
+                                            : .white
+                                    )
+                                    .frame(width: 25, height: 25)
+                                    .background(
+                                        object.map {
+                                            color(for: $0.kind)
+                                        } ?? Color.secondary.opacity(0.08)
+                                    )
+                                    .clipShape(
+                                        RoundedRectangle(cornerRadius: 4)
+                                    )
+                                }
+                                .buttonStyle(.plain)
+                            }
+                        }
+                    }
+                }
+                .padding(8)
+                .background(Color.black.opacity(0.12))
+                .clipShape(RoundedRectangle(cornerRadius: 10))
+            }
+            .frame(height: 290)
 
             Divider()
 
-            HStack {
-                Button {
+            HStack(spacing: 10) {
+                Button("Importa JSON") {
                     showingImporter = true
-                } label: {
-                    Label("Importa JSON", systemImage: "square.and.arrow.down")
                 }
 
-                Button {
+                Button("Esporta JSON") {
                     exportDocument = BaseSnapshotDocument(
-                        snapshot: currentSnapshot
+                        snapshot: draftSnapshot
                     )
                     showingExporter = true
-                } label: {
-                    Label("Esporta JSON", systemImage: "square.and.arrow.up")
                 }
 
                 Spacer()
@@ -111,15 +170,20 @@ struct BaseEditorView: View {
                     dismiss()
                 }
 
-                Button("Carica base") {
+                Button("Carica base prototipo") {
                     onApply(selection)
+                    dismiss()
+                }
+
+                Button("Applica modifiche") {
+                    onApplySnapshot(draftSnapshot)
                     dismiss()
                 }
                 .buttonStyle(.borderedProminent)
             }
         }
-        .padding(24)
-        .frame(width: 600)
+        .padding(20)
+        .frame(width: 980, height: 620)
         .fileImporter(
             isPresented: $showingImporter,
             allowedContentTypes: [.json]
@@ -134,22 +198,105 @@ struct BaseEditorView: View {
                     BaseSnapshot.self,
                     from: data
                 )
-                guard snapshot.isValid else {
+                guard snapshot.isValid(on: navigationGrid) else {
                     return
                 }
-                onImport(snapshot)
-                dismiss()
+                draftSnapshot = snapshot
             } catch {
-                // Invalid files are ignored; the caller keeps the current base.
+                return
             }
         }
         .fileExporter(
             isPresented: $showingExporter,
             document: exportDocument,
             contentType: .json,
-            defaultFilename: currentSnapshot.name
+            defaultFilename: draftSnapshot.name
         ) { _ in
             exportDocument = nil
+        }
+    }
+
+    private func title(for kind: BattleEntityKind) -> String {
+        switch kind {
+        case .wall:
+            return "Muro"
+        case .cannon:
+            return "Cannone"
+        case .archerTower:
+            return "Torre arcieri"
+        case .mortar:
+            return "Mortaio"
+        case .airDefense:
+            return "Difesa aerea"
+        case .townHall:
+            return "Municipio"
+        case .goldStorage:
+            return "Deposito oro"
+        default:
+            return "Elemento"
+        }
+    }
+
+    private func symbol(for kind: BattleEntityKind) -> String {
+        switch kind {
+        case .wall:
+            return "W"
+        case .cannon:
+            return "C"
+        case .archerTower:
+            return "T"
+        case .mortar:
+            return "M"
+        case .airDefense:
+            return "A"
+        case .townHall:
+            return "H"
+        case .goldStorage:
+            return "S"
+        default:
+            return "?"
+        }
+    }
+
+    private func icon(for kind: BattleEntityKind) -> String {
+        switch kind {
+        case .wall:
+            return "rectangle.fill"
+        case .cannon:
+            return "scope"
+        case .archerTower:
+            return "arrow.up"
+        case .mortar:
+            return "circle.dotted"
+        case .airDefense:
+            return "wind"
+        case .townHall:
+            return "building.2"
+        case .goldStorage:
+            return "shippingbox"
+        default:
+            return "square"
+        }
+    }
+
+    private func color(for kind: BattleEntityKind) -> Color {
+        switch kind {
+        case .wall:
+            return .brown
+        case .cannon:
+            return .gray
+        case .archerTower:
+            return .purple
+        case .mortar:
+            return .orange
+        case .airDefense:
+            return .indigo
+        case .townHall:
+            return .blue
+        case .goldStorage:
+            return .yellow
+        default:
+            return .secondary
         }
     }
 }

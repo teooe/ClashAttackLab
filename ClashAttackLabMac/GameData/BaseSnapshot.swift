@@ -102,6 +102,47 @@ nonisolated struct BaseSnapshot: Identifiable, Codable, Equatable {
             Set(objects.map { "\($0.column):\($0.row)" }).count ==
                 objects.count
     }
+
+    func object(
+        atColumn column: Int,
+        row: Int
+    ) -> BaseObjectSnapshot? {
+        objects.first {
+            $0.column == column && $0.row == row
+        }
+    }
+
+    func isValid(on grid: NavigationGrid) -> Bool {
+        isValid &&
+            objects.allSatisfy {
+                grid.contains(
+                    GridCoordinate(column: $0.column, row: $0.row)
+                )
+            }
+    }
+
+    mutating func place(
+        _ kind: BattleEntityKind,
+        atColumn column: Int,
+        row: Int
+    ) {
+        objects.removeAll {
+            $0.column == column && $0.row == row
+        }
+        objects.append(
+            BaseObjectSnapshot(
+                kind: kind,
+                column: column,
+                row: row
+            )
+        )
+    }
+
+    mutating func removeObject(atColumn column: Int, row: Int) {
+        objects.removeAll {
+            $0.column == column && $0.row == row
+        }
+    }
 }
 
 struct BaseSnapshotDocument: FileDocument {

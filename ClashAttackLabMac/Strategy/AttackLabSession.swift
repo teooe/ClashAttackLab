@@ -30,6 +30,10 @@ final class AttackLabSession: ObservableObject {
         candidatePlans.count
     }
 
+    var editorNavigationGrid: NavigationGrid {
+        navigationGrid
+    }
+
     var manualTroopChoices: [BattleEntityKind] {
         [
             .giant,

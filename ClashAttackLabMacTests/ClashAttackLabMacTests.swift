@@ -1889,3 +1889,27 @@ func baseSnapshotRoundTripsAndValidatesPortableCoordinates() throws {
     #expect(decoded.objects.count == original.objects.count)
     #expect(entities.count == original.objects.count)
 }
+
+
+@Test
+func baseSnapshotEditorPlacesReplacesAndRemovesObjects() {
+    var snapshot = BaseSnapshot(
+        name: "Editor",
+        objects: [
+            BaseObjectSnapshot(
+                kind: .townHall,
+                column: 20,
+                row: 8
+            )
+        ]
+    )
+
+    snapshot.place(.wall, atColumn: 20, row: 8)
+    #expect(snapshot.object(atColumn: 20, row: 8)?.kind == .wall)
+    #expect(snapshot.objectiveCount == 0)
+
+    snapshot.place(.cannon, atColumn: 10, row: 4)
+    #expect(snapshot.objectiveCount == 1)
+    snapshot.removeObject(atColumn: 10, row: 4)
+    #expect(snapshot.objectiveCount == 0)
+}
