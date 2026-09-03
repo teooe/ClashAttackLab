@@ -134,7 +134,8 @@ final class AttackLabSession: ObservableObject {
         guard !isManualPlanning else { return }
 
         let plan = activePlan
-        let entries = PrototypeBaseLayout.allCases.compactMap { layout in
+        let entries: [BaseAttackEvaluation] =
+            PrototypeBaseLayout.allCases.compactMap { layout -> BaseAttackEvaluation? in
             let entities = PrototypeBattleMap.makeBaseEntities(
                 navigationGrid: navigationGrid,
                 layout: layout
