@@ -20,6 +20,8 @@ final class BattleScene: SKScene {
     private var aliveEntityIDs: Set<UUID> = []
     private var lastUpdateTime: TimeInterval?
     private var manualPlacementHandler: ((WorldPosition) -> Void)?
+    var simulationFinishedHandler: ((SimulationResult) -> Void)?
+    private var didReportFinishedSimulation = false
     private var manualPlacementUsesWholeArena = false
     private let manualPlacementZone = SKShapeNode()
 
@@ -96,6 +98,13 @@ final class BattleScene: SKScene {
 
         self.lastUpdateTime = currentTime
         simulation.advance(by: deltaTime * simulationSpeed)
+
+        if case .finished(let result) = simulation.status,
+           !didReportFinishedSimulation {
+            didReportFinishedSimulation = true
+            simulationFinishedHandler?(result)
+        }
+
         updatePresentation()
     }
 
@@ -123,6 +132,7 @@ final class BattleScene: SKScene {
     func restartSimulation() {
         simulation.reset()
         lastUpdateTime = nil
+        didReportFinishedSimulation = false
         updatePresentation()
     }
 
@@ -132,6 +142,7 @@ final class BattleScene: SKScene {
         refreshDeploymentMarkers()
 
         lastUpdateTime = nil
+        didReportFinishedSimulation = false
         updatePresentation()
     }
 
@@ -147,6 +158,7 @@ final class BattleScene: SKScene {
         refreshDeploymentMarkers()
 
         lastUpdateTime = nil
+        didReportFinishedSimulation = false
         updatePresentation()
     }
 

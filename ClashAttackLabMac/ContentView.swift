@@ -232,6 +232,11 @@ struct ContentView: View {
 
             Divider()
 
+            if let result = session.lastSimulationResult {
+                Divider()
+                simulationReport(result)
+            }
+
             SpriteView(scene: session.scene)
                 .frame(minWidth: 840, minHeight: 600)
         }
@@ -581,6 +586,41 @@ struct ContentView: View {
         case .rage:
             return .purple
         }
+    }
+
+    private func simulationReport(_ result: SimulationResult) -> some View {
+        let attackersWon: Bool
+        switch result.winner {
+        case .attackers:
+            attackersWon = true
+        case .defenses:
+            attackersWon = false
+        }
+
+        HStack(spacing: 14) {
+            Label(
+                "(result.winner.displayName) · (result.finishReason.displayName)",
+                systemImage: attackersWon
+                    ? "checkmark.circle.fill"
+                    : "xmark.circle.fill"
+            )
+            .foregroundStyle(
+                attackersWon ? .green : .red
+            )
+
+            Text("⭐ (result.score.stars)")
+            Text("(result.score.destructionPercentage, specifier: "%.1f")% distrutto")
+            Text("Superstiti (result.survivingTroops)")
+            Text("Perse (result.metrics.troopsLost)")
+            Text("(result.elapsedTime, specifier: "%.1f") s")
+            Text("Danni (result.metrics.damageToBase, specifier: "%.0f")")
+
+            Spacer()
+        }
+        .font(.caption)
+        .padding(.horizontal)
+        .padding(.vertical, 8)
+        .background(Color.secondary.opacity(0.08))
     }
 
     private var comparisonBar: some View {

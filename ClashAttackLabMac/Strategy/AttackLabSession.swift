@@ -15,6 +15,7 @@ final class AttackLabSession: ObservableObject {
         TimeInterval = 0
     @Published private(set) var savedPlans: [AttackPlan] = []
     @Published private(set) var comparisonEvaluations: [AttackPlanEvaluation] = []
+    @Published private(set) var lastSimulationResult: SimulationResult?
 
     let scene: BattleScene
 
@@ -112,6 +113,9 @@ final class AttackLabSession: ObservableObject {
         )
         self.selectedPlanID = initialPlan.id
         self.savedPlans = planLibrary.plans
+        self.scene.simulationFinishedHandler = { [weak self] result in
+            self?.lastSimulationResult = result
+        }
     }
 
     func compareSavedPlans(_ plans: [AttackPlan]) {
@@ -133,6 +137,7 @@ final class AttackLabSession: ObservableObject {
         activePlan = plan
         selectedPlanID = plan.id
         evaluations = []
+        lastSimulationResult = nil
         scene.loadAttackPlan(plan)
     }
 
