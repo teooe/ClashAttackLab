@@ -19,6 +19,7 @@ final class AttackLabSession: ObservableObject {
     @Published private(set) var attackHistory: [AttackHistoryEntry] = []
     @Published private(set) var currentPlanAnalysis: AttackPlanRobustnessAnalysis?
     @Published private(set) var robustnessRankings: [AttackPlanRobustnessAnalysis] = []
+    @Published private(set) var refinementReport: AttackPlanRefinementReport?
 
     let scene: BattleScene
 
@@ -145,6 +146,30 @@ final class AttackLabSession: ObservableObject {
         }
         let analyses = candidates.map { makeRobustnessAnalysis(for: $0) }
         robustnessRankings = AttackPlanRobustnessRanker.rank(analyses)
+    }
+
+    /// Searches lane and deployment-tempo variants of the active plan.
+    ///
+    /// Each candidate is tested on every available prototype base before the
+    /// deterministic ranking chooses the recommendation.
+    func refineCurrentPlanAcrossBases() {
+        guard !isManualPlanning else {
+            return
+        }
+
+        let variants = AttackPlanRefiner(
+            navigationGrid: navigationGrid
+        ).variants(for: activePlan)
+        let analyses = variants.map { makeRobustnessAnalysis(for: $0) }
+
+        refinementReport = AttackPlanRefinementReport(
+            sourcePlan: activePlan,
+            rankedCandidates: AttackPlanRobustnessRanker.rank(analyses)
+        )
+    }
+
+    func loadRefinedPlan(_ plan: AttackPlan) {
+        loadSavedPlan(plan)
     }
 
     private func makeRobustnessAnalysis(

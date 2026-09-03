@@ -1726,3 +1726,53 @@ func robustnessRankerUsesPlanNameAsDeterministicFinalTieBreaker() {
 
     #expect(ranked.map(\.plan.name) == ["Alpha", "Beta"])
 }
+
+
+@Test
+func planRefinerKeepsArmyAndClampsShiftedDeploymentRows() {
+    let grid = PrototypeBattleMap.makeNavigationGrid()
+    let topRowPosition = grid.worldPosition(
+        for: GridCoordinate(column: 1, row: 0)
+    )
+    let plan = AttackPlan(
+        name: "Da rifinire",
+        deployments: [
+            DeploymentOrder(
+                kind: .giant,
+                position: topRowPosition,
+                deploymentTime: 4
+            )
+        ],
+        spellDeployments: [
+            SpellDeploymentOrder(
+                kind: .rage,
+                position: topRowPosition,
+                deploymentTime: 5
+            )
+        ]
+    )
+
+    let variants = AttackPlanRefiner(
+        navigationGrid: grid
+    ).variants(for: plan)
+
+    #expect(variants.count == 15)
+    #expect(variants.contains { $0.id == plan.id })
+    #expect(
+        variants.allSatisfy {
+            $0.totalDeploymentCount == plan.totalDeploymentCount &&
+                $0.totalSpellCount == plan.totalSpellCount
+        }
+    )
+    #expect(
+        variants.allSatisfy { variant in
+            variant.deployments.allSatisfy { order in
+                guard let coordinate = grid.coordinate(for: order.position) else {
+                    return false
+                }
+
+                return coordinate.row >= 0 && coordinate.row < grid.rows
+            }
+        }
+    )
+}

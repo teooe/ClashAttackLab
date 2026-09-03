@@ -4,6 +4,7 @@ struct StrategyAnalysisView: View {
     @ObservedObject var session: AttackLabSession
     @Environment(\.dismiss) private var dismiss
     @State private var showingRankings = false
+    @State private var showingRefinement = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
@@ -21,6 +22,12 @@ struct StrategyAnalysisView: View {
                 Button("Classifica piani") {
                     session.rankSavedPlansAcrossBases()
                     showingRankings = true
+                }
+                .disabled(session.isManualPlanning)
+
+                Button("Ottimizza piano") {
+                    session.refineCurrentPlanAcrossBases()
+                    showingRefinement = true
                 }
                 .disabled(session.isManualPlanning)
 
@@ -102,6 +109,9 @@ struct StrategyAnalysisView: View {
         }
         .sheet(isPresented: $showingRankings) {
             StrategyRankingView(session: session)
+        }
+        .sheet(isPresented: $showingRefinement) {
+            StrategyRefinementView(session: session)
         }
     }
 
