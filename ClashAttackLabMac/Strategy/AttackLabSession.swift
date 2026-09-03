@@ -24,6 +24,7 @@ final class AttackLabSession: ObservableObject {
     @Published private(set) var generatedPlanRankings: [AttackPlanRobustnessAnalysis] = []
     @Published private(set) var baseReconnaissance: BaseReconnaissance?
     @Published private(set) var savedBases: [BaseSnapshot] = []
+    @Published private(set) var savedBasePlanAnalysis: SavedBasePlanAnalysis?
 
     let scene: BattleScene
 
@@ -191,6 +192,45 @@ final class AttackLabSession: ObservableObject {
 
         loadSavedPlan(shiftedPlan)
         currentPlanAnalysis = nil
+    }
+
+    /// Tests the current plan on the active base and every saved custom base.
+    func analyzeCurrentPlanAcrossSavedBases() {
+        guard !isManualPlanning else {
+            return
+        }
+
+        var seenBaseIDs = Set<UUID>()
+        let bases = ([activeBaseSnapshot] + savedBases).filter {
+            seenBaseIDs.insert($0.id).inserted &&
+                $0.isValid(on: navigationGrid)
+        }
+
+        let entries = bases.compactMap {
+            snapshot -> CustomBaseAttackEvaluation? in
+            let entities = snapshot.makeEntities(
+                navigationGrid: navigationGrid
+            )
+            let evaluator = AttackPlanEvaluator(
+                baseEntities: entities,
+                gameData: gameData,
+                navigationGrid: navigationGrid
+            )
+
+            guard let evaluation = evaluator.evaluate([activePlan]).first else {
+                return nil
+            }
+
+            return CustomBaseAttackEvaluation(
+                base: snapshot,
+                evaluation: evaluation
+            )
+        }
+
+        savedBasePlanAnalysis = SavedBasePlanAnalysis(
+            plan: activePlan,
+            entries: entries
+        )
     }
 
     func analyzeCurrentPlanAcrossBases() {

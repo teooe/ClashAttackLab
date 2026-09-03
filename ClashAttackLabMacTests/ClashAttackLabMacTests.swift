@@ -1945,3 +1945,60 @@ func baseLibraryPersistsLatestVersionOfASavedSnapshot() {
     #expect(library.bases.count == 1)
     #expect(library.bases.first?.name == "Aggiornata")
 }
+
+
+@Test
+func savedBasePlanAnalysisCalculatesMetricsAcrossCustomBases() {
+    let plan = AttackPlan(name: "Analisi locale", deployments: [])
+    let score = BaseScoreSnapshot(
+        destructionPercentage: 60,
+        stars: 2,
+        townHallDestroyed: true,
+        destroyedBuildings: 6,
+        totalBuildings: 10
+    )
+    let result = SimulationResult(
+        winner: .attackers,
+        elapsedTime: 20,
+        timeExpired: false,
+        finishReason: .armyEliminated,
+        deployedTroops: 4,
+        survivingTroops: 3,
+        survivingDefenses: 1,
+        troopAttackCount: 0,
+        defenseAttackCount: 0,
+        score: score,
+        metrics: BattleSummaryMetrics(
+            damageToBase: 600,
+            hitPointsLostByArmy: 50,
+            troopsLost: 1,
+            destroyedWalls: 0,
+            spellsCast: 0
+        )
+    )
+    let evaluation = AttackPlanEvaluation(plan: plan, result: result)
+    let base = BaseSnapshot(
+        name: "Locale",
+        objects: [
+            BaseObjectSnapshot(
+                kind: .townHall,
+                column: 20,
+                row: 8
+            )
+        ]
+    )
+    let analysis = SavedBasePlanAnalysis(
+        plan: plan,
+        entries: [
+            CustomBaseAttackEvaluation(
+                base: base,
+                evaluation: evaluation
+            )
+        ]
+    )
+
+    #expect(analysis.averageStars == 2)
+    #expect(analysis.averageDestruction == 60)
+    #expect(analysis.averageSurvivors == 3)
+    #expect(analysis.threeStarCount == 0)
+}

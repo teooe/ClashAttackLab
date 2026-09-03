@@ -7,6 +7,7 @@ struct StrategyAnalysisView: View {
     @State private var showingRefinement = false
     @State private var showingTournament = false
     @State private var showingBaseReconnaissance = false
+    @State private var showingSavedBaseAnalysis = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
@@ -54,6 +55,12 @@ struct StrategyAnalysisView: View {
                     .foregroundStyle(.secondary)
 
                 Spacer()
+
+                Button("Basi locali") {
+                    session.analyzeCurrentPlanAcrossSavedBases()
+                    showingSavedBaseAnalysis = true
+                }
+                .disabled(session.isManualPlanning)
 
                 Button("Ricognizione") {
                     session.analyzeCurrentBase()
@@ -140,6 +147,9 @@ struct StrategyAnalysisView: View {
         }
         .sheet(isPresented: $showingBaseReconnaissance) {
             BaseReconnaissanceView(session: session)
+        }
+        .sheet(isPresented: $showingSavedBaseAnalysis) {
+            SavedBaseAnalysisView(session: session)
         }
     }
 
