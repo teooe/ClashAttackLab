@@ -143,6 +143,14 @@ nonisolated struct BaseSnapshot: Identifiable, Codable, Equatable {
             $0.column == column && $0.row == row
         }
     }
+
+    func duplicated(named name: String? = nil) -> BaseSnapshot {
+        BaseSnapshot(
+            name: name ?? "\(self.name) copia",
+            objects: objects,
+            formatVersion: formatVersion
+        )
+    }
 }
 
 struct BaseSnapshotDocument: FileDocument {

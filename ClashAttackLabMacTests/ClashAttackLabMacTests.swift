@@ -1913,3 +1913,35 @@ func baseSnapshotEditorPlacesReplacesAndRemovesObjects() {
     snapshot.removeObject(atColumn: 10, row: 4)
     #expect(snapshot.objectiveCount == 0)
 }
+
+
+@Test
+func baseLibraryPersistsLatestVersionOfASavedSnapshot() {
+    let storageKey = "clashAttackLab.tests.baseLibrary.\(UUID().uuidString)"
+    let library = BaseSnapshotLibrary(storageKey: storageKey)
+    defer {
+        library.clear()
+    }
+
+    let original = BaseSnapshot(
+        name: "Prima",
+        objects: [
+            BaseObjectSnapshot(
+                kind: .townHall,
+                column: 20,
+                row: 8
+            )
+        ]
+    )
+    let renamed = BaseSnapshot(
+        id: original.id,
+        name: "Aggiornata",
+        objects: original.objects
+    )
+
+    library.save(original)
+    library.save(renamed)
+
+    #expect(library.bases.count == 1)
+    #expect(library.bases.first?.name == "Aggiornata")
+}

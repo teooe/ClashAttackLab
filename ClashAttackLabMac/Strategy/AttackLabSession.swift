@@ -23,6 +23,7 @@ final class AttackLabSession: ObservableObject {
     @Published private(set) var refinementReport: AttackPlanRefinementReport?
     @Published private(set) var generatedPlanRankings: [AttackPlanRobustnessAnalysis] = []
     @Published private(set) var baseReconnaissance: BaseReconnaissance?
+    @Published private(set) var savedBases: [BaseSnapshot] = []
 
     let scene: BattleScene
 
@@ -81,6 +82,7 @@ final class AttackLabSession: ObservableObject {
     private var activePlan: AttackPlan
     private let planLibrary = AttackPlanLibrary()
     private let historyStore = AttackHistoryStore()
+    private let baseLibrary = BaseSnapshotLibrary()
 
     init() {
         let gameData = PrototypeGameData()
@@ -130,6 +132,7 @@ final class AttackLabSession: ObservableObject {
         self.selectedPlanID = initialPlan.id
         self.savedPlans = planLibrary.plans
         self.attackHistory = historyStore.entries
+        self.savedBases = baseLibrary.bases
         self.scene.simulationFinishedHandler = { [weak self] result in
             guard let self else { return }
             self.lastSimulationResult = result
@@ -459,7 +462,7 @@ final class AttackLabSession: ObservableObject {
 
     /// Loads a validated JSON base as a live simulation scenario.
     func applyImportedBase(_ snapshot: BaseSnapshot) {
-        guard !isManualPlanning, snapshot.isValid else {
+        guard !isManualPlanning, snapshot.isValid(on: navigationGrid) else {
             return
         }
 
@@ -494,6 +497,24 @@ final class AttackLabSession: ObservableObject {
             entities: entities,
             attackPlan: initialPlan
         )
+    }
+
+    func saveBaseSnapshot(_ snapshot: BaseSnapshot) {
+        guard snapshot.isValid(on: navigationGrid) else {
+            return
+        }
+
+        baseLibrary.save(snapshot)
+        savedBases = baseLibrary.bases
+    }
+
+    func loadSavedBase(_ snapshot: BaseSnapshot) {
+        applyImportedBase(snapshot)
+    }
+
+    func deleteSavedBase(_ snapshot: BaseSnapshot) {
+        baseLibrary.delete(snapshot)
+        savedBases = baseLibrary.bases
     }
 
     func beginManualPlanning() {

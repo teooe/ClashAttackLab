@@ -13,21 +13,27 @@ struct BaseEditorView: View {
     @State private var exportDocument: BaseSnapshotDocument?
 
     let navigationGrid: NavigationGrid
+    let savedBases: [BaseSnapshot]
     private let onApply: (PrototypeBaseLayout) -> Void
     private let onApplySnapshot: (BaseSnapshot) -> Void
+    private let onSaveSnapshot: (BaseSnapshot) -> Void
 
     init(
         layout: PrototypeBaseLayout,
         snapshot: BaseSnapshot,
         navigationGrid: NavigationGrid,
+        savedBases: [BaseSnapshot],
         onApply: @escaping (PrototypeBaseLayout) -> Void,
-        onApplySnapshot: @escaping (BaseSnapshot) -> Void
+        onApplySnapshot: @escaping (BaseSnapshot) -> Void,
+        onSaveSnapshot: @escaping (BaseSnapshot) -> Void
     ) {
         _selection = State(initialValue: layout)
         _draftSnapshot = State(initialValue: snapshot)
         self.navigationGrid = navigationGrid
+        self.savedBases = savedBases
         self.onApply = onApply
         self.onApplySnapshot = onApplySnapshot
+        self.onSaveSnapshot = onSaveSnapshot
     }
 
     private var editableKinds: [BattleEntityKind] {
@@ -59,6 +65,22 @@ struct BaseEditorView: View {
             }
 
             HStack(spacing: 10) {
+                TextField("Nome della base", text: $draftSnapshot.name)
+                    .textFieldStyle(.roundedBorder)
+                    .frame(width: 190)
+
+                Menu("Basi salvate") {
+                    if savedBases.isEmpty {
+                        Text("Nessuna base salvata")
+                    } else {
+                        ForEach(savedBases) { snapshot in
+                            Button(snapshot.name) {
+                                draftSnapshot = snapshot
+                            }
+                        }
+                    }
+                }
+
                 Menu {
                     ForEach(editableKinds, id: \.self) { kind in
                         Button {
@@ -163,6 +185,11 @@ struct BaseEditorView: View {
                     )
                     showingExporter = true
                 }
+
+                Button("Salva in libreria") {
+                    onSaveSnapshot(draftSnapshot)
+                }
+                .disabled(!draftSnapshot.isValid(on: navigationGrid))
 
                 Spacer()
 
