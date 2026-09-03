@@ -597,7 +597,7 @@ struct ContentView: View {
             attackersWon = false
         }
 
-        HStack(spacing: 14) {
+        return HStack(spacing: 14) {
             Label(
                 "\(result.winner.displayName) · \(result.finishReason.displayName)",
                 systemImage: attackersWon
