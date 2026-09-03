@@ -2048,3 +2048,37 @@ func baseValidationWarnsWhenDeployStripIsOccupied() {
     #expect(report.isBuildable)
     #expect(!report.warnings.isEmpty)
 }
+
+
+@Test
+func duplicatedBaseCreatesASecondPersistentLibraryEntry() {
+    let storageKey = "clashAttackLab.tests.duplicatedBase.(UUID().uuidString)"
+    let library = BaseSnapshotLibrary(storageKey: storageKey)
+    library.clear()
+
+    let original = BaseSnapshot(
+        name: "Originale",
+        objects: [
+            BaseObjectSnapshot(
+                kind: .townHall,
+                column: 20,
+                row: 8
+            ),
+            BaseObjectSnapshot(
+                kind: .cannon,
+                column: 15,
+                row: 8
+            )
+        ]
+    )
+    let copy = original.duplicated(named: "Originale copia")
+
+    library.save(original)
+    library.save(copy)
+
+    #expect(library.bases.count == 2)
+    #expect(original.id != copy.id)
+    #expect(library.bases.map(.name).contains("Originale copia"))
+
+    library.clear()
+}

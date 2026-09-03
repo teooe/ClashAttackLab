@@ -6,6 +6,7 @@ struct ContentView: View {
     @StateObject private var session = AttackLabSession()
     @State private var showingArmyBuilder = false
     @State private var showingBaseLibrary = false
+    @State private var showingSavedBaseLibrary = false
     @State private var showingPlanLibrary = false
     @State private var showingAttackHistory = false
     @State private var showingStrategyAnalysis = false
@@ -47,6 +48,15 @@ struct ContentView: View {
                     showingBaseLibrary = true
                 } label: {
                     Label("Base", systemImage: "square.grid.3x3.fill")
+                }
+
+                Button {
+                    showingSavedBaseLibrary = true
+                } label: {
+                    Label(
+                        "Basi salvate",
+                        systemImage: "square.stack.3d.up"
+                    )
                 }
 
                 Button {
@@ -277,6 +287,9 @@ struct ContentView: View {
                     session.saveBaseSnapshot(snapshot)
                 }
             )
+        }
+        .sheet(isPresented: $showingSavedBaseLibrary) {
+            BaseLibraryManagerView(session: session)
         }
         .sheet(isPresented: $showingPlanLibrary) {
             PlanLibraryView(session: session)
