@@ -5,6 +5,7 @@ struct StrategyAnalysisView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var showingRankings = false
     @State private var showingRefinement = false
+    @State private var showingTournament = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
@@ -28,6 +29,12 @@ struct StrategyAnalysisView: View {
                 Button("Ottimizza piano") {
                     session.refineCurrentPlanAcrossBases()
                     showingRefinement = true
+                }
+                .disabled(session.isManualPlanning)
+
+                Button("Torneo") {
+                    session.rankGeneratedPlansAcrossBases()
+                    showingTournament = true
                 }
                 .disabled(session.isManualPlanning)
 
@@ -112,6 +119,9 @@ struct StrategyAnalysisView: View {
         }
         .sheet(isPresented: $showingRefinement) {
             StrategyRefinementView(session: session)
+        }
+        .sheet(isPresented: $showingTournament) {
+            StrategyTournamentView(session: session)
         }
     }
 

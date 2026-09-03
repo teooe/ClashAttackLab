@@ -18,7 +18,7 @@ struct ContentView: View {
                         .font(.title2.bold())
 
                     Text(
-                        "Milestone 16 · \(session.baseLayout.displayName) · Piano manuale"
+                        "Milestone 18 · \(session.baseLayout.displayName) · Piano manuale"
                     )
                         .foregroundStyle(.secondary)
                         .lineLimit(1)

@@ -1776,3 +1776,15 @@ func planRefinerKeepsArmyAndClampsShiftedDeploymentRows() {
         }
     )
 }
+
+
+@Test
+func automaticPlanGeneratorProducesTheExpectedStrategyMatrix() {
+    let plans = AttackPlanGenerator(
+        navigationGrid: PrototypeBattleMap.makeNavigationGrid(),
+        armyConfiguration: .prototypeDefault
+    ).generate()
+
+    #expect(plans.count == 24)
+    #expect(Set(plans.map(\.name)).count == plans.count)
+}

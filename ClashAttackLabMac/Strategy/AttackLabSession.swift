@@ -20,6 +20,7 @@ final class AttackLabSession: ObservableObject {
     @Published private(set) var currentPlanAnalysis: AttackPlanRobustnessAnalysis?
     @Published private(set) var robustnessRankings: [AttackPlanRobustnessAnalysis] = []
     @Published private(set) var refinementReport: AttackPlanRefinementReport?
+    @Published private(set) var generatedPlanRankings: [AttackPlanRobustnessAnalysis] = []
 
     let scene: BattleScene
 
@@ -146,6 +147,25 @@ final class AttackLabSession: ObservableObject {
         }
         let analyses = candidates.map { makeRobustnessAnalysis(for: $0) }
         robustnessRankings = AttackPlanRobustnessRanker.rank(analyses)
+    }
+
+    /// Runs the automatically generated plans against every prototype base.
+    ///
+    /// Unlike the normal finder, this does not optimize only the base currently
+    /// on screen. The result is a robustness tournament that exposes strategies
+    /// which remain effective when the layout changes.
+    func rankGeneratedPlansAcrossBases() {
+        guard !isManualPlanning else {
+            return
+        }
+
+        let analyses = candidatePlans.map { makeRobustnessAnalysis(for: $0) }
+        generatedPlanRankings = AttackPlanRobustnessRanker.rank(analyses)
+    }
+
+    func loadGeneratedPlan(_ plan: AttackPlan) {
+        loadSavedPlan(plan)
+        currentPlanAnalysis = makeRobustnessAnalysis(for: plan)
     }
 
     /// Searches lane and deployment-tempo variants of the active plan.
