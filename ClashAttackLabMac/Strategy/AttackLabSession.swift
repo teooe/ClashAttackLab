@@ -16,6 +16,7 @@ final class AttackLabSession: ObservableObject {
     @Published private(set) var savedPlans: [AttackPlan] = []
     @Published private(set) var comparisonEvaluations: [AttackPlanEvaluation] = []
     @Published private(set) var lastSimulationResult: SimulationResult?
+    @Published private(set) var attackHistory: [AttackHistoryEntry] = []
 
     let scene: BattleScene
 
@@ -69,6 +70,7 @@ final class AttackLabSession: ObservableObject {
     private var evaluator: AttackPlanEvaluator
     private var activePlan: AttackPlan
     private let planLibrary = AttackPlanLibrary()
+    private let historyStore = AttackHistoryStore()
 
     init() {
         let gameData = PrototypeGameData()
@@ -113,9 +115,23 @@ final class AttackLabSession: ObservableObject {
         )
         self.selectedPlanID = initialPlan.id
         self.savedPlans = planLibrary.plans
+        self.attackHistory = historyStore.entries
         self.scene.simulationFinishedHandler = { [weak self] result in
-            self?.lastSimulationResult = result
+            guard let self else { return }
+            self.lastSimulationResult = result
+            self.historyStore.record(
+                AttackHistoryEntry(
+                    plan: self.activePlan,
+                    result: result
+                )
+            )
+            self.attackHistory = self.historyStore.entries
         }
+    }
+
+    func clearAttackHistory() {
+        historyStore.clear()
+        attackHistory = historyStore.entries
     }
 
     func compareSavedPlans(_ plans: [AttackPlan]) {

@@ -7,6 +7,7 @@ struct ContentView: View {
     @State private var showingArmyBuilder = false
     @State private var showingBaseLibrary = false
     @State private var showingPlanLibrary = false
+    @State private var showingAttackHistory = false
 
     var body: some View {
         VStack(spacing: 0) {
@@ -51,6 +52,12 @@ struct ContentView: View {
                     showingPlanLibrary = true
                 } label: {
                     Label("Piani", systemImage: "tray.full")
+                }
+
+                Button {
+                    showingAttackHistory = true
+                } label: {
+                    Label("Storico", systemImage: "clock.arrow.circlepath")
                 }
 
                 Button {
@@ -254,6 +261,9 @@ struct ContentView: View {
         }
         .sheet(isPresented: $showingPlanLibrary) {
             PlanLibraryView(session: session)
+        }
+        .sheet(isPresented: $showingAttackHistory) {
+            AttackHistoryView(session: session)
         }
     }
 

@@ -1595,3 +1595,49 @@ func manualPlanSupportsTargetedOrderEditing() {
     draft.removeOrder(id: storedID)
     #expect(draft.totalOrderCount == 0)
 }
+
+
+@Test
+func attackHistoryEntryCapturesCompletedBattleMetrics() {
+    let plan = AttackPlan(name: "Storico", deployments: [])
+    let score = BaseScoreSnapshot(
+        destructionPercentage: 72.5,
+        stars: 2,
+        townHallDestroyed: true,
+        destroyedBuildings: 8,
+        totalBuildings: 11
+    )
+    let metrics = BattleSummaryMetrics(
+        damageToBase: 1_250,
+        hitPointsLostByArmy: 400,
+        troopsLost: 3,
+        destroyedWalls: 2,
+        spellsCast: 1
+    )
+    let result = SimulationResult(
+        winner: .attackers,
+        elapsedTime: 42.5,
+        timeExpired: false,
+        finishReason: .armyEliminated,
+        deployedTroops: 8,
+        survivingTroops: 5,
+        survivingDefenses: 1,
+        troopAttackCount: 20,
+        defenseAttackCount: 14,
+        score: score,
+        metrics: metrics
+    )
+
+    let entry = AttackHistoryEntry(
+        plan: plan,
+        result: result,
+        completedAt: Date(timeIntervalSince1970: 0)
+    )
+
+    #expect(entry.planName == "Storico")
+    #expect(entry.stars == 2)
+    #expect(entry.destructionPercentage == 72.5)
+    #expect(entry.survivingTroops == 5)
+    #expect(entry.troopsLost == 3)
+    #expect(entry.spellsCast == 1)
+}
