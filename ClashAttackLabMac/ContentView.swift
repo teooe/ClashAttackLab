@@ -599,7 +599,7 @@ struct ContentView: View {
 
         HStack(spacing: 14) {
             Label(
-                "(result.winner.displayName) · (result.finishReason.displayName)",
+                "\(result.winner.displayName) · \(result.finishReason.displayName)",
                 systemImage: attackersWon
                     ? "checkmark.circle.fill"
                     : "xmark.circle.fill"
@@ -608,12 +608,12 @@ struct ContentView: View {
                 attackersWon ? .green : .red
             )
 
-            Text("⭐ (result.score.stars)")
-            Text("(result.score.destructionPercentage, specifier: "%.1f")% distrutto")
-            Text("Superstiti (result.survivingTroops)")
-            Text("Perse (result.metrics.troopsLost)")
-            Text("(result.elapsedTime, specifier: "%.1f") s")
-            Text("Danni (result.metrics.damageToBase, specifier: "%.0f")")
+            Text("⭐ \(result.score.stars)")
+            Text("\(result.score.destructionPercentage, specifier: "%.1f")% distrutto")
+            Text("Superstiti \(result.survivingTroops)")
+            Text("Perse \(result.metrics.troopsLost)")
+            Text("\(result.elapsedTime, specifier: "%.1f") s")
+            Text("Danni \(result.metrics.damageToBase, specifier: "%.0f")")
 
             Spacer()
         }
