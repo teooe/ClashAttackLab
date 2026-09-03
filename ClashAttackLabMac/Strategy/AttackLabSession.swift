@@ -18,6 +18,7 @@ final class AttackLabSession: ObservableObject {
     @Published private(set) var lastSimulationResult: SimulationResult?
     @Published private(set) var attackHistory: [AttackHistoryEntry] = []
     @Published private(set) var currentPlanAnalysis: AttackPlanRobustnessAnalysis?
+    @Published private(set) var robustnessRankings: [AttackPlanRobustnessAnalysis] = []
 
     let scene: BattleScene
 
@@ -132,31 +133,47 @@ final class AttackLabSession: ObservableObject {
 
     func analyzeCurrentPlanAcrossBases() {
         guard !isManualPlanning else { return }
+        currentPlanAnalysis = makeRobustnessAnalysis(for: activePlan)
+    }
 
-        let plan = activePlan
+    func rankSavedPlansAcrossBases() {
+        guard !isManualPlanning else { return }
+
+        var seenPlanIDs = Set<UUID>()
+        let candidates = ([activePlan] + savedPlans).filter {
+            seenPlanIDs.insert($0.id).inserted
+        }
+        let analyses = candidates.map { makeRobustnessAnalysis(for: $0) }
+        robustnessRankings = AttackPlanRobustnessRanker.rank(analyses)
+    }
+
+    private func makeRobustnessAnalysis(
+        for plan: AttackPlan
+    ) -> AttackPlanRobustnessAnalysis {
         let entries: [BaseAttackEvaluation] =
-            PrototypeBaseLayout.allCases.compactMap { layout -> BaseAttackEvaluation? in
-            let entities = PrototypeBattleMap.makeBaseEntities(
-                navigationGrid: navigationGrid,
-                layout: layout
-            )
-            let layoutEvaluator = AttackPlanEvaluator(
-                baseEntities: entities,
-                gameData: gameData,
-                navigationGrid: navigationGrid
-            )
+            PrototypeBaseLayout.allCases.compactMap {
+                layout -> BaseAttackEvaluation? in
+                let entities = PrototypeBattleMap.makeBaseEntities(
+                    navigationGrid: navigationGrid,
+                    layout: layout
+                )
+                let layoutEvaluator = AttackPlanEvaluator(
+                    baseEntities: entities,
+                    gameData: gameData,
+                    navigationGrid: navigationGrid
+                )
 
-            guard let evaluation = layoutEvaluator.evaluate([plan]).first else {
-                return nil
+                guard let evaluation = layoutEvaluator.evaluate([plan]).first else {
+                    return nil
+                }
+
+                return BaseAttackEvaluation(
+                    layout: layout,
+                    evaluation: evaluation
+                )
             }
 
-            return BaseAttackEvaluation(
-                layout: layout,
-                evaluation: evaluation
-            )
-        }
-
-        currentPlanAnalysis = AttackPlanRobustnessAnalysis(
+        return AttackPlanRobustnessAnalysis(
             plan: plan,
             entries: entries
         )

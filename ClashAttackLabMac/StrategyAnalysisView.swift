@@ -3,6 +3,7 @@ import SwiftUI
 struct StrategyAnalysisView: View {
     @ObservedObject var session: AttackLabSession
     @Environment(\.dismiss) private var dismiss
+    @State private var showingRankings = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
@@ -16,6 +17,12 @@ struct StrategyAnalysisView: View {
                     session.analyzeCurrentPlanAcrossBases()
                 }
                 .buttonStyle(.borderedProminent)
+
+                Button("Classifica piani") {
+                    session.rankSavedPlansAcrossBases()
+                    showingRankings = true
+                }
+                .disabled(session.isManualPlanning)
 
                 Button("Fine") {
                     dismiss()
@@ -92,6 +99,9 @@ struct StrategyAnalysisView: View {
             if session.currentPlanAnalysis == nil {
                 session.analyzeCurrentPlanAcrossBases()
             }
+        }
+        .sheet(isPresented: $showingRankings) {
+            StrategyRankingView(session: session)
         }
     }
 

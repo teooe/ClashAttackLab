@@ -1713,3 +1713,16 @@ func robustnessAnalysisCalculatesAveragesAcrossBases() {
     #expect(analysis.averageDuration == 30)
     #expect(analysis.threeStarCount == 1)
 }
+
+
+@Test
+func robustnessRankerUsesPlanNameAsDeterministicFinalTieBreaker() {
+    let alpha = AttackPlan(name: "Alpha", deployments: [])
+    let beta = AttackPlan(name: "Beta", deployments: [])
+    let ranked = AttackPlanRobustnessRanker.rank([
+        AttackPlanRobustnessAnalysis(plan: beta, entries: []),
+        AttackPlanRobustnessAnalysis(plan: alpha, entries: [])
+    ])
+
+    #expect(ranked.map(\.plan.name) == ["Alpha", "Beta"])
+}

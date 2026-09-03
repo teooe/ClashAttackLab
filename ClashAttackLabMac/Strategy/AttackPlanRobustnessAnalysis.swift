@@ -14,9 +14,13 @@ struct BaseAttackEvaluation: Identifiable {
 }
 
 /// A repeatable robustness check: the same plan is evaluated on every base.
-struct AttackPlanRobustnessAnalysis {
+struct AttackPlanRobustnessAnalysis: Identifiable {
     let plan: AttackPlan
     let entries: [BaseAttackEvaluation]
+
+    var id: UUID {
+        plan.id
+    }
 
     var averageStars: Double {
         guard !entries.isEmpty else { return 0 }
@@ -45,5 +49,33 @@ struct AttackPlanRobustnessAnalysis {
 
     var threeStarCount: Int {
         entries.filter { $0.evaluation.stars == 3 }.count
+    }
+}
+
+
+/// Deterministic ordering used when comparing saved strategies across bases.
+enum AttackPlanRobustnessRanker {
+    static func rank(
+        _ analyses: [AttackPlanRobustnessAnalysis]
+    ) -> [AttackPlanRobustnessAnalysis] {
+        analyses.sorted { first, second in
+            if first.averageStars != second.averageStars {
+                return first.averageStars > second.averageStars
+            }
+
+            if first.averageDestruction != second.averageDestruction {
+                return first.averageDestruction > second.averageDestruction
+            }
+
+            if first.averageSurvivors != second.averageSurvivors {
+                return first.averageSurvivors > second.averageSurvivors
+            }
+
+            if first.averageDuration != second.averageDuration {
+                return first.averageDuration < second.averageDuration
+            }
+
+            return first.plan.name < second.plan.name
+        }
     }
 }
