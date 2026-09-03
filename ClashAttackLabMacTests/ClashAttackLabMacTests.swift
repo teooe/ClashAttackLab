@@ -2118,3 +2118,35 @@ func armyEntryAdvisorDistinguishesGroundAndAirRecommendations() {
     #expect(advice.preferredRecommendation != nil)
     #expect(advice.recommendations.allSatisfy { $0.pathCost > 0 })
 }
+
+
+@Test
+func guidedPlanGeneratorAddsBaseAwareFormation() {
+    let grid = PrototypeBattleMap.makeNavigationGrid()
+    let army = ArmyConfiguration.prototypeDefault
+    let base = PrototypeBattleMap.makeBaseEntities(
+        navigationGrid: grid,
+        layout: .fortress
+    )
+    let guidance = ArmyEntryAdvisor(
+        navigationGrid: grid,
+        gameData: PrototypeGameData()
+    ).analyze(
+        entities: base,
+        armyConfiguration: army,
+        baseName: "Fortezza"
+    )
+    let plans = AttackPlanGenerator(
+        navigationGrid: grid,
+        armyConfiguration: army,
+        entryAdvice: guidance
+    ).generate()
+
+    #expect(plans.count == 30)
+    #expect(plans.contains { $0.name.contains("Guidata") })
+    #expect(
+        plans
+            .filter { $0.name.contains("Guidata") }
+            .allSatisfy { $0.totalDeploymentCount == army.totalTroops }
+    )
+}

@@ -95,9 +95,18 @@ final class AttackLabSession: ObservableObject {
             layout: layout
         )
         let configuration = ArmyConfiguration.prototypeDefault
+        let initialEntryAdvice = ArmyEntryAdvisor(
+            navigationGrid: navigationGrid,
+            gameData: gameData
+        ).analyze(
+            entities: baseEntities,
+            armyConfiguration: configuration,
+            baseName: layout.displayName
+        )
         let candidatePlans = AttackPlanGenerator(
             navigationGrid: navigationGrid,
-            armyConfiguration: configuration
+            armyConfiguration: configuration,
+            entryAdvice: initialEntryAdvice
         ).generate()
         let initialPlan = candidatePlans[0]
 
@@ -135,6 +144,7 @@ final class AttackLabSession: ObservableObject {
         self.savedPlans = planLibrary.plans
         self.attackHistory = historyStore.entries
         self.savedBases = baseLibrary.bases
+        self.armyEntryAdvice = initialEntryAdvice
         self.scene.simulationFinishedHandler = { [weak self] result in
             guard let self else { return }
             self.lastSimulationResult = result
@@ -308,6 +318,29 @@ final class AttackLabSession: ObservableObject {
         loadSavedPlan(plan)
     }
 
+
+    private func makeGuidedCandidatePlans(
+        for configuration: ArmyConfiguration,
+        entities: [BattleEntity],
+        baseName: String
+    ) -> (plans: [AttackPlan], advice: ArmyEntryAdvice) {
+        let advice = ArmyEntryAdvisor(
+            navigationGrid: navigationGrid,
+            gameData: gameData
+        ).analyze(
+            entities: entities,
+            armyConfiguration: configuration,
+            baseName: baseName
+        )
+        let plans = AttackPlanGenerator(
+            navigationGrid: navigationGrid,
+            armyConfiguration: configuration,
+            entryAdvice: advice
+        ).generate()
+
+        return (plans, advice)
+    }
+
     private func makeRobustnessAnalysis(
         for plan: AttackPlan
     ) -> AttackPlanRobustnessAnalysis {
@@ -463,19 +496,20 @@ final class AttackLabSession: ObservableObject {
             return
         }
 
-        let generatedPlans = AttackPlanGenerator(
-            navigationGrid: navigationGrid,
-            armyConfiguration: configuration
-        ).generate()
+        let guidance = makeGuidedCandidatePlans(
+            for: configuration,
+            entities: baseEntities,
+            baseName: activeBaseSnapshot.name
+        )
 
-        guard let firstPlan = generatedPlans.first else {
+        guard let firstPlan = guidance.plans.first else {
             return
         }
 
         finishManualMode(restoreActivePlan: false)
         armyConfiguration = configuration
-        armyEntryAdvice = nil
-        candidatePlans = generatedPlans
+        armyEntryAdvice = guidance.advice
+        candidatePlans = guidance.plans
         evaluations = []
         activePlan = firstPlan
         selectedPlanID = firstPlan.id
@@ -488,6 +522,15 @@ final class AttackLabSession: ObservableObject {
             navigationGrid: navigationGrid,
             layout: layout
         )
+
+        let guidance = makeGuidedCandidatePlans(
+            for: armyConfiguration,
+            entities: entities,
+            baseName: layout.displayName
+        )
+        guard let initialPlan = guidance.plans.first else {
+            return
+        }
 
         finishManualMode(restoreActivePlan: false)
         baseLayout = layout
@@ -503,11 +546,8 @@ final class AttackLabSession: ObservableObject {
         )
         evaluations = []
         baseReconnaissance = nil
-        armyEntryAdvice = nil
-
-        guard let initialPlan = candidatePlans.first else {
-            return
-        }
+        armyEntryAdvice = guidance.advice
+        candidatePlans = guidance.plans
 
         activePlan = initialPlan
         selectedPlanID = initialPlan.id
@@ -531,23 +571,29 @@ final class AttackLabSession: ObservableObject {
             return
         }
 
+        let guidance = makeGuidedCandidatePlans(
+            for: armyConfiguration,
+            entities: entities,
+            baseName: snapshot.name
+        )
+        guard let initialPlan = guidance.plans.first else {
+            return
+        }
+
         finishManualMode(restoreActivePlan: false)
         activeBaseSnapshot = snapshot
         baseEntities = entities
         evaluations = []
         currentPlanAnalysis = nil
         baseReconnaissance = nil
-        armyEntryAdvice = nil
+        armyEntryAdvice = guidance.advice
+        candidatePlans = guidance.plans
 
         evaluator = AttackPlanEvaluator(
             baseEntities: entities,
             gameData: gameData,
             navigationGrid: navigationGrid
         )
-
-        guard let initialPlan = candidatePlans.first else {
-            return
-        }
 
         activePlan = initialPlan
         selectedPlanID = initialPlan.id

@@ -10,6 +10,7 @@ nonisolated struct AttackPlanGenerator {
         let name: String
         let firstRow: Int
         let secondRow: Int
+        let usesEntryAdvice: Bool
     }
 
     private struct Tempo {
@@ -25,13 +26,16 @@ nonisolated struct AttackPlanGenerator {
 
     private let navigationGrid: NavigationGrid
     private let armyConfiguration: ArmyConfiguration
+    private let entryAdvice: ArmyEntryAdvice?
 
     init(
         navigationGrid: NavigationGrid,
-        armyConfiguration: ArmyConfiguration = .prototypeDefault
+        armyConfiguration: ArmyConfiguration = .prototypeDefault,
+        entryAdvice: ArmyEntryAdvice? = nil
     ) {
         self.navigationGrid = navigationGrid
         self.armyConfiguration = armyConfiguration
+        self.entryAdvice = entryAdvice
     }
 
     func generate() -> [AttackPlan] {
@@ -64,12 +68,45 @@ nonisolated struct AttackPlanGenerator {
     }
 
     private var formations: [Formation] {
-        [
-            Formation(name: "Alta", firstRow: 4, secondRow: 5),
-            Formation(name: "Centro", firstRow: 8, secondRow: 9),
-            Formation(name: "Bassa", firstRow: 12, secondRow: 11),
-            Formation(name: "Divisa", firstRow: 4, secondRow: 12)
+        var result = [
+            Formation(
+                name: "Alta",
+                firstRow: 4,
+                secondRow: 5,
+                usesEntryAdvice: false
+            ),
+            Formation(
+                name: "Centro",
+                firstRow: 8,
+                secondRow: 9,
+                usesEntryAdvice: false
+            ),
+            Formation(
+                name: "Bassa",
+                firstRow: 12,
+                secondRow: 11,
+                usesEntryAdvice: false
+            ),
+            Formation(
+                name: "Divisa",
+                firstRow: 4,
+                secondRow: 12,
+                usesEntryAdvice: false
+            )
         ]
+
+        if entryAdvice?.preferredRecommendation != nil {
+            result.append(
+                Formation(
+                    name: "Guidata",
+                    firstRow: 8,
+                    secondRow: 8,
+                    usesEntryAdvice: true
+                )
+            )
+        }
+
+        return result
     }
 
     private var tempos: [Tempo] {
@@ -122,9 +159,15 @@ nonisolated struct AttackPlanGenerator {
             let kind = troopKinds[index]
             let wave = index / waveSize
             let slot = index % waveSize
-            let baseRow = wave.isMultiple(of: 2)
+            let fallbackRow = wave.isMultiple(of: 2)
                 ? formation.firstRow
                 : formation.secondRow
+            let advisedRow = entryAdvice?.recommendation(
+                for: kind
+            )?.laneRow
+            let baseRow = formation.usesEntryAdvice
+                ? advisedRow ?? fallbackRow
+                : fallbackRow
             let row = deploymentRow(
                 for: kind,
                 baseRow: baseRow,
@@ -155,9 +198,12 @@ nonisolated struct AttackPlanGenerator {
         let spellDeployments = spellKinds.indices.map { index in
             let kind = spellKinds[index]
             let supportsFirstLane = index.isMultiple(of: 2)
-            let row = supportsFirstLane
+            let fallbackRow = supportsFirstLane
                 ? formation.firstRow
                 : formation.secondRow
+            let row = formation.usesEntryAdvice
+                ? entryAdvice?.preferredRecommendation?.laneRow ?? fallbackRow
+                : fallbackRow
             let column = kind == .heal ? 13 : 18
 
             return SpellDeploymentOrder(
