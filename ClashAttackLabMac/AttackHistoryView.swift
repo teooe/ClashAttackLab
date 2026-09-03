@@ -79,7 +79,8 @@ struct AttackHistoryView: View {
                             Text(entry.planName)
                                 .font(.headline)
                             Text(
-                                entry.baseLayout?.displayName ??
+                                entry.baseSnapshot?.name ??
+                                    entry.baseLayout?.displayName ??
                                     "Base non registrata"
                             )
                             .font(.caption)
@@ -106,6 +107,7 @@ struct AttackHistoryView: View {
                                 .foregroundStyle(.secondary)
 
                             if entry.attackPlan != nil,
+                               entry.baseSnapshot != nil ||
                                entry.baseLayout != nil {
                                 Button("Rigioca") {
                                     session.replayHistoryEntry(entry)

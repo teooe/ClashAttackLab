@@ -7,6 +7,7 @@ final class AttackLabSession: ObservableObject {
     @Published private(set) var selectedPlanID: UUID?
     @Published private(set) var armyConfiguration: ArmyConfiguration
     @Published private(set) var baseLayout: PrototypeBaseLayout
+    @Published private(set) var activeBaseSnapshot: BaseSnapshot
     @Published private(set) var isManualPlanning = false
     @Published private(set) var manualPlan = ManualAttackPlan()
     @Published private(set) var manualSelection:
@@ -94,6 +95,10 @@ final class AttackLabSession: ObservableObject {
 
         self.armyConfiguration = configuration
         self.baseLayout = layout
+        self.activeBaseSnapshot = BaseSnapshot.make(
+            from: layout,
+            navigationGrid: navigationGrid
+        )
         self.gameData = gameData
         self.navigationGrid = navigationGrid
         self.baseEntities = baseEntities
@@ -128,7 +133,8 @@ final class AttackLabSession: ObservableObject {
                 AttackHistoryEntry(
                     plan: self.activePlan,
                     result: result,
-                    baseLayout: self.baseLayout
+                    baseLayout: self.baseLayout,
+                    baseSnapshot: self.activeBaseSnapshot
                 )
             )
             self.attackHistory = self.historyStore.entries
@@ -145,7 +151,7 @@ final class AttackLabSession: ObservableObject {
             gameData: gameData
         ).analyze(
             entities: baseEntities,
-            layout: baseLayout
+            layoutName: activeBaseSnapshot.name
         )
     }
 
@@ -287,14 +293,17 @@ final class AttackLabSession: ObservableObject {
     func replayHistoryEntry(_ entry: AttackHistoryEntry) {
         guard
             !isManualPlanning,
-            let plan = entry.attackPlan,
-            let layout = entry.baseLayout
+            let plan = entry.attackPlan
         else {
             return
         }
 
-        if layout != baseLayout {
+        if let snapshot = entry.baseSnapshot {
+            applyImportedBase(snapshot)
+        } else if let layout = entry.baseLayout {
             applyBaseLayout(layout)
+        } else {
+            return
         }
 
         loadSavedPlan(plan)
@@ -411,10 +420,6 @@ final class AttackLabSession: ObservableObject {
     }
 
     func applyBaseLayout(_ layout: PrototypeBaseLayout) {
-        guard layout != baseLayout else {
-            return
-        }
-
         let entities = PrototypeBattleMap.makeBaseEntities(
             navigationGrid: navigationGrid,
             layout: layout
@@ -422,6 +427,10 @@ final class AttackLabSession: ObservableObject {
 
         finishManualMode(restoreActivePlan: false)
         baseLayout = layout
+        activeBaseSnapshot = BaseSnapshot.make(
+            from: layout,
+            navigationGrid: navigationGrid
+        )
         baseEntities = entities
         evaluator = AttackPlanEvaluator(
             baseEntities: entities,
@@ -430,6 +439,45 @@ final class AttackLabSession: ObservableObject {
         )
         evaluations = []
         baseReconnaissance = nil
+
+        guard let initialPlan = candidatePlans.first else {
+            return
+        }
+
+        activePlan = initialPlan
+        selectedPlanID = initialPlan.id
+        resetManualDraft()
+        scene.loadScenario(
+            entities: entities,
+            attackPlan: initialPlan
+        )
+    }
+
+    /// Loads a validated JSON base as a live simulation scenario.
+    func applyImportedBase(_ snapshot: BaseSnapshot) {
+        guard !isManualPlanning, snapshot.isValid else {
+            return
+        }
+
+        let entities = snapshot.makeEntities(
+            navigationGrid: navigationGrid
+        )
+        guard !entities.isEmpty else {
+            return
+        }
+
+        finishManualMode(restoreActivePlan: false)
+        activeBaseSnapshot = snapshot
+        baseEntities = entities
+        evaluations = []
+        currentPlanAnalysis = nil
+        baseReconnaissance = nil
+
+        evaluator = AttackPlanEvaluator(
+            baseEntities: entities,
+            gameData: gameData,
+            navigationGrid: navigationGrid
+        )
 
         guard let initialPlan = candidatePlans.first else {
             return

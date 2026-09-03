@@ -1,17 +1,27 @@
 import SwiftUI
+import UniformTypeIdentifiers
 
 struct BaseEditorView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var selection: PrototypeBaseLayout
+    @State private var showingImporter = false
+    @State private var showingExporter = false
+    @State private var exportDocument: BaseSnapshotDocument?
 
+    let currentSnapshot: BaseSnapshot
     private let onApply: (PrototypeBaseLayout) -> Void
+    private let onImport: (BaseSnapshot) -> Void
 
     init(
         layout: PrototypeBaseLayout,
-        onApply: @escaping (PrototypeBaseLayout) -> Void
+        snapshot: BaseSnapshot,
+        onApply: @escaping (PrototypeBaseLayout) -> Void,
+        onImport: @escaping (BaseSnapshot) -> Void
     ) {
         _selection = State(initialValue: layout)
+        self.currentSnapshot = snapshot
         self.onApply = onApply
+        self.onImport = onImport
     }
 
     var body: some View {
@@ -24,7 +34,7 @@ struct BaseEditorView: View {
                 .font(.title2.bold())
 
                 Text(
-                    "Ogni base usa lo stesso inventario: il confronto misura percorsi, tempi e brecce."
+                    "Scegli una base prototipo oppure importa/esporta una base JSON."
                 )
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
@@ -77,12 +87,29 @@ struct BaseEditorView: View {
                 }
             }
 
+            Divider()
+
             HStack {
-                Button("Annulla") {
-                    dismiss()
+                Button {
+                    showingImporter = true
+                } label: {
+                    Label("Importa JSON", systemImage: "square.and.arrow.down")
+                }
+
+                Button {
+                    exportDocument = BaseSnapshotDocument(
+                        snapshot: currentSnapshot
+                    )
+                    showingExporter = true
+                } label: {
+                    Label("Esporta JSON", systemImage: "square.and.arrow.up")
                 }
 
                 Spacer()
+
+                Button("Annulla") {
+                    dismiss()
+                }
 
                 Button("Carica base") {
                     onApply(selection)
@@ -92,6 +119,37 @@ struct BaseEditorView: View {
             }
         }
         .padding(24)
-        .frame(width: 470)
+        .frame(width: 600)
+        .fileImporter(
+            isPresented: $showingImporter,
+            allowedContentTypes: [.json]
+        ) { result in
+            guard case .success(let url) = result else {
+                return
+            }
+
+            do {
+                let data = try Data(contentsOf: url)
+                let snapshot = try JSONDecoder().decode(
+                    BaseSnapshot.self,
+                    from: data
+                )
+                guard snapshot.isValid else {
+                    return
+                }
+                onImport(snapshot)
+                dismiss()
+            } catch {
+                // Invalid files are ignored; the caller keeps the current base.
+            }
+        }
+        .fileExporter(
+            isPresented: $showingExporter,
+            document: exportDocument,
+            contentType: .json,
+            defaultFilename: currentSnapshot.name
+        ) { _ in
+            exportDocument = nil
+        }
     }
 }

@@ -26,8 +26,24 @@ nonisolated struct DeploymentLaneAssessment: Identifiable {
 /// targeting implementation of Clash of Clans. Route distances themselves
 /// come from the app's real A* navigation model.
 nonisolated struct BaseReconnaissance {
-    let layout: PrototypeBaseLayout
+    let layoutName: String
     let lanes: [DeploymentLaneAssessment]
+
+    init(
+        layout: PrototypeBaseLayout,
+        lanes: [DeploymentLaneAssessment]
+    ) {
+        self.layoutName = layout.displayName
+        self.lanes = lanes
+    }
+
+    init(
+        layoutName: String,
+        lanes: [DeploymentLaneAssessment]
+    ) {
+        self.layoutName = layoutName
+        self.lanes = lanes
+    }
 
     var recommendedLane: DeploymentLaneAssessment? {
         lanes.min { first, second in
@@ -66,6 +82,16 @@ nonisolated struct BaseReconnaissanceSystem {
         entities: [BattleEntity],
         layout: PrototypeBaseLayout
     ) -> BaseReconnaissance {
+        analyze(
+            entities: entities,
+            layoutName: layout.displayName
+        )
+    }
+
+    func analyze(
+        entities: [BattleEntity],
+        layoutName: String
+    ) -> BaseReconnaissance {
         let wallCells = Set(
             entities
                 .filter { $0.kind == .wall }
@@ -86,7 +112,7 @@ nonisolated struct BaseReconnaissanceSystem {
         }
 
         return BaseReconnaissance(
-            layout: layout,
+            layoutName: layoutName,
             lanes: lanes
         )
     }

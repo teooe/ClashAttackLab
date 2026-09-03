@@ -10,6 +10,7 @@ struct AttackHistoryEntry: Identifiable, Codable {
     /// Older local history entries decode with nil and remain visible.
     let attackPlan: AttackPlan?
     let baseLayout: PrototypeBaseLayout?
+    let baseSnapshot: BaseSnapshot?
     let completedAt: Date
     let winnerName: String
     let finishReasonName: String
@@ -27,6 +28,7 @@ struct AttackHistoryEntry: Identifiable, Codable {
         plan: AttackPlan,
         result: SimulationResult,
         baseLayout: PrototypeBaseLayout? = nil,
+        baseSnapshot: BaseSnapshot? = nil,
         completedAt: Date = Date()
     ) {
         self.id = id
@@ -34,6 +36,7 @@ struct AttackHistoryEntry: Identifiable, Codable {
         self.planName = plan.name
         self.attackPlan = plan
         self.baseLayout = baseLayout
+        self.baseSnapshot = baseSnapshot
         self.completedAt = completedAt
         self.winnerName = result.winner.displayName
         self.finishReasonName = result.finishReason.displayName

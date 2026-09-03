@@ -1864,3 +1864,28 @@ func baseReconnaissanceProfilesReachableLanesAndProducesRecommendation() {
         }
     )
 }
+
+
+@Test
+func baseSnapshotRoundTripsAndValidatesPortableCoordinates() throws {
+    let grid = PrototypeBattleMap.makeNavigationGrid()
+    let original = BaseSnapshot.make(
+        from: .corridor,
+        navigationGrid: grid
+    )
+
+    #expect(original.isValid)
+    #expect(original.wallCount > 0)
+    #expect(original.objectiveCount > 0)
+
+    let data = try JSONEncoder().encode(original)
+    let decoded = try JSONDecoder().decode(
+        BaseSnapshot.self,
+        from: data
+    )
+    let entities = decoded.makeEntities(navigationGrid: grid)
+
+    #expect(decoded.name == original.name)
+    #expect(decoded.objects.count == original.objects.count)
+    #expect(entities.count == original.objects.count)
+}

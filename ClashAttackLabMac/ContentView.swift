@@ -18,7 +18,7 @@ struct ContentView: View {
                         .font(.title2.bold())
 
                     Text(
-                        "Milestone 18 · \(session.baseLayout.displayName) · Piano manuale"
+                        "Milestone 19 · \(session.activeBaseSnapshot.name) · Piano manuale"
                     )
                         .foregroundStyle(.secondary)
                         .lineLimit(1)
@@ -262,9 +262,16 @@ struct ContentView: View {
             }
         }
         .sheet(isPresented: $showingBaseLibrary) {
-            BaseEditorView(layout: session.baseLayout) { layout in
-                session.applyBaseLayout(layout)
-            }
+            BaseEditorView(
+                layout: session.baseLayout,
+                snapshot: session.activeBaseSnapshot,
+                onApply: { layout in
+                    session.applyBaseLayout(layout)
+                },
+                onImport: { snapshot in
+                    session.applyImportedBase(snapshot)
+                }
+            )
         }
         .sheet(isPresented: $showingPlanLibrary) {
             PlanLibraryView(session: session)

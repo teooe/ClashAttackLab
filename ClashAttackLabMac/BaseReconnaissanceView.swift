@@ -29,7 +29,7 @@ struct BaseReconnaissanceView: View {
 
             if let reconnaissance = session.baseReconnaissance {
                 VStack(alignment: .leading, spacing: 5) {
-                    Text(reconnaissance.layout.displayName)
+                    Text(reconnaissance.layoutName)
                         .font(.headline)
                     Text(reconnaissance.recommendationText)
                         .foregroundStyle(.secondary)
