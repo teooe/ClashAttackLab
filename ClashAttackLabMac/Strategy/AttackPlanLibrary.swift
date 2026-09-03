@@ -67,7 +67,14 @@ final class AttackPlanLibrary: ObservableObject {
     }
 
     func move(from offsets: IndexSet, to destination: Int) {
-        plans.move(fromOffsets: offsets, toOffset: destination)
+        let moving = offsets.sorted().map { plans[$0] }
+        let remaining = plans.enumerated()
+            .filter { !offsets.contains($0.offset) }
+            .map(\.element)
+        let insertionIndex = min(destination, remaining.count)
+        var reordered = remaining
+        reordered.insert(contentsOf: moving, at: insertionIndex)
+        plans = reordered
         persist()
     }
 
