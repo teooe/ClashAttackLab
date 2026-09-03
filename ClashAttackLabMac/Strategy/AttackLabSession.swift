@@ -126,7 +126,8 @@ final class AttackLabSession: ObservableObject {
             self.historyStore.record(
                 AttackHistoryEntry(
                     plan: self.activePlan,
-                    result: result
+                    result: result,
+                    baseLayout: self.baseLayout
                 )
             )
             self.attackHistory = self.historyStore.entries
@@ -227,6 +228,32 @@ final class AttackLabSession: ObservableObject {
     func clearAttackHistory() {
         historyStore.clear()
         attackHistory = historyStore.entries
+    }
+
+    var attackHistorySummary: AttackHistorySummary {
+        AttackHistorySummary(entries: attackHistory)
+    }
+
+    /// Recreates a recent recorded battle using its original base and plan.
+    ///
+    /// Entries made by earlier versions are intentionally left available but
+    /// cannot be replayed because they did not persist a plan snapshot.
+    func replayHistoryEntry(_ entry: AttackHistoryEntry) {
+        guard
+            !isManualPlanning,
+            let plan = entry.attackPlan,
+            let layout = entry.baseLayout
+        else {
+            return
+        }
+
+        if layout != baseLayout {
+            applyBaseLayout(layout)
+        }
+
+        loadSavedPlan(plan)
+        scene.restartSimulation()
+        scene.startSimulation()
     }
 
     func compareSavedPlans(_ plans: [AttackPlan]) {

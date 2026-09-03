@@ -5,9 +5,11 @@ struct AttackHistoryView: View {
     @Environment(\.dismiss) private var dismiss
 
     var body: some View {
+        let summary = session.attackHistorySummary
+
         VStack(alignment: .leading, spacing: 14) {
             HStack {
-                Label("Storico battaglie", systemImage: "clock.arrow.circlepath")
+                Label("Archivio battaglie", systemImage: "clock.arrow.circlepath")
                     .font(.title2.bold())
 
                 Spacer()
@@ -23,17 +25,45 @@ struct AttackHistoryView: View {
                 }
             }
 
-            Text("Conserva fino a 50 risultati completati sul Mac.")
-                .font(.callout)
-                .foregroundStyle(.secondary)
+            Text(
+                "Conserva fino a 50 risultati. Le nuove registrazioni includono base e piano per il replay."
+            )
+            .font(.callout)
+            .foregroundStyle(.secondary)
 
             if session.attackHistory.isEmpty {
                 ContentUnavailableView(
                     "Nessuna battaglia conclusa",
                     systemImage: "clock",
-                    description: Text("Avvia una simulazione per registrare qui il risultato.")
+                    description: Text(
+                        "Avvia una simulazione per registrare qui il risultato."
+                    )
                 )
             } else {
+                HStack(spacing: 10) {
+                    summaryCard(
+                        title: "Battaglie",
+                        value: "\(summary.battleCount)"
+                    )
+                    summaryCard(
+                        title: "Stelle medie",
+                        value: String(format: "%.2f", summary.averageStars)
+                    )
+                    summaryCard(
+                        title: "Distruzione media",
+                        value: String(
+                            format: "%.1f%%",
+                            summary.averageDestruction
+                        )
+                    )
+                    summaryCard(
+                        title: "Migliore",
+                        value: summary.bestEntry.map {
+                            "⭐ \($0.stars) · \(String(format: "%.1f%%", $0.destructionPercentage))"
+                        } ?? "—"
+                    )
+                }
+
                 List(session.attackHistory) { entry in
                     HStack(spacing: 12) {
                         Image(
@@ -48,9 +78,12 @@ struct AttackHistoryView: View {
                         VStack(alignment: .leading, spacing: 4) {
                             Text(entry.planName)
                                 .font(.headline)
-                            Text(entry.finishReasonName)
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
+                            Text(
+                                entry.baseLayout?.displayName ??
+                                    "Base non registrata"
+                            )
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
                             Text(
                                 String(
                                     format: "%.1f%% · %.1f s · superstiti %d · persi %d",
@@ -65,12 +98,25 @@ struct AttackHistoryView: View {
 
                         Spacer()
 
-                        VStack(alignment: .trailing, spacing: 4) {
+                        VStack(alignment: .trailing, spacing: 5) {
                             Text("⭐ \(entry.stars)")
                                 .font(.subheadline.bold())
                             Text(entry.completedAt, style: .relative)
                                 .font(.caption2)
                                 .foregroundStyle(.secondary)
+
+                            if entry.attackPlan != nil,
+                               entry.baseLayout != nil {
+                                Button("Rigioca") {
+                                    session.replayHistoryEntry(entry)
+                                    dismiss()
+                                }
+                                .buttonStyle(.bordered)
+                            } else {
+                                Text("Solo risultato")
+                                    .font(.caption2)
+                                    .foregroundStyle(.secondary)
+                            }
                         }
                     }
                     .padding(.vertical, 3)
@@ -78,6 +124,24 @@ struct AttackHistoryView: View {
             }
         }
         .padding(20)
-        .frame(minWidth: 680, minHeight: 460)
+        .frame(minWidth: 760, minHeight: 520)
+    }
+
+    private func summaryCard(
+        title: String,
+        value: String
+    ) -> some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(title)
+                .font(.caption)
+                .foregroundStyle(.secondary)
+            Text(value)
+                .font(.headline)
+                .lineLimit(2)
+        }
+        .padding(10)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color.secondary.opacity(0.1))
+        .clipShape(RoundedRectangle(cornerRadius: 10))
     }
 }

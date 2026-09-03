@@ -6,6 +6,10 @@ struct AttackHistoryEntry: Identifiable, Codable {
     let id: UUID
     let planID: UUID
     let planName: String
+    /// Stored for battles recorded by recent app versions.
+    /// Older local history entries decode with nil and remain visible.
+    let attackPlan: AttackPlan?
+    let baseLayout: PrototypeBaseLayout?
     let completedAt: Date
     let winnerName: String
     let finishReasonName: String
@@ -22,11 +26,14 @@ struct AttackHistoryEntry: Identifiable, Codable {
         id: UUID = UUID(),
         plan: AttackPlan,
         result: SimulationResult,
+        baseLayout: PrototypeBaseLayout? = nil,
         completedAt: Date = Date()
     ) {
         self.id = id
         self.planID = plan.id
         self.planName = plan.name
+        self.attackPlan = plan
+        self.baseLayout = baseLayout
         self.completedAt = completedAt
         self.winnerName = result.winner.displayName
         self.finishReasonName = result.finishReason.displayName
@@ -75,5 +82,52 @@ final class AttackHistoryStore: ObservableObject {
         }
 
         UserDefaults.standard.set(data, forKey: storageKey)
+    }
+}
+
+
+/// Aggregated performance indicators for the local battle archive.
+struct AttackHistorySummary {
+    let entries: [AttackHistoryEntry]
+
+    var battleCount: Int {
+        entries.count
+    }
+
+    var averageStars: Double {
+        guard !entries.isEmpty else {
+            return 0
+        }
+
+        return entries.map { Double($0.stars) }.reduce(0, +) /
+            Double(entries.count)
+    }
+
+    var averageDestruction: Double {
+        guard !entries.isEmpty else {
+            return 0
+        }
+
+        return entries.map(\.destructionPercentage).reduce(0, +) /
+            Double(entries.count)
+    }
+
+    var bestEntry: AttackHistoryEntry? {
+        entries.max { first, second in
+            if first.stars != second.stars {
+                return first.stars < second.stars
+            }
+
+            if first.destructionPercentage != second.destructionPercentage {
+                return first.destructionPercentage <
+                    second.destructionPercentage
+            }
+
+            return first.survivingTroops < second.survivingTroops
+        }
+    }
+
+    var replayableCount: Int {
+        entries.filter { $0.attackPlan != nil && $0.baseLayout != nil }.count
     }
 }

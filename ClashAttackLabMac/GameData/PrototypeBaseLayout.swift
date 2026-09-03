@@ -5,7 +5,7 @@ import Foundation
 /// Layout geometry is a prototype input. Every option contains the same
 /// objective inventory so rankings compare pathing and timing, not an easier
 /// or larger base.
-nonisolated enum PrototypeBaseLayout: String, CaseIterable, Identifiable {
+nonisolated enum PrototypeBaseLayout: String, CaseIterable, Identifiable, Codable {
     case fortress
     case corridor
     case doubleCore

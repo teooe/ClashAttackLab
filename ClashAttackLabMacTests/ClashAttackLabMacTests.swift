@@ -1788,3 +1788,53 @@ func automaticPlanGeneratorProducesTheExpectedStrategyMatrix() {
     #expect(plans.count == 24)
     #expect(Set(plans.map(\.name)).count == plans.count)
 }
+
+
+@Test
+func archivedBattleRetainsReplayDataAndSummaryChoosesBestResult() throws {
+    let plan = AttackPlan(name: "Replay", deployments: [])
+    let score = BaseScoreSnapshot(
+        destructionPercentage: 80,
+        stars: 2,
+        townHallDestroyed: true,
+        destroyedBuildings: 8,
+        totalBuildings: 10
+    )
+    let metrics = BattleSummaryMetrics(
+        damageToBase: 800,
+        hitPointsLostByArmy: 100,
+        troopsLost: 1,
+        destroyedWalls: 1,
+        spellsCast: 1
+    )
+    let result = SimulationResult(
+        winner: .attackers,
+        elapsedTime: 31,
+        timeExpired: false,
+        finishReason: .armyEliminated,
+        deployedTroops: 4,
+        survivingTroops: 3,
+        survivingDefenses: 1,
+        troopAttackCount: 12,
+        defenseAttackCount: 8,
+        score: score,
+        metrics: metrics
+    )
+
+    let entry = AttackHistoryEntry(
+        plan: plan,
+        result: result,
+        baseLayout: .corridor,
+        completedAt: Date(timeIntervalSince1970: 0)
+    )
+    let decoded = try JSONDecoder().decode(
+        AttackHistoryEntry.self,
+        from: JSONEncoder().encode(entry)
+    )
+    let summary = AttackHistorySummary(entries: [decoded])
+
+    #expect(decoded.attackPlan?.name == "Replay")
+    #expect(decoded.baseLayout == .corridor)
+    #expect(summary.replayableCount == 1)
+    #expect(summary.bestEntry?.id == decoded.id)
+}
