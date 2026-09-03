@@ -6,6 +6,7 @@ struct StrategyAnalysisView: View {
     @State private var showingRankings = false
     @State private var showingRefinement = false
     @State private var showingTournament = false
+    @State private var showingBaseReconnaissance = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
@@ -46,6 +47,20 @@ struct StrategyAnalysisView: View {
             Text("Lo stesso piano viene valutato su tutte le basi disponibili.")
                 .font(.callout)
                 .foregroundStyle(.secondary)
+
+            HStack {
+                Text("Ricognizione: percorrenze A* e pressione difensiva della base aperta.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+
+                Spacer()
+
+                Button("Ricognizione") {
+                    session.analyzeCurrentBase()
+                    showingBaseReconnaissance = true
+                }
+                .disabled(session.isManualPlanning)
+            }
 
             if let analysis = session.currentPlanAnalysis {
                 Text(analysis.plan.name)
@@ -122,6 +137,9 @@ struct StrategyAnalysisView: View {
         }
         .sheet(isPresented: $showingTournament) {
             StrategyTournamentView(session: session)
+        }
+        .sheet(isPresented: $showingBaseReconnaissance) {
+            BaseReconnaissanceView(session: session)
         }
     }
 

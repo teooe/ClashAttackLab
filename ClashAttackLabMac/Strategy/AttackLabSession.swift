@@ -21,6 +21,7 @@ final class AttackLabSession: ObservableObject {
     @Published private(set) var robustnessRankings: [AttackPlanRobustnessAnalysis] = []
     @Published private(set) var refinementReport: AttackPlanRefinementReport?
     @Published private(set) var generatedPlanRankings: [AttackPlanRobustnessAnalysis] = []
+    @Published private(set) var baseReconnaissance: BaseReconnaissance?
 
     let scene: BattleScene
 
@@ -132,6 +133,51 @@ final class AttackLabSession: ObservableObject {
             )
             self.attackHistory = self.historyStore.entries
         }
+    }
+
+    func analyzeCurrentBase() {
+        guard !isManualPlanning else {
+            return
+        }
+
+        baseReconnaissance = BaseReconnaissanceSystem(
+            navigationGrid: navigationGrid,
+            gameData: gameData
+        ).analyze(
+            entities: baseEntities,
+            layout: baseLayout
+        )
+    }
+
+    /// Shifts the current plan to the lane selected in the reconnaissance.
+    func applyReconnaissanceLane(
+        _ lane: DeploymentLaneAssessment
+    ) {
+        guard
+            !isManualPlanning,
+            !activePlan.deployments.isEmpty
+        else {
+            return
+        }
+
+        let deploymentRows = activePlan.deployments.compactMap {
+            navigationGrid.coordinate(for: $0.position)?.row
+        }
+        guard !deploymentRows.isEmpty else {
+            return
+        }
+
+        let averageRow =
+            deploymentRows.reduce(0, +) / deploymentRows.count
+        let shiftedPlan = AttackPlanRefiner(
+            navigationGrid: navigationGrid
+        ).variant(
+            from: activePlan,
+            laneOffset: lane.row - averageRow
+        )
+
+        loadSavedPlan(shiftedPlan)
+        currentPlanAnalysis = nil
     }
 
     func analyzeCurrentPlanAcrossBases() {
@@ -383,6 +429,7 @@ final class AttackLabSession: ObservableObject {
             navigationGrid: navigationGrid
         )
         evaluations = []
+        baseReconnaissance = nil
 
         guard let initialPlan = candidatePlans.first else {
             return

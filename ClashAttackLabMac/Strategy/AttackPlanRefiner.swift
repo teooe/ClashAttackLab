@@ -27,6 +27,19 @@ nonisolated struct AttackPlanRefiner {
         }
     }
 
+    /// Builds one explainable lane/timing variation for an external planner.
+    func variant(
+        from sourcePlan: AttackPlan,
+        laneOffset: Int,
+        tempoMultiplier: Double = 1
+    ) -> AttackPlan {
+        makeVariant(
+            from: sourcePlan,
+            laneOffset: laneOffset,
+            tempoMultiplier: tempoMultiplier
+        )
+    }
+
     private func makeVariant(
         from sourcePlan: AttackPlan,
         laneOffset: Int,

@@ -1838,3 +1838,29 @@ func archivedBattleRetainsReplayDataAndSummaryChoosesBestResult() throws {
     #expect(summary.replayableCount == 1)
     #expect(summary.bestEntry?.id == decoded.id)
 }
+
+
+@Test
+func baseReconnaissanceProfilesReachableLanesAndProducesRecommendation() {
+    let grid = PrototypeBattleMap.makeNavigationGrid()
+    let data = PrototypeGameData()
+    let report = BaseReconnaissanceSystem(
+        navigationGrid: grid,
+        gameData: data
+    ).analyze(
+        entities: PrototypeBattleMap.makeBaseEntities(
+            navigationGrid: grid,
+            layout: .fortress
+        ),
+        layout: .fortress
+    )
+
+    #expect(report.lanes.count == 5)
+    #expect(report.recommendedLane != nil)
+    #expect(report.lanes.allSatisfy { $0.pathCost > 0 })
+    #expect(
+        report.lanes.allSatisfy {
+            !$0.firstTargetName.isEmpty && $0.pressureScore > 0
+        }
+    )
+}
