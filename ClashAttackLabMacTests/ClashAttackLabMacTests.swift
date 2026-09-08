@@ -1756,7 +1756,7 @@ func planRefinerKeepsArmyAndClampsShiftedDeploymentRows() {
         navigationGrid: grid
     ).variants(for: plan)
 
-    #expect(variants.count == 15)
+    #expect(variants.count == 21)
     #expect(variants.contains { $0.id == plan.id })
     #expect(
         variants.allSatisfy {
@@ -1771,9 +1771,25 @@ func planRefinerKeepsArmyAndClampsShiftedDeploymentRows() {
                     return false
                 }
 
-                return coordinate.row >= 0 && coordinate.row < grid.rows
+                return coordinate.row >= 0 &&
+                    coordinate.row < grid.rows &&
+                    coordinate.column >= 0 &&
+                    coordinate.column <= 2
             }
         }
+    )
+    #expect(
+        variants.allSatisfy { variant in
+            variant.spellDeployments.allSatisfy {
+                $0.deploymentTime >= 0 && $0.deploymentTime <= 59
+            }
+        }
+    )
+    #expect(
+        variants.contains { $0.name.contains("magie anticipate") }
+    )
+    #expect(
+        variants.contains { $0.name.contains("deploy avanti") }
     )
 }
 

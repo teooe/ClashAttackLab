@@ -2,9 +2,9 @@ import Foundation
 
 /// Explores small, explainable variations of an existing attack plan.
 ///
-/// It keeps the selected army exactly unchanged. Only the deployment lane and
-/// timing are varied, so every proposed improvement can still be understood
-/// and edited by the player.
+/// It keeps the selected army exactly unchanged. The search varies the lane,
+/// deployment rhythm, depth inside the allowed deploy strip and spell timing.
+/// This deliberately stays compact enough for a full cross-base evaluation.
 nonisolated struct AttackPlanRefiner {
     private let navigationGrid: NavigationGrid
 
@@ -16,7 +16,7 @@ nonisolated struct AttackPlanRefiner {
     }
 
     func variants(for sourcePlan: AttackPlan) -> [AttackPlan] {
-        laneOffsets.flatMap { laneOffset in
+        let laneAndTempoVariants = laneOffsets.flatMap { laneOffset in
             tempoMultipliers.map { tempoMultiplier in
                 makeVariant(
                     from: sourcePlan,
@@ -25,6 +25,53 @@ nonisolated struct AttackPlanRefiner {
                 )
             }
         }
+
+        let tacticalVariants = [
+            makeVariant(
+                from: sourcePlan,
+                laneOffset: 0,
+                tempoMultiplier: 1,
+                deploymentColumnOffset: -1,
+                spellTimeOffset: 0
+            ),
+            makeVariant(
+                from: sourcePlan,
+                laneOffset: 0,
+                tempoMultiplier: 1,
+                deploymentColumnOffset: 1,
+                spellTimeOffset: 0
+            ),
+            makeVariant(
+                from: sourcePlan,
+                laneOffset: 0,
+                tempoMultiplier: 1,
+                deploymentColumnOffset: 0,
+                spellTimeOffset: -1.5
+            ),
+            makeVariant(
+                from: sourcePlan,
+                laneOffset: 0,
+                tempoMultiplier: 1,
+                deploymentColumnOffset: 0,
+                spellTimeOffset: 1.5
+            ),
+            makeVariant(
+                from: sourcePlan,
+                laneOffset: 1,
+                tempoMultiplier: 0.8,
+                deploymentColumnOffset: 1,
+                spellTimeOffset: -1
+            ),
+            makeVariant(
+                from: sourcePlan,
+                laneOffset: -1,
+                tempoMultiplier: 1.2,
+                deploymentColumnOffset: -1,
+                spellTimeOffset: 1
+            )
+        ]
+
+        return laneAndTempoVariants + tacticalVariants
     }
 
     /// Builds one explainable lane/timing variation for an external planner.
@@ -43,9 +90,16 @@ nonisolated struct AttackPlanRefiner {
     private func makeVariant(
         from sourcePlan: AttackPlan,
         laneOffset: Int,
-        tempoMultiplier: Double
+        tempoMultiplier: Double,
+        deploymentColumnOffset: Int = 0,
+        spellTimeOffset: TimeInterval = 0
     ) -> AttackPlan {
-        guard laneOffset != 0 || tempoMultiplier != 1 else {
+        guard
+            laneOffset != 0 ||
+                tempoMultiplier != 1 ||
+                deploymentColumnOffset != 0 ||
+                spellTimeOffset != 0
+        else {
             return sourcePlan
         }
 
@@ -54,9 +108,10 @@ nonisolated struct AttackPlanRefiner {
                 id: order.id,
                 entityID: order.entityID,
                 kind: order.kind,
-                position: shiftedPosition(
+                position: shiftedDeploymentPosition(
                     from: order.position,
-                    by: laneOffset
+                    rowOffset: laneOffset,
+                    columnOffset: deploymentColumnOffset
                 ),
                 deploymentTime: adjustedTime(
                     order.deploymentTime,
@@ -68,13 +123,14 @@ nonisolated struct AttackPlanRefiner {
             SpellDeploymentOrder(
                 id: order.id,
                 kind: order.kind,
-                position: shiftedPosition(
+                position: shiftedRow(
                     from: order.position,
                     by: laneOffset
                 ),
-                deploymentTime: adjustedTime(
+                deploymentTime: adjustedSpellTime(
                     order.deploymentTime,
-                    multiplier: tempoMultiplier
+                    multiplier: tempoMultiplier,
+                    offset: spellTimeOffset
                 )
             )
         }
@@ -83,32 +139,50 @@ nonisolated struct AttackPlanRefiner {
             name: variantName(
                 for: sourcePlan,
                 laneOffset: laneOffset,
-                tempoMultiplier: tempoMultiplier
+                tempoMultiplier: tempoMultiplier,
+                deploymentColumnOffset: deploymentColumnOffset,
+                spellTimeOffset: spellTimeOffset
             ),
             deployments: deployments,
             spellDeployments: spellDeployments
         )
     }
 
-    private func shiftedPosition(
+    private func shiftedDeploymentPosition(
         from position: WorldPosition,
-        by laneOffset: Int
+        rowOffset: Int,
+        columnOffset: Int
     ) -> WorldPosition {
         guard let coordinate = navigationGrid.coordinate(for: position) else {
             return position
         }
 
-        let row = min(
-            navigationGrid.rows - 1,
-            max(0, coordinate.row + laneOffset)
+        let row = clampedRow(coordinate.row + rowOffset)
+        let column = min(2, max(0, coordinate.column + columnOffset))
+
+        return navigationGrid.worldPosition(
+            for: GridCoordinate(column: column, row: row)
         )
+    }
+
+    private func shiftedRow(
+        from position: WorldPosition,
+        by rowOffset: Int
+    ) -> WorldPosition {
+        guard let coordinate = navigationGrid.coordinate(for: position) else {
+            return position
+        }
 
         return navigationGrid.worldPosition(
             for: GridCoordinate(
                 column: coordinate.column,
-                row: row
+                row: clampedRow(coordinate.row + rowOffset)
             )
         )
+    }
+
+    private func clampedRow(_ row: Int) -> Int {
+        min(navigationGrid.rows - 1, max(0, row))
     }
 
     private func adjustedTime(
@@ -118,10 +192,20 @@ nonisolated struct AttackPlanRefiner {
         min(59, max(0, time * multiplier))
     }
 
+    private func adjustedSpellTime(
+        _ time: TimeInterval,
+        multiplier: Double,
+        offset: TimeInterval
+    ) -> TimeInterval {
+        min(59, max(0, time * multiplier + offset))
+    }
+
     private func variantName(
         for sourcePlan: AttackPlan,
         laneOffset: Int,
-        tempoMultiplier: Double
+        tempoMultiplier: Double,
+        deploymentColumnOffset: Int,
+        spellTimeOffset: TimeInterval
     ) -> String {
         let laneLabel: String
 
@@ -135,11 +219,31 @@ nonisolated struct AttackPlanRefiner {
         }
 
         let tempoPercent = Int((tempoMultiplier * 100).rounded())
+        let depthLabel: String
 
-        return "\(sourcePlan.name) · \(laneLabel) · ritmo \(tempoPercent)%"
+        switch deploymentColumnOffset {
+        case 0:
+            depthLabel = "deploy invariato"
+        case let value where value > 0:
+            depthLabel = "deploy avanti"
+        default:
+            depthLabel = "deploy esterno"
+        }
+
+        let spellLabel: String
+
+        switch spellTimeOffset {
+        case 0:
+            spellLabel = "magie standard"
+        case let value where value < 0:
+            spellLabel = "magie anticipate"
+        default:
+            spellLabel = "magie ritardate"
+        }
+
+        return "\(sourcePlan.name) · \(laneLabel) · ritmo \(tempoPercent)% · \(depthLabel) · \(spellLabel)"
     }
 }
-
 
 /// Cross-base result of refining a single plan.
 ///

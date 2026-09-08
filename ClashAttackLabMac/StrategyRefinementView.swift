@@ -22,7 +22,7 @@ struct StrategyRefinementView: View {
             }
 
             Text(
-                "Conserva esercito e incantesimi: prova 15 varianti di corsia e ritmo su tutte le basi."
+                "Conserva esercito e incantesimi: prova corsia, ritmo, profondità del deploy e tempi delle magie su tutte le basi."
             )
             .font(.callout)
             .foregroundStyle(.secondary)
