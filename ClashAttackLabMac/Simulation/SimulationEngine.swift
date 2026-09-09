@@ -122,6 +122,8 @@ final class SimulationEngine {
             resetEntity.hitPoints =
                 gameData.definition(for: entity.kind).maxHitPoints
             resetEntity.attackCooldown = 0
+            resetEntity.heroAbilityRemaining = 0
+            resetEntity.heroAbilityUsed = false
             resetEntity.currentTargetID = nil
             resetEntity.blockingWallID = nil
             return resetEntity
@@ -186,6 +188,7 @@ final class SimulationEngine {
 
         defer {
             advanceActiveSpells(by: deltaTime)
+            advanceHeroAbilities(by: deltaTime)
         }
 
         if elapsedTime >= timeLimit {
@@ -194,6 +197,7 @@ final class SimulationEngine {
         }
 
         reduceCooldowns(by: deltaTime)
+        activateHeroAbilities()
 
         var pendingDamage: [UUID: Double] = [:]
         advanceProjectiles(
@@ -327,6 +331,45 @@ final class SimulationEngine {
             entities[troopIndex].hitPoints = min(
                 maximum,
                 entities[troopIndex].hitPoints + healing
+            )
+        }
+    }
+
+    private func activateHeroAbilities() {
+        for index in livingIndices(with: .troop) {
+            guard
+                !entities[index].heroAbilityUsed,
+                let ability = definition(
+                    for: entities[index].kind
+                ).heroAbility
+            else {
+                continue
+            }
+
+            let maximum = definition(for: entities[index].kind).maxHitPoints
+            guard maximum > 0 else {
+                continue
+            }
+
+            let healthFraction = entities[index].hitPoints / maximum
+            guard healthFraction <= ability.activationHealthFraction else {
+                continue
+            }
+
+            entities[index].heroAbilityUsed = true
+            entities[index].heroAbilityRemaining = ability.duration
+            entities[index].hitPoints = min(
+                maximum,
+                entities[index].hitPoints + ability.instantHealing
+            )
+        }
+    }
+
+    private func advanceHeroAbilities(by deltaTime: TimeInterval) {
+        for index in entities.indices where entities[index].heroAbilityRemaining > 0 {
+            entities[index].heroAbilityRemaining = max(
+                0,
+                entities[index].heroAbilityRemaining - deltaTime
             )
         }
     }
@@ -1051,6 +1094,21 @@ final class SimulationEngine {
         var damage = 1.0
         var movementSpeed = 1.0
         var attackSpeed = 1.0
+
+        if
+            entity.heroAbilityIsActive,
+            let ability = definition(for: entity.kind).heroAbility
+        {
+            damage = max(damage, ability.damageMultiplier)
+            movementSpeed = max(
+                movementSpeed,
+                ability.movementSpeedMultiplier
+            )
+            attackSpeed = max(
+                attackSpeed,
+                ability.attackSpeedMultiplier
+            )
+        }
 
         for spell in activeSpells where spell.kind == .rage {
             let spellData = spellDefinition(for: spell.kind)

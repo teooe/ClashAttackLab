@@ -187,6 +187,38 @@ nonisolated struct PrototypeGameData: GameDataProviding {
                 )
             )
 
+        case .barbarianKing:
+            return CombatDefinition(
+                displayName: "Re barbaro",
+                role: .troop,
+                maxHitPoints: 1_600,
+                movementSpeed: 125,
+                attackDamage: 180,
+                minimumAttackRange: 0,
+                attackRange: 76,
+                attackInterval: 1.05,
+                canMove: true,
+                projectileKind: nil,
+                projectileSpeed: 0,
+                splashRadius: 0,
+                selfDestructsOnAttack: false,
+                targetingProfile: TargetingProfile(
+                    preference: .anyBuilding,
+                    evidence: .prototype
+                ),
+                heroAbility: HeroAbilityDefinition(
+                    displayName: "Pugno di ferro",
+                    activationHealthFraction: 0.45,
+                    duration: 6,
+                    instantHealing: 240,
+                    damageMultiplier: 1.55,
+                    movementSpeedMultiplier: 1.22,
+                    attackSpeedMultiplier: 1.32,
+                    behaviorEvidence: .prototype,
+                    tuningEvidence: .prototype
+                )
+            )
+
         case .cannon:
             return CombatDefinition(
                 displayName: "Cannone",

@@ -1049,7 +1049,7 @@ struct ClashAttackLabMacTests {
             baseline.orderedSpellDeployments.map(\.id)
 
         #expect(plans.count == 24)
-        #expect(baseline.totalDeploymentCount == 12)
+        #expect(baseline.totalDeploymentCount == 13)
         #expect(baseline.totalSpellCount == 2)
 
         for plan in plans.dropFirst() {
@@ -2165,4 +2165,57 @@ func guidedPlanGeneratorAddsBaseAwareFormation() {
             .filter { $0.name.contains("Guidata") }
             .allSatisfy { $0.totalDeploymentCount == army.totalTroops }
     )
+}
+
+
+@Test
+func barbarianKingIsASeparateHeroAndUsesIronFist() throws {
+    let grid = PrototypeBattleMap.makeNavigationGrid()
+    let gameData = PrototypeGameData()
+    let kingDefinition = gameData.definition(for: .barbarianKing)
+
+    #expect(ArmyConfiguration.prototypeDefault.barbarians == 2)
+    #expect(ArmyConfiguration.prototypeDefault.barbarianKings == 1)
+    #expect(kingDefinition.heroAbility?.displayName == "Pugno di ferro")
+    #expect(kingDefinition.heroAbility?.duration == 6)
+
+    let kingPosition = grid.worldPosition(
+        for: GridCoordinate(column: 1, row: 8)
+    )
+    let cannonColumns = [4, 6, 8, 10]
+    let cannons = cannonColumns.map {
+        BattleEntity(
+            kind: .cannon,
+            position: grid.worldPosition(
+                for: GridCoordinate(column: $0, row: 8)
+            )
+        )
+    }
+    let plan = AttackPlan(
+        name: "Re sotto pressione",
+        deployments: [
+            DeploymentOrder(
+                kind: .barbarianKing,
+                position: kingPosition,
+                deploymentTime: 0
+            )
+        ]
+    )
+    let engine = SimulationEngine(
+        entities: cannons,
+        attackPlan: plan,
+        gameData: gameData,
+        navigationGrid: grid
+    )
+    engine.start()
+
+    for _ in 0..<26 {
+        engine.advance(by: 0.25)
+    }
+
+    let king = try #require(
+        engine.entities.first { $0.kind == .barbarianKing }
+    )
+    #expect(king.heroAbilityUsed)
+    #expect(king.heroAbilityRemaining > 0)
 }

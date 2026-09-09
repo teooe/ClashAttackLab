@@ -793,11 +793,17 @@ final class BattleScene: SKScene {
                 y: displayPosition.y
             )
             visual.root.alpha = entity.isAlive ? 1 : 0.08
+            visual.root.setScale(
+                entity.heroAbilityIsActive ? 1.12 : 1
+            )
             visual.healthFill.xScale = healthFraction
             visual.healthFill.color =
                 healthFraction > 0.35 ? .systemGreen : .systemRed
+            let abilityLabel = entity.heroAbilityIsActive
+                ? " · \(definition.heroAbility?.displayName ?? "")"
+                : ""
             visual.healthLabel.text =
-                "\(definition.displayName): \(Int(entity.hitPoints.rounded(.up)))/\(Int(definition.maxHitPoints))"
+                "\(definition.displayName): \(Int(entity.hitPoints.rounded(.up)))/\(Int(definition.maxHitPoints))\(abilityLabel)"
 
             let visibleTargetID =
                 entity.blockingWallID ??
@@ -1002,6 +1008,8 @@ final class BattleScene: SKScene {
             return .systemIndigo
         case .dragon:
             return .systemMint
+        case .barbarianKing:
+            return .systemYellow
         case .cannon, .archerTower, .mortar, .airDefense,
              .townHall, .goldStorage, .wall:
             return .systemCyan
@@ -1024,6 +1032,8 @@ final class BattleScene: SKScene {
             return "BL"
         case .dragon:
             return "DR"
+        case .barbarianKing:
+            return "BK"
         case .cannon:
             return "C"
         case .archerTower:
@@ -1090,6 +1100,13 @@ final class BattleScene: SKScene {
                 radius: 32,
                 color: .systemMint,
                 text: "DR"
+            )
+
+        case .barbarianKing:
+            return makeLabeledCircle(
+                radius: 34,
+                color: .systemYellow,
+                text: "BK"
             )
 
         case .cannon:

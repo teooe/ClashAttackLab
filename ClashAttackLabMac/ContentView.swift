@@ -181,6 +181,13 @@ struct ContentView: View {
                         detail: "aria · edifici"
                     )
 
+                    legendItem(
+                        symbol: "BK",
+                        color: .yellow,
+                        title: "Re barbaro",
+                        detail: "abilità a vita bassa"
+                    )
+
                     Spacer()
 
                     Text("Ciano = traiettoria aerea diretta sui muri")
@@ -556,6 +563,8 @@ struct ContentView: View {
             return "Mongolfiera"
         case .dragon:
             return "Drago"
+        case .barbarianKing:
+            return "Re barbaro"
         case .cannon, .archerTower, .mortar, .airDefense,
              .townHall, .goldStorage, .wall:
             return "Edificio"
@@ -578,6 +587,8 @@ struct ContentView: View {
             return "BL"
         case .dragon:
             return "DR"
+        case .barbarianKing:
+            return "BK"
         case .cannon, .archerTower, .mortar, .airDefense,
              .townHall, .goldStorage, .wall:
             return "?"
@@ -600,6 +611,8 @@ struct ContentView: View {
             return .indigo
         case .dragon:
             return .mint
+        case .barbarianKing:
+            return .yellow
         case .cannon, .archerTower, .mortar, .airDefense,
              .townHall, .goldStorage, .wall:
             return .gray

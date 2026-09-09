@@ -13,6 +13,7 @@ nonisolated enum BattleEntityKind: Hashable, Codable {
     case wizard
     case balloon
     case dragon
+    case barbarianKing
     case cannon
     case archerTower
     case mortar
@@ -28,6 +29,8 @@ nonisolated struct BattleEntity: Identifiable {
     var position: WorldPosition
     var hitPoints: Double
     var attackCooldown: TimeInterval
+    var heroAbilityRemaining: TimeInterval
+    var heroAbilityUsed: Bool
 
     /// Main building selected through target-selection rules.
     var currentTargetID: UUID?
@@ -41,6 +44,8 @@ nonisolated struct BattleEntity: Identifiable {
         position: WorldPosition,
         hitPoints: Double = 0,
         attackCooldown: TimeInterval = 0,
+        heroAbilityRemaining: TimeInterval = 0,
+        heroAbilityUsed: Bool = false,
         currentTargetID: UUID? = nil,
         blockingWallID: UUID? = nil
     ) {
@@ -49,11 +54,17 @@ nonisolated struct BattleEntity: Identifiable {
         self.position = position
         self.hitPoints = hitPoints
         self.attackCooldown = attackCooldown
+        self.heroAbilityRemaining = heroAbilityRemaining
+        self.heroAbilityUsed = heroAbilityUsed
         self.currentTargetID = currentTargetID
         self.blockingWallID = blockingWallID
     }
 
     var isAlive: Bool {
         hitPoints > 0
+    }
+
+    var heroAbilityIsActive: Bool {
+        heroAbilityRemaining > 0
     }
 }

@@ -45,6 +45,18 @@ nonisolated struct TargetingProfile {
     let evidence: MechanicEvidence
 }
 
+nonisolated struct HeroAbilityDefinition {
+    let displayName: String
+    let activationHealthFraction: Double
+    let duration: TimeInterval
+    let instantHealing: Double
+    let damageMultiplier: Double
+    let movementSpeedMultiplier: Double
+    let attackSpeedMultiplier: Double
+    let behaviorEvidence: MechanicEvidence
+    let tuningEvidence: MechanicEvidence
+}
+
 nonisolated struct CombatDefinition {
     let displayName: String
     let role: BattleEntityRole
@@ -69,6 +81,9 @@ nonisolated struct CombatDefinition {
     /// Nil for entities that do not choose offensive building targets.
     let targetingProfile: TargetingProfile?
 
+    /// Nil for ordinary troops and all defensive structures.
+    let heroAbility: HeroAbilityDefinition?
+
     init(
         displayName: String,
         role: BattleEntityRole,
@@ -85,7 +100,8 @@ nonisolated struct CombatDefinition {
         selfDestructsOnAttack: Bool,
         movementDomain: MovementDomain = .ground,
         attackTargetLayer: AttackTargetLayer = .both,
-        targetingProfile: TargetingProfile?
+        targetingProfile: TargetingProfile?,
+        heroAbility: HeroAbilityDefinition? = nil
     ) {
         self.displayName = displayName
         self.role = role
@@ -103,6 +119,7 @@ nonisolated struct CombatDefinition {
         self.movementDomain = movementDomain
         self.attackTargetLayer = attackTargetLayer
         self.targetingProfile = targetingProfile
+        self.heroAbility = heroAbility
     }
 
     var countsForDestruction: Bool {

@@ -88,6 +88,16 @@ struct ArmyEditorView: View {
                 .padding(.vertical, 4)
             }
 
+            GroupBox("Eroe") {
+                troopRow(
+                    symbol: "BK",
+                    color: .yellow,
+                    title: "Re barbaro",
+                    cost: 0,
+                    value: $draft.barbarianKings
+                )
+            }
+
             GroupBox("Incantesimi") {
                 VStack(spacing: 12) {
                     spellRow(
@@ -198,7 +208,10 @@ struct ArmyEditorView: View {
 
             Spacer()
 
-            Stepper(value: value, in: 0...12) {
+            Stepper(
+                value: value,
+                in: cost == 0 ? 0...1 : 0...12
+            ) {
                 Text("\(value.wrappedValue)")
                     .font(.body.monospacedDigit())
                     .frame(width: 24, alignment: .trailing)
