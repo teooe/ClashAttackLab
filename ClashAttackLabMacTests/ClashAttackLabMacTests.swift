@@ -1041,29 +1041,29 @@ struct ClashAttackLabMacTests {
             navigationGrid: grid
         )
         let baseline = try #require(plans.first)
-        let baselineKinds = baseline.orderedDeployments.map(\.kind)
-        let baselineEntityIDs = baseline.orderedDeployments.map(\.entityID)
+        let baselineKinds = baseline.deployments.map(\.kind)
+        let baselineEntityIDs = baseline.deployments.map(\.entityID)
         let baselineSpellKinds =
-            baseline.orderedSpellDeployments.map(\.kind)
+            baseline.spellDeployments.map(\.kind)
         let baselineSpellIDs =
-            baseline.orderedSpellDeployments.map(\.id)
+            baseline.spellDeployments.map(\.id)
 
         #expect(plans.count == 24)
         #expect(baseline.totalDeploymentCount == 13)
         #expect(baseline.totalSpellCount == 2)
 
         for plan in plans.dropFirst() {
-            #expect(plan.orderedDeployments.map(\.kind) == baselineKinds)
+            #expect(plan.deployments.map(\.kind) == baselineKinds)
             #expect(
-                plan.orderedDeployments.map(\.entityID) ==
+                plan.deployments.map(\.entityID) ==
                     baselineEntityIDs
             )
             #expect(
-                plan.orderedSpellDeployments.map(\.kind) ==
+                plan.spellDeployments.map(\.kind) ==
                     baselineSpellKinds
             )
             #expect(
-                plan.orderedSpellDeployments.map(\.id) ==
+                plan.spellDeployments.map(\.id) ==
                     baselineSpellIDs
             )
         }
@@ -1077,10 +1077,10 @@ struct ClashAttackLabMacTests {
         )
         let distinctCandidates = Set(
             plans.map { plan in
-                let troops = plan.orderedDeployments.map {
+                let troops = plan.deployments.map {
                     "\($0.position.x),\($0.position.y),\($0.deploymentTime)"
                 }
-                let spells = plan.orderedSpellDeployments.map {
+                let spells = plan.spellDeployments.map {
                     "\($0.position.x),\($0.position.y),\($0.deploymentTime)"
                 }
                 return (troops + spells).joined(separator: "|")
