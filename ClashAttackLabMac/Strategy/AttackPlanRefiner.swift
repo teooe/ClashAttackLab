@@ -123,7 +123,8 @@ nonisolated struct AttackPlanRefiner {
             SpellDeploymentOrder(
                 id: order.id,
                 kind: order.kind,
-                position: shiftedRow(
+                // Freeze stays anchored to defenses when troop lanes move.
+                position: order.kind == .freeze ? order.position : shiftedRow(
                     from: order.position,
                     by: laneOffset
                 ),

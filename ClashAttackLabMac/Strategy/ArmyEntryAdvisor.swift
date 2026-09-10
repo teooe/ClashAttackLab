@@ -349,7 +349,8 @@ nonisolated struct ArmyEntryAdvisor {
         }
 
         let wall = gameData.definition(for: .wall)
-        let attacksNeeded = ceil(wall.maxHitPoints / troop.attackDamage)
+        let attacksNeeded = ceil(wall.maxHitPoints /
+            (troop.attackDamage * troop.damageMultiplierAgainstWalls))
 
         return attacksNeeded *
             troop.attackInterval *

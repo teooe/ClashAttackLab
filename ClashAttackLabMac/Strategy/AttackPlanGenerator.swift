@@ -27,15 +27,21 @@ nonisolated struct AttackPlanGenerator {
     private let navigationGrid: NavigationGrid
     private let armyConfiguration: ArmyConfiguration
     private let entryAdvice: ArmyEntryAdvice?
+    private let baseEntities: [BattleEntity]
+    private let gameData: any GameDataProviding
 
     init(
         navigationGrid: NavigationGrid,
         armyConfiguration: ArmyConfiguration = .prototypeDefault,
-        entryAdvice: ArmyEntryAdvice? = nil
+        entryAdvice: ArmyEntryAdvice? = nil,
+        baseEntities: [BattleEntity] = [],
+        gameData: any GameDataProviding = PrototypeGameData()
     ) {
         self.navigationGrid = navigationGrid
         self.armyConfiguration = armyConfiguration
         self.entryAdvice = entryAdvice
+        self.baseEntities = baseEntities
+        self.gameData = gameData
     }
 
     func generate() -> [AttackPlan] {
@@ -195,6 +201,11 @@ nonisolated struct AttackPlanGenerator {
             1.5,
             lastTroopTime * 0.65 + 1.5
         )
+        let freezePlanner = FreezePlacementPlanner(
+            navigationGrid: navigationGrid,
+            gameData: gameData
+        )
+        var previousFreezePositions: [WorldPosition] = []
         let spellDeployments = spellKinds.indices.map { index in
             let kind = spellKinds[index]
             let supportsFirstLane = index.isMultiple(of: 2)
@@ -204,17 +215,29 @@ nonisolated struct AttackPlanGenerator {
             let row = formation.usesEntryAdvice
                 ? entryAdvice?.preferredRecommendation?.laneRow ?? fallbackRow
                 : fallbackRow
-            let column = spellColumn(for: kind)
+            let fallback = navigationGrid.worldPosition(
+                for: GridCoordinate(
+                    column: min(navigationGrid.columns - 1, spellColumn(for: kind)),
+                    row: clampedRow(row)
+                )
+            )
+            let position: WorldPosition
+            if kind == .freeze {
+                position = freezePlanner.position(
+                    entities: baseEntities,
+                    troopKinds: troopKinds,
+                    laneRow: clampedRow(row),
+                    previousPositions: previousFreezePositions
+                ) ?? fallback
+                previousFreezePositions.append(position)
+            } else {
+                position = fallback
+            }
 
             return SpellDeploymentOrder(
                 id: spellIDs[index],
                 kind: kind,
-                position: navigationGrid.worldPosition(
-                    for: GridCoordinate(
-                        column: column,
-                        row: clampedRow(row)
-                    )
-                ),
+                position: position,
                 deploymentTime:
                     firstSpellTime + Double(index) * 2.2
             )
@@ -304,5 +327,75 @@ nonisolated struct AttackPlanGenerator {
 
     private func clampedRow(_ row: Int) -> Int {
         min(max(row, 0), navigationGrid.rows - 1)
+    }
+}
+
+
+/// Prototype spatial heuristic, not a prediction of combat or the game's AI.
+/// Scores every grid cell by covered DPS relevant to the selected army.
+/// A lane-distance penalty favors useful nearby clusters; subsequent casts
+/// discount already covered defenses without forbidding a repeated freeze.
+nonisolated struct FreezePlacementPlanner {
+    let navigationGrid: NavigationGrid
+    let gameData: any GameDataProviding
+
+    func position(
+        entities: [BattleEntity],
+        troopKinds: [BattleEntityKind],
+        laneRow: Int,
+        previousPositions: [WorldPosition] = []
+    ) -> WorldPosition? {
+        guard !troopKinds.isEmpty else { return nil }
+        let defenses = entities.filter {
+            gameData.definition(for: $0.kind).role == .defense
+        }.sorted { $0.id.uuidString < $1.id.uuidString }
+        let radius = gameData.spellDefinition(for: .freeze).radius
+        let laneY = navigationGrid.worldPosition(
+            for: GridCoordinate(column: 0, row: laneRow)
+        ).y
+        let weightedDefenses = defenses.map { defense in
+            let data = gameData.definition(for: defense.kind)
+            let threatenedCount = troopKinds.filter {
+                data.attackTargetLayer.accepts(
+                    gameData.definition(for: $0).movementDomain
+                )
+            }.count
+            let relevance = Double(threatenedCount) / Double(troopKinds.count)
+            let wasCovered = previousPositions.contains {
+                distance($0, defense.position) <= radius
+            }
+            let value = data.attackDamage / max(0.1, data.attackInterval) *
+                relevance * (wasCovered ? 0.25 : 1)
+            return (position: defense.position, value: value)
+        }
+        var best: WorldPosition?
+        var bestScore = 0.0
+
+        for row in 0..<navigationGrid.rows {
+            for column in 0..<navigationGrid.columns {
+                let center = navigationGrid.worldPosition(
+                    for: GridCoordinate(column: column, row: row)
+                )
+                var coveredValue = 0.0
+                for defense in weightedDefenses {
+                    if distance(center, defense.position) <= radius {
+                        coveredValue += defense.value
+                    }
+                }
+                let lanePenalty = 1 + abs(center.y - laneY) /
+                    max(navigationGrid.cellSize * 6, 1)
+                let score = coveredValue / lanePenalty
+                // Stable row/column traversal resolves ties, never random UUIDs.
+                if score > bestScore {
+                    bestScore = score
+                    best = center
+                }
+            }
+        }
+        return best
+    }
+
+    private func distance(_ first: WorldPosition, _ second: WorldPosition) -> Double {
+        hypot(first.x - second.x, first.y - second.y)
     }
 }

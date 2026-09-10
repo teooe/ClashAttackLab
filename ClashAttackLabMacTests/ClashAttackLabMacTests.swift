@@ -2430,6 +2430,23 @@ func destroyedWallWreckerReleasesItsPayloadAndCountsItAsDeployed() {
             $0.kind == .giant || $0.kind == .barbarian
         }.count == 3
     )
+
+    let firstIDs = engine.entities.map(\.id)
+    let firstPositions = engine.entities.map(\.position)
+    let firstHitPoints = engine.entities.map(\.hitPoints)
+    engine.reset()
+    #expect(engine.releasedPayloadTroopCount == 0)
+    #expect(engine.deployedTroopCount == 0)
+    #expect(engine.entities.count == base.count)
+    engine.start()
+    for _ in 0..<20 {
+        engine.advance(by: 0.25)
+    }
+    #expect(engine.entities.map(\.id) == firstIDs)
+    #expect(engine.entities.map(\.position) == firstPositions)
+    #expect(engine.entities.map(\.hitPoints) == firstHitPoints)
+    #expect(engine.releasedPayloadTroopCount == 3)
+    #expect(Set(engine.entities.map(\.id)).count == engine.entities.count)
 }
 
 
@@ -2550,4 +2567,144 @@ func freezeSpellDisablesDefenseOnlyWhileItsZoneIsActive() {
     }
 
     #expect(!engine.isDefenseDisabled(cannon.id))
+}
+
+
+@Test
+func freezePlacementCoversClustersAndIsIndependentOfEntityOrder() throws {
+    let grid = PrototypeBattleMap.makeNavigationGrid()
+    let data = PrototypeGameData()
+    let planner = FreezePlacementPlanner(navigationGrid: grid, gameData: data)
+    let positions = [WorldPosition(x: 500, y: 400), WorldPosition(x: 600, y: 400)]
+    let defenses = positions.map { BattleEntity(kind: .cannon, position: $0) }
+    let selected = try #require(planner.position(
+        entities: defenses, troopKinds: [.giant], laneRow: 8
+    ))
+    let radius = data.spellDefinition(for: .freeze).radius
+    for position in positions {
+        #expect(hypot(selected.x - position.x, selected.y - position.y) <= radius)
+    }
+    #expect(planner.position(
+        entities: Array(defenses.reversed()), troopKinds: [.giant], laneRow: 8
+    ) == selected)
+    #expect(grid.coordinate(for: selected) != nil)
+}
+
+@Test
+func freezePlacementIgnoresDefensesThatCannotAttackTheArmy() throws {
+    let grid = PrototypeBattleMap.makeNavigationGrid()
+    let planner = FreezePlacementPlanner(
+        navigationGrid: grid, gameData: PrototypeGameData()
+    )
+    let cannon = BattleEntity(kind: .cannon, position: WorldPosition(x: 350, y: 400))
+    #expect(planner.position(
+        entities: [cannon], troopKinds: [.balloon], laneRow: 8
+    ) == nil)
+    #expect(planner.position(
+        entities: [], troopKinds: [.giant], laneRow: 8
+    ) == nil)
+    let airDefense = BattleEntity(
+        kind: .airDefense, position: WorldPosition(x: 850, y: 400)
+    )
+    let selected = try #require(planner.position(
+        entities: [cannon, airDefense], troopKinds: [.balloon], laneRow: 8
+    ))
+    #expect(hypot(selected.x - airDefense.position.x,
+        selected.y - airDefense.position.y) <= 135)
+}
+
+@Test
+func repeatedFreezePlacementCanCoverAnotherCluster() throws {
+    let grid = PrototypeBattleMap.makeNavigationGrid()
+    let planner = FreezePlacementPlanner(
+        navigationGrid: grid, gameData: PrototypeGameData()
+    )
+    let defenses = [350.0, 850.0].map {
+        BattleEntity(kind: .cannon, position: WorldPosition(x: $0, y: 400))
+    }
+    let first = try #require(planner.position(
+        entities: defenses, troopKinds: [.giant], laneRow: 8
+    ))
+    let second = try #require(planner.position(
+        entities: defenses, troopKinds: [.giant], laneRow: 8,
+        previousPositions: [first]
+    ))
+    #expect(first != second)
+    #expect(hypot(first.x - second.x, first.y - second.y) > 135)
+}
+
+@Test
+func generatedFreezeUsesBaseAndRefinementPreservesItsAnchor() throws {
+    let grid = PrototypeBattleMap.makeNavigationGrid()
+    let defensePosition = grid.worldPosition(
+        for: GridCoordinate(column: 20, row: 8)
+    )
+    let army = ArmyConfiguration(
+        giants: 1, barbarians: 0, archers: 0, wallBreakers: 0,
+        wizards: 0, healSpells: 0, rageSpells: 0, freezeSpells: 1
+    )
+    let plans = AttackPlanGenerator(
+        navigationGrid: grid, armyConfiguration: army,
+        baseEntities: [BattleEntity(kind: .cannon, position: defensePosition)]
+    ).generate()
+    #expect(plans.count == 24)
+    for plan in plans {
+        let spell = try #require(plan.spellDeployments.first)
+        #expect(spell.kind == .freeze)
+        #expect(hypot(spell.position.x - defensePosition.x,
+            spell.position.y - defensePosition.y) <= 135)
+        #expect(plan.deployments.count == 1)
+    }
+    let source = try #require(plans.first)
+    let shifted = AttackPlanRefiner(navigationGrid: grid).variant(
+        from: source, laneOffset: 2
+    )
+    #expect(shifted.spellDeployments.first?.position ==
+        source.spellDeployments.first?.position)
+    #expect(shifted.deployments.first?.position != source.deployments.first?.position)
+}
+
+@Test
+func freezePreventsShotsAndResetClearsTheZone() throws {
+    let grid = PrototypeBattleMap.makeNavigationGrid()
+    let cannon = BattleEntity(
+        kind: .cannon,
+        position: grid.worldPosition(for: GridCoordinate(column: 5, row: 8))
+    )
+    let order = DeploymentOrder(
+        kind: .giant,
+        position: grid.worldPosition(for: GridCoordinate(column: 2, row: 8)),
+        deploymentTime: 0
+    )
+    let frozen = SimulationEngine(
+        entities: [cannon],
+        attackPlan: AttackPlan(
+            name: "Frozen",
+            deployments: [order],
+            spellDeployments: [SpellDeploymentOrder(
+                kind: .freeze, position: cannon.position, deploymentTime: 0
+            )]
+        ),
+        gameData: PrototypeGameData(), navigationGrid: grid
+    )
+    let control = SimulationEngine(
+        entities: [cannon],
+        attackPlan: AttackPlan(name: "Control", deployments: [order]),
+        gameData: PrototypeGameData(), navigationGrid: grid
+    )
+    frozen.start()
+    control.start()
+    for _ in 0..<4 {
+        frozen.advance(by: 0.25)
+        control.advance(by: 0.25)
+    }
+    let frozenTroop = try #require(frozen.entities.first { $0.id == order.entityID })
+    let controlTroop = try #require(control.entities.first { $0.id == order.entityID })
+    #expect(frozenTroop.hitPoints > controlTroop.hitPoints)
+    #expect(!frozen.projectiles.contains { $0.sourceEntityID == cannon.id })
+    frozen.reset()
+    #expect(frozen.activeSpells.isEmpty)
+    #expect(!frozen.isDefenseDisabled(cannon.id))
+    #expect(frozen.deployedSpellCount == 0)
+    #expect(frozen.pendingSpellCount == 1)
 }

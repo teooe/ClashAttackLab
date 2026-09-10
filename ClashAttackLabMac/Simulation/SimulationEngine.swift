@@ -1,4 +1,5 @@
 import Foundation
+import CryptoKit
 
 final class SimulationEngine {
     private let fixedTimeStep: TimeInterval = 1.0 / 60.0
@@ -115,7 +116,7 @@ final class SimulationEngine {
             return .notDeployed
         }
 
-        if matchingEntities.contains(where: { $0.heroAbilityIsActive }) {
+        if matchingEntities.contains(where: { $0.isAlive && $0.heroAbilityIsActive }) {
             return .active
         }
 
@@ -986,7 +987,7 @@ final class SimulationEngine {
     }
 
     private func apply(_ pendingDamage: [UUID: Double]) {
-        var payloadsToRelease: [(WorldPosition, [BattleEntityKind])] = []
+        var payloadsToRelease: [(UUID, WorldPosition, [BattleEntityKind])] = []
 
         for index in entities.indices {
             let wasAlive = entities[index].isAlive
@@ -1005,30 +1006,36 @@ final class SimulationEngine {
                 !releasedSiegeMachineIDs.contains(entityID)
             {
                 releasedSiegeMachineIDs.insert(entityID)
-                payloadsToRelease.append((entities[index].position, payload))
+                payloadsToRelease.append((entityID, entities[index].position, payload))
             }
         }
 
-        for (position, payload) in payloadsToRelease {
-            releaseSiegePayload(payload, at: position)
+        for (sourceID, position, payload) in payloadsToRelease {
+            releaseSiegePayload(payload, at: position, sourceID: sourceID)
         }
     }
 
     private func releaseSiegePayload(
         _ payload: [BattleEntityKind],
-        at position: WorldPosition
+        at position: WorldPosition,
+        sourceID: UUID
     ) {
         for (offset, kind) in payload.enumerated() {
             let angle = Double(offset) *
                 (2 * Double.pi / Double(max(payload.count, 1)))
             let radius = min(navigationGrid.cellSize * 0.28, 18)
-            let spawnPosition = WorldPosition(
+            let proposedPosition = WorldPosition(
                 x: position.x + cos(angle) * radius,
                 y: position.y + sin(angle) * radius
             )
             let payloadDefinition = definition(for: kind)
+            let spawnPosition = payloadSpawnPosition(
+                near: proposedPosition,
+                domain: payloadDefinition.movementDomain
+            )
             entities.append(
                 BattleEntity(
+                    id: payloadEntityID(sourceID: sourceID, index: offset),
                     kind: kind,
                     position: spawnPosition,
                     hitPoints: payloadDefinition.maxHitPoints
@@ -1036,6 +1043,60 @@ final class SimulationEngine {
             )
             releasedPayloadTroopCount += 1
         }
+    }
+
+    /// Stable across reset, replay and headless evaluations of the same plan.
+    /// Hash a dedicated namespace plus parent identity and payload slot.
+    private func payloadEntityID(sourceID: UUID, index: Int) -> UUID {
+        let key = "ClashAttackLab.siegePayload.v1:\(sourceID.uuidString):\(index)"
+        let bytes = Array(SHA256.hash(data: Data(key.utf8)))
+        return UUID(uuid: (
+            bytes[0], bytes[1], bytes[2], bytes[3],
+            bytes[4], bytes[5], bytes[6], bytes[7],
+            bytes[8], bytes[9], bytes[10], bytes[11],
+            bytes[12], bytes[13], bytes[14], bytes[15]
+        ))
+    }
+
+    private func payloadSpawnPosition(
+        near position: WorldPosition,
+        domain: MovementDomain
+    ) -> WorldPosition {
+        let epsilon = navigationGrid.cellSize * 0.001
+        let clamped = WorldPosition(
+            x: min(max(position.x, navigationGrid.origin.x + epsilon),
+                navigationGrid.origin.x +
+                    Double(navigationGrid.columns) * navigationGrid.cellSize - epsilon),
+            y: min(max(position.y, navigationGrid.origin.y + epsilon),
+                navigationGrid.origin.y +
+                    Double(navigationGrid.rows) * navigationGrid.cellSize - epsilon)
+        )
+        guard domain == .ground else { return clamped }
+        let walls = livingWallCells()
+        if let cell = navigationGrid.coordinate(for: clamped),
+            navigationGrid.isWalkable(cell), !walls.contains(cell) {
+            return clamped
+        }
+
+        var nearest: WorldPosition?
+        var shortest = Double.infinity
+        for row in 0..<navigationGrid.rows {
+            for column in 0..<navigationGrid.columns {
+                let cell = GridCoordinate(column: column, row: row)
+                guard navigationGrid.isWalkable(cell), !walls.contains(cell) else {
+                    continue
+                }
+                let candidate = navigationGrid.worldPosition(for: cell)
+                let candidateDistance = distance(from: clamped, to: candidate)
+                if candidateDistance < shortest {
+                    shortest = candidateDistance
+                    nearest = candidate
+                }
+            }
+        }
+        // Fully blocked maps have no legal ground spawn; preserve the payload
+        // in bounds rather than silently losing units from the army count.
+        return nearest ?? clamped
     }
 
     private func clearInvalidTargets() {

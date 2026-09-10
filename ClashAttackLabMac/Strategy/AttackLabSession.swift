@@ -141,7 +141,9 @@ final class AttackLabSession: ObservableObject {
         let candidatePlans = AttackPlanGenerator(
             navigationGrid: navigationGrid,
             armyConfiguration: configuration,
-            entryAdvice: initialEntryAdvice
+            entryAdvice: initialEntryAdvice,
+            baseEntities: baseEntities,
+            gameData: gameData
         ).generate()
         let initialPlan = candidatePlans[0]
 
@@ -370,7 +372,9 @@ final class AttackLabSession: ObservableObject {
         let plans = AttackPlanGenerator(
             navigationGrid: navigationGrid,
             armyConfiguration: configuration,
-            entryAdvice: advice
+            entryAdvice: advice,
+            baseEntities: entities,
+            gameData: gameData
         ).generate()
 
         return (plans, advice)
