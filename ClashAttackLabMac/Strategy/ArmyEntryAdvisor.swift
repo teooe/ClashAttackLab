@@ -117,7 +117,8 @@ nonisolated struct ArmyEntryAdvisor {
             .wizard,
             .balloon,
             .dragon,
-            .barbarianKing
+            .barbarianKing,
+            .archerQueen
         ].filter { configuration.troopCount(for: $0) > 0 }
     }
 

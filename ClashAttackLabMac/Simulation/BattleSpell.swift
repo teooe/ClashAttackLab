@@ -31,10 +31,12 @@ nonisolated struct CombatModifiers {
     let damage: Double
     let movementSpeed: Double
     let attackSpeed: Double
+    let attackRange: Double
 
     static let neutral = CombatModifiers(
         damage: 1,
         movementSpeed: 1,
-        attackSpeed: 1
+        attackSpeed: 1,
+        attackRange: 1
     )
 }

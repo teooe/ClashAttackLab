@@ -1049,7 +1049,7 @@ struct ClashAttackLabMacTests {
             baseline.spellDeployments.map(\.id)
 
         #expect(plans.count == 24)
-        #expect(baseline.totalDeploymentCount == 13)
+        #expect(baseline.totalDeploymentCount == 14)
         #expect(baseline.totalSpellCount == 2)
 
         for plan in plans.dropFirst() {
@@ -2218,4 +2218,54 @@ func barbarianKingIsASeparateHeroAndUsesIronFist() throws {
     )
     #expect(king.heroAbilityUsed)
     #expect(king.heroAbilityRemaining > 0)
+}
+
+
+@Test
+func archerQueenActivatesRoyalCloakAndExtendsHerRange() throws {
+    let grid = PrototypeBattleMap.makeNavigationGrid()
+    let gameData = PrototypeGameData()
+    let queenDefinition = gameData.definition(for: .archerQueen)
+
+    #expect(ArmyConfiguration.prototypeDefault.archerQueens == 1)
+    #expect(queenDefinition.heroAbility?.displayName == "Manto reale")
+    #expect(queenDefinition.heroAbility?.attackRangeMultiplier == 1.35)
+
+    let queenPosition = grid.worldPosition(
+        for: GridCoordinate(column: 1, row: 8)
+    )
+    let cannons = [4, 6, 8].map {
+        BattleEntity(
+            kind: .cannon,
+            position: grid.worldPosition(
+                for: GridCoordinate(column: $0, row: 8)
+            )
+        )
+    }
+    let engine = SimulationEngine(
+        entities: cannons,
+        attackPlan: AttackPlan(
+            name: "Regina sotto pressione",
+            deployments: [
+                DeploymentOrder(
+                    kind: .archerQueen,
+                    position: queenPosition,
+                    deploymentTime: 0
+                )
+            ]
+        ),
+        gameData: gameData,
+        navigationGrid: grid
+    )
+    engine.start()
+
+    for _ in 0..<28 {
+        engine.advance(by: 0.25)
+    }
+
+    let queen = try #require(
+        engine.entities.first { $0.kind == .archerQueen }
+    )
+    #expect(queen.heroAbilityUsed)
+    #expect(queen.heroAbilityRemaining > 0)
 }

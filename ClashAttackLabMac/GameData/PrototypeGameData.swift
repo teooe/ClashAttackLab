@@ -214,6 +214,40 @@ nonisolated struct PrototypeGameData: GameDataProviding {
                     damageMultiplier: 1.55,
                     movementSpeedMultiplier: 1.22,
                     attackSpeedMultiplier: 1.32,
+                    attackRangeMultiplier: 1,
+                    behaviorEvidence: .prototype,
+                    tuningEvidence: .prototype
+                )
+            )
+
+        case .archerQueen:
+            return CombatDefinition(
+                displayName: "Regina degli arcieri",
+                role: .troop,
+                maxHitPoints: 1_150,
+                movementSpeed: 118,
+                attackDamage: 145,
+                minimumAttackRange: 0,
+                attackRange: 245,
+                attackInterval: 1.0,
+                canMove: true,
+                projectileKind: .arrow,
+                projectileSpeed: 720,
+                splashRadius: 0,
+                selfDestructsOnAttack: false,
+                targetingProfile: TargetingProfile(
+                    preference: .anyBuilding,
+                    evidence: .prototype
+                ),
+                heroAbility: HeroAbilityDefinition(
+                    displayName: "Manto reale",
+                    activationHealthFraction: 0.42,
+                    duration: 5,
+                    instantHealing: 210,
+                    damageMultiplier: 1.45,
+                    movementSpeedMultiplier: 1.18,
+                    attackSpeedMultiplier: 1.28,
+                    attackRangeMultiplier: 1.35,
                     behaviorEvidence: .prototype,
                     tuningEvidence: .prototype
                 )

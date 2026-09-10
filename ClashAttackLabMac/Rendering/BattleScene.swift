@@ -1010,6 +1010,8 @@ final class BattleScene: SKScene {
             return .systemMint
         case .barbarianKing:
             return .systemYellow
+        case .archerQueen:
+            return .systemPurple
         case .cannon, .archerTower, .mortar, .airDefense,
              .townHall, .goldStorage, .wall:
             return .systemCyan
@@ -1034,6 +1036,8 @@ final class BattleScene: SKScene {
             return "DR"
         case .barbarianKing:
             return "BK"
+        case .archerQueen:
+            return "AQ"
         case .cannon:
             return "C"
         case .archerTower:
@@ -1107,6 +1111,13 @@ final class BattleScene: SKScene {
                 radius: 34,
                 color: .systemYellow,
                 text: "BK"
+            )
+
+        case .archerQueen:
+            return makeLabeledCircle(
+                radius: 32,
+                color: .systemPurple,
+                text: "AQ"
             )
 
         case .cannon:

@@ -96,6 +96,13 @@ struct ArmyEditorView: View {
                     cost: 0,
                     value: $draft.barbarianKings
                 )
+                troopRow(
+                    symbol: "AQ",
+                    color: .purple,
+                    title: "Regina degli arcieri",
+                    cost: 0,
+                    value: $draft.archerQueens
+                )
             }
 
             GroupBox("Incantesimi") {

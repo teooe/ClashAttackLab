@@ -14,6 +14,7 @@ nonisolated enum BattleEntityKind: Hashable, Codable {
     case balloon
     case dragon
     case barbarianKing
+    case archerQueen
     case cannon
     case archerTower
     case mortar

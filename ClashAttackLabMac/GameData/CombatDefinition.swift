@@ -53,6 +53,7 @@ nonisolated struct HeroAbilityDefinition {
     let damageMultiplier: Double
     let movementSpeedMultiplier: Double
     let attackSpeedMultiplier: Double
+    let attackRangeMultiplier: Double
     let behaviorEvidence: MechanicEvidence
     let tuningEvidence: MechanicEvidence
 }

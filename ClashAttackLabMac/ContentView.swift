@@ -565,6 +565,8 @@ struct ContentView: View {
             return "Drago"
         case .barbarianKing:
             return "Re barbaro"
+        case .archerQueen:
+            return "Regina degli arcieri"
         case .cannon, .archerTower, .mortar, .airDefense,
              .townHall, .goldStorage, .wall:
             return "Edificio"
@@ -589,6 +591,8 @@ struct ContentView: View {
             return "DR"
         case .barbarianKing:
             return "BK"
+        case .archerQueen:
+            return "AQ"
         case .cannon, .archerTower, .mortar, .airDefense,
              .townHall, .goldStorage, .wall:
             return "?"
@@ -613,6 +617,8 @@ struct ContentView: View {
             return .mint
         case .barbarianKing:
             return .yellow
+        case .archerQueen:
+            return .purple
         case .cannon, .archerTower, .mortar, .airDefense,
              .townHall, .goldStorage, .wall:
             return .gray

@@ -423,12 +423,14 @@ final class SimulationEngine {
         }
 
         let troopDefinition = definition(for: entities[troopIndex].kind)
+        let effectiveAttackRange = troopDefinition.attackRange *
+            combatModifiers(for: entities[troopIndex]).attackRange
         let objectiveDistance = distance(
             from: entities[troopIndex].position,
             to: entities[objectiveIndex].position
         )
 
-        if objectiveDistance <= troopDefinition.attackRange {
+        if objectiveDistance <= effectiveAttackRange {
             movementPaths[entities[troopIndex].id] = []
             performAttackIfPossible(
                 attackerIndex: troopIndex,
@@ -445,7 +447,7 @@ final class SimulationEngine {
             moveDirectly(
                 entityAt: troopIndex,
                 toward: entities[objectiveIndex].position,
-                stoppingAt: troopDefinition.attackRange,
+                stoppingAt: effectiveAttackRange,
                 deltaTime: deltaTime
             )
             return
@@ -511,7 +513,8 @@ final class SimulationEngine {
             to: wallPosition
         )
 
-        if wallDistance <= troopDefinition.attackRange {
+        if wallDistance <= troopDefinition.attackRange *
+            combatModifiers(for: entities[troopIndex]).attackRange {
             performAttackIfPossible(
                 attackerIndex: troopIndex,
                 targetIndex: wallIndex,
@@ -521,7 +524,8 @@ final class SimulationEngine {
             moveDirectly(
                 entityAt: troopIndex,
                 toward: wallPosition,
-                stoppingAt: troopDefinition.attackRange,
+                stoppingAt: troopDefinition.attackRange *
+                    combatModifiers(for: entities[troopIndex]).attackRange,
                 deltaTime: deltaTime
             )
         }
@@ -1094,6 +1098,7 @@ final class SimulationEngine {
         var damage = 1.0
         var movementSpeed = 1.0
         var attackSpeed = 1.0
+        var attackRange = 1.0
 
         if
             entity.heroAbilityIsActive,
@@ -1107,6 +1112,10 @@ final class SimulationEngine {
             attackSpeed = max(
                 attackSpeed,
                 ability.attackSpeedMultiplier
+            )
+            attackRange = max(
+                attackRange,
+                ability.attackRangeMultiplier
             )
         }
 
@@ -1134,7 +1143,8 @@ final class SimulationEngine {
         return CombatModifiers(
             damage: damage,
             movementSpeed: movementSpeed,
-            attackSpeed: attackSpeed
+            attackSpeed: attackSpeed,
+            attackRange: attackRange
         )
     }
 
