@@ -169,6 +169,13 @@ struct TargetSelectionSystem {
             }
 
             return walls.isEmpty ? buildings : walls
+
+        case .townHall:
+            let townHalls = buildings.filter {
+                entities[$0].kind == .townHall
+            }
+
+            return townHalls.isEmpty ? buildings : townHalls
         }
     }
 

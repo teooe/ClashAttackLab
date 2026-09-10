@@ -1023,6 +1023,8 @@ final class BattleScene: SKScene {
             return .systemYellow
         case .archerQueen:
             return .systemPurple
+        case .wallWrecker:
+            return .systemBrown
         case .cannon, .archerTower, .mortar, .airDefense,
              .townHall, .goldStorage, .wall:
             return .systemCyan
@@ -1049,6 +1051,8 @@ final class BattleScene: SKScene {
             return "BK"
         case .archerQueen:
             return "AQ"
+        case .wallWrecker:
+            return "AR"
         case .cannon:
             return "C"
         case .archerTower:
@@ -1129,6 +1133,13 @@ final class BattleScene: SKScene {
                 radius: 32,
                 color: .systemPurple,
                 text: "AQ"
+            )
+
+        case .wallWrecker:
+            return makeLabeledRectangle(
+                size: CGSize(width: 72, height: 52),
+                color: .systemBrown,
+                text: "AR"
             )
 
         case .cannon:

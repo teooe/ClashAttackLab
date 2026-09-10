@@ -802,8 +802,14 @@ final class SimulationEngine {
         let target = entities[targetIndex]
         let attackerDefinition = definition(for: attacker.kind)
         let modifiers = combatModifiers(for: attacker)
+        let targetDefinition = definition(for: target.kind)
+        let wallMultiplier = targetDefinition.role == .wall
+            ? attackerDefinition.damageMultiplierAgainstWalls
+            : 1
         let attackDamage =
-            attackerDefinition.attackDamage * modifiers.damage
+            attackerDefinition.attackDamage *
+            modifiers.damage *
+            wallMultiplier
 
         guard
             attacker.isAlive,
@@ -818,7 +824,6 @@ final class SimulationEngine {
             let projectileKind = attackerDefinition.projectileKind,
             attackerDefinition.projectileSpeed > 0
         {
-            let targetDefinition = definition(for: target.kind)
             projectiles.append(
                 BattleProjectile(
                     kind: projectileKind,
@@ -1040,7 +1045,9 @@ final class SimulationEngine {
             return .infinity
         }
 
-        let attacksNeeded = ceil(wall.maxHitPoints / troop.attackDamage)
+        let effectiveWallDamage = troop.attackDamage *
+            troop.damageMultiplierAgainstWalls
+        let attacksNeeded = ceil(wall.maxHitPoints / effectiveWallDamage)
         let breakTime = attacksNeeded * troop.attackInterval
         return breakTime * troop.movementSpeed
     }

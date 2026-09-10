@@ -255,6 +255,8 @@ nonisolated struct AttackPlanGenerator {
             offset = 0
         case .archerQueen:
             offset = -direction
+        case .wallWrecker:
+            offset = 0
         case .cannon, .archerTower, .mortar, .airDefense,
              .townHall, .goldStorage, .wall:
             offset = 0
@@ -277,6 +279,8 @@ nonisolated struct AttackPlanGenerator {
             return 2
         case .archerQueen:
             return 1
+        case .wallWrecker:
+            return 2
         case .cannon, .archerTower, .mortar, .airDefense,
              .townHall, .goldStorage, .wall:
             return 1

@@ -38,6 +38,7 @@ nonisolated enum TargetPreference: Hashable {
     case defenses
     case anyBuilding
     case walls
+    case townHall
 }
 
 nonisolated struct TargetingProfile {
@@ -72,6 +73,7 @@ nonisolated struct CombatDefinition {
     let maxHitPoints: Double
     let movementSpeed: Double
     let attackDamage: Double
+    let damageMultiplierAgainstWalls: Double
     let minimumAttackRange: Double
     let attackRange: Double
     let attackInterval: TimeInterval
@@ -99,6 +101,7 @@ nonisolated struct CombatDefinition {
         maxHitPoints: Double,
         movementSpeed: Double,
         attackDamage: Double,
+        damageMultiplierAgainstWalls: Double = 1,
         minimumAttackRange: Double,
         attackRange: Double,
         attackInterval: TimeInterval,
@@ -117,6 +120,7 @@ nonisolated struct CombatDefinition {
         self.maxHitPoints = maxHitPoints
         self.movementSpeed = movementSpeed
         self.attackDamage = attackDamage
+        self.damageMultiplierAgainstWalls = damageMultiplierAgainstWalls
         self.minimumAttackRange = minimumAttackRange
         self.attackRange = attackRange
         self.attackInterval = attackInterval

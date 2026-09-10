@@ -1049,7 +1049,7 @@ struct ClashAttackLabMacTests {
             baseline.spellDeployments.map(\.id)
 
         #expect(plans.count == 24)
-        #expect(baseline.totalDeploymentCount == 14)
+        #expect(baseline.totalDeploymentCount == 15)
         #expect(baseline.totalSpellCount == 2)
 
         for plan in plans.dropFirst() {
@@ -2316,4 +2316,61 @@ func manualHeroAbilityActivationRequiresADeployedHeroAndIsSingleUse() throws {
     )
     #expect(king.heroAbilityUsed)
     #expect(king.heroAbilityRemaining > 0)
+}
+
+
+@Test
+func wallWreckerIsASingleSiegeMachineThatPrioritizesTownHall() throws {
+    let grid = PrototypeBattleMap.makeNavigationGrid()
+    let gameData = PrototypeGameData()
+    let definition = gameData.definition(for: .wallWrecker)
+
+    #expect(ArmyConfiguration.prototypeDefault.wallWreckers == 1)
+    #expect(definition.targetingProfile?.preference == .townHall)
+    #expect(definition.damageMultiplierAgainstWalls == 8)
+
+    let army = ArmyConfiguration(
+        giants: 0,
+        barbarians: 0,
+        archers: 0,
+        wallBreakers: 0,
+        wizards: 0,
+        healSpells: 0,
+        rageSpells: 0,
+        wallWreckers: 2
+    )
+    #expect(!army.isValid)
+
+    let wrecker = BattleEntity(
+        kind: .wallWrecker,
+        position: grid.worldPosition(
+            for: GridCoordinate(column: 1, row: 8)
+        ),
+        hitPoints: definition.maxHitPoints
+    )
+    let cannon = BattleEntity(
+        kind: .cannon,
+        position: grid.worldPosition(
+            for: GridCoordinate(column: 5, row: 8)
+        ),
+        hitPoints: gameData.definition(for: .cannon).maxHitPoints
+    )
+    let townHall = BattleEntity(
+        kind: .townHall,
+        position: grid.worldPosition(
+            for: GridCoordinate(column: 20, row: 8)
+        ),
+        hitPoints: gameData.definition(for: .townHall).maxHitPoints
+    )
+    let decision = TargetSelectionSystem().selectTroopObjective(
+        for: 0,
+        among: [1, 2],
+        entities: [wrecker, cannon, townHall],
+        gameData: gameData,
+        navigationGrid: grid,
+        breakableCells: [],
+        breakableTraversalCost: 0
+    )
+
+    #expect(decision?.targetIndex == 2)
 }

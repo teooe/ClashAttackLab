@@ -212,7 +212,21 @@ struct ContentView: View {
                         symbol: "BK",
                         color: .yellow,
                         title: "Re barbaro",
-                        detail: "abilità a vita bassa"
+                        detail: "eroe · corpo a corpo"
+                    )
+
+                    legendItem(
+                        symbol: "AQ",
+                        color: .purple,
+                        title: "Regina",
+                        detail: "eroe · distanza"
+                    )
+
+                    legendItem(
+                        symbol: "AR",
+                        color: .brown,
+                        title: "Ariete",
+                        detail: "assedio · Municipio"
                     )
 
                     Spacer()
@@ -594,6 +608,8 @@ struct ContentView: View {
             return "Re barbaro"
         case .archerQueen:
             return "Regina degli arcieri"
+        case .wallWrecker:
+            return "Ariete da guerra"
         case .cannon, .archerTower, .mortar, .airDefense,
              .townHall, .goldStorage, .wall:
             return "Edificio"
@@ -620,6 +636,8 @@ struct ContentView: View {
             return "BK"
         case .archerQueen:
             return "AQ"
+        case .wallWrecker:
+            return "AR"
         case .cannon, .archerTower, .mortar, .airDefense,
              .townHall, .goldStorage, .wall:
             return "?"
@@ -646,6 +664,8 @@ struct ContentView: View {
             return .yellow
         case .archerQueen:
             return .purple
+        case .wallWrecker:
+            return .brown
         case .cannon, .archerTower, .mortar, .airDefense,
              .townHall, .goldStorage, .wall:
             return .gray

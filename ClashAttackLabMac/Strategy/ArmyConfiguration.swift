@@ -17,6 +17,7 @@ nonisolated struct ArmyConfiguration: Equatable {
     var dragons: Int
     var barbarianKings: Int
     var archerQueens: Int
+    var wallWreckers: Int
     var healSpells: Int
     var rageSpells: Int
 
@@ -31,7 +32,8 @@ nonisolated struct ArmyConfiguration: Equatable {
         balloons: Int = 0,
         dragons: Int = 0,
         barbarianKings: Int = 0,
-        archerQueens: Int = 0
+        archerQueens: Int = 0,
+        wallWreckers: Int = 0
     ) {
         self.giants = giants
         self.barbarians = barbarians
@@ -42,6 +44,7 @@ nonisolated struct ArmyConfiguration: Equatable {
         self.dragons = dragons
         self.barbarianKings = barbarianKings
         self.archerQueens = archerQueens
+        self.wallWreckers = wallWreckers
         self.healSpells = healSpells
         self.rageSpells = rageSpells
     }
@@ -57,12 +60,14 @@ nonisolated struct ArmyConfiguration: Equatable {
         balloons: 2,
         dragons: 1,
         barbarianKings: 1,
-        archerQueens: 1
+        archerQueens: 1,
+        wallWreckers: 1
     )
 
     var totalTroops: Int {
         giants + barbarians + archers + wallBreakers + wizards +
-            balloons + dragons + barbarianKings + archerQueens
+            balloons + dragons + barbarianKings + archerQueens +
+            wallWreckers
     }
 
     var troopCapacityUsed: Int {
@@ -89,7 +94,8 @@ nonisolated struct ArmyConfiguration: Equatable {
             balloons,
             dragons,
             barbarianKings,
-            archerQueens
+            archerQueens,
+            wallWreckers
         ].filter { $0 > 0 }.count
     }
 
@@ -99,6 +105,7 @@ nonisolated struct ArmyConfiguration: Equatable {
             spellCapacityUsed <= Self.maximumSpellCapacity &&
             barbarianKings <= 1 &&
             archerQueens <= 1 &&
+            wallWreckers <= 1 &&
             allCountsAreNonnegative
     }
 
@@ -117,6 +124,10 @@ nonisolated struct ArmyConfiguration: Equatable {
 
         if barbarianKings > 1 || archerQueens > 1 {
             return "Puoi usare un solo esemplare per ciascun eroe prototipo."
+        }
+
+        if wallWreckers > 1 {
+            return "Puoi usare una sola macchina d’assedio prototipo."
         }
 
         if spellCapacityUsed > Self.maximumSpellCapacity {
@@ -146,6 +157,8 @@ nonisolated struct ArmyConfiguration: Equatable {
             return barbarianKings
         case .archerQueen:
             return archerQueens
+        case .wallWrecker:
+            return wallWreckers
         case .cannon, .archerTower, .mortar, .airDefense,
              .townHall, .goldStorage, .wall:
             return 0
@@ -171,7 +184,8 @@ nonisolated struct ArmyConfiguration: Equatable {
             .balloon: balloons,
             .dragon: dragons,
             .barbarianKing: barbarianKings,
-            .archerQueen: archerQueens
+            .archerQueen: archerQueens,
+            .wallWrecker: wallWreckers
         ]
         let preferredOrder: [BattleEntityKind] = [
             .wallBreaker,
@@ -182,7 +196,8 @@ nonisolated struct ArmyConfiguration: Equatable {
             .balloon,
             .dragon,
             .barbarianKing,
-            .archerQueen
+            .archerQueen,
+            .wallWrecker
         ]
         var result: [BattleEntityKind] = []
 
@@ -213,6 +228,7 @@ nonisolated struct ArmyConfiguration: Equatable {
             dragons,
             barbarianKings,
             archerQueens,
+            wallWreckers,
             healSpells,
             rageSpells
         ].allSatisfy { $0 >= 0 }

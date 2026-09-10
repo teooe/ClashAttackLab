@@ -253,6 +253,28 @@ nonisolated struct PrototypeGameData: GameDataProviding {
                 )
             )
 
+        case .wallWrecker:
+            return CombatDefinition(
+                displayName: "Ariete da guerra",
+                role: .troop,
+                maxHitPoints: 2_200,
+                movementSpeed: 72,
+                attackDamage: 125,
+                damageMultiplierAgainstWalls: 8,
+                minimumAttackRange: 0,
+                attackRange: 68,
+                attackInterval: 1.25,
+                canMove: true,
+                projectileKind: nil,
+                projectileSpeed: 0,
+                splashRadius: 0,
+                selfDestructsOnAttack: false,
+                targetingProfile: TargetingProfile(
+                    preference: .townHall,
+                    evidence: .prototype
+                )
+            )
+
         case .cannon:
             return CombatDefinition(
                 displayName: "Cannone",

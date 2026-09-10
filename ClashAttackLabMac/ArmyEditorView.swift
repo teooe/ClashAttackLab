@@ -105,6 +105,16 @@ struct ArmyEditorView: View {
                 )
             }
 
+            GroupBox("Macchina d’assedio") {
+                troopRow(
+                    symbol: "AR",
+                    color: .brown,
+                    title: "Ariete da guerra",
+                    cost: 0,
+                    value: $draft.wallWreckers
+                )
+            }
+
             GroupBox("Incantesimi") {
                 VStack(spacing: 12) {
                     spellRow(
