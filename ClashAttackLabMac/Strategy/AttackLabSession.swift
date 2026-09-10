@@ -40,7 +40,8 @@ final class AttackLabSession: ObservableObject {
         let stateBeforeActivation = scene.heroAbilityState(for: kind)
 
         if scene.activateHeroAbility(for: kind) {
-            heroAbilityMessage = "\(definition.heroAbility?.displayName ?? definition.displayName) attivata."
+            activePlan = scene.recordedAttackPlan
+            heroAbilityMessage = "\(definition.heroAbility?.displayName ?? definition.displayName) attivata e registrata nel piano."
             return
         }
 
@@ -187,7 +188,7 @@ final class AttackLabSession: ObservableObject {
             self.lastSimulationResult = result
             self.historyStore.record(
                 AttackHistoryEntry(
-                    plan: self.activePlan,
+                    plan: self.scene.recordedAttackPlan,
                     result: result,
                     baseLayout: self.baseLayout,
                     baseSnapshot: self.activeBaseSnapshot
@@ -476,7 +477,8 @@ final class AttackLabSession: ObservableObject {
             id: plan.id,
             name: plan.name,
             deployments: plan.deployments,
-            spellDeployments: plan.spellDeployments
+            spellDeployments: plan.spellDeployments,
+            heroAbilityOrders: plan.heroAbilityOrders
         )
         manualNextDeploymentTime = min(
             59,

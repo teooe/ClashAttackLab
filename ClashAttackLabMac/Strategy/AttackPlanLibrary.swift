@@ -6,9 +6,10 @@ import Foundation
 final class AttackPlanLibrary: ObservableObject {
     @Published private(set) var plans: [AttackPlan] = []
 
-    private let storageKey = "clashAttackLab.savedAttackPlans"
+    private let storageKey: String
 
-    init() {
+    init(storageKey: String = "clashAttackLab.savedAttackPlans") {
+        self.storageKey = storageKey
         load()
     }
 
@@ -32,7 +33,8 @@ final class AttackPlanLibrary: ObservableObject {
             id: plan.id,
             name: trimmed,
             deployments: plan.deployments,
-            spellDeployments: plan.spellDeployments
+            spellDeployments: plan.spellDeployments,
+            heroAbilityOrders: plan.heroAbilityOrders
         )
         persist()
     }
@@ -41,20 +43,11 @@ final class AttackPlanLibrary: ObservableObject {
     func duplicate(_ plan: AttackPlan) -> AttackPlan {
         let copy = AttackPlan(
             name: "\(plan.name) · copia",
-            deployments: plan.deployments.map {
-                DeploymentOrder(
-                    kind: $0.kind,
-                    position: $0.position,
-                    deploymentTime: $0.deploymentTime
-                )
-            },
-            spellDeployments: plan.spellDeployments.map {
-                SpellDeploymentOrder(
-                    kind: $0.kind,
-                    position: $0.position,
-                    deploymentTime: $0.deploymentTime
-                )
-            }
+            // Orders are value types, scoped to each plan. Keeping their IDs
+            // also preserves tie-breaking and hero-command references.
+            deployments: plan.deployments,
+            spellDeployments: plan.spellDeployments,
+            heroAbilityOrders: plan.heroAbilityOrders
         )
         plans.insert(copy, at: 0)
         persist()

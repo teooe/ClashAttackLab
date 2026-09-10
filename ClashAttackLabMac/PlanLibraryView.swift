@@ -17,7 +17,7 @@ struct PlanLibraryView: View {
                 Button("Fine") { dismiss() }
             }
 
-            Text("Salva i tuoi piani, riaprili e confronta i risultati della simulazione.")
+            Text("Le abilità attivate durante l’attacco vengono registrate nel piano e riprodotte al riavvio.")
                 .font(.callout)
                 .foregroundStyle(.secondary)
 
@@ -80,7 +80,7 @@ struct PlanLibraryView: View {
                                 Text(plan.name)
                                     .font(.headline)
                                 Text(
-                                    "\(plan.totalDeploymentCount) truppe · \(plan.totalSpellCount) incantesimi · ultimo ordine \(String(format: "%.1f", plan.latestDeploymentTime)) s"
+                                    "\(plan.totalDeploymentCount) truppe · \(plan.totalSpellCount) incantesimi · \(plan.heroAbilityOrders.count) comandi eroe · ultimo ordine \(String(format: "%.1f", plan.latestDeploymentTime)) s"
                                 )
                                 .font(.caption)
                                 .foregroundStyle(.secondary)

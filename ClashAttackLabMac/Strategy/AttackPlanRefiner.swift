@@ -145,7 +145,16 @@ nonisolated struct AttackPlanRefiner {
                 spellTimeOffset: spellTimeOffset
             ),
             deployments: deployments,
-            spellDeployments: spellDeployments
+            spellDeployments: spellDeployments,
+            heroAbilityOrders: sourcePlan.heroAbilityOrders.map { order in
+                HeroAbilityOrder(
+                    id: order.id,
+                    entityID: order.entityID,
+                    activationTime: adjustedTime(
+                        order.activationTime, multiplier: tempoMultiplier
+                    )
+                )
+            }
         )
     }
 

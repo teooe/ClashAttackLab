@@ -2708,3 +2708,158 @@ func freezePreventsShotsAndResetClearsTheZone() throws {
     #expect(frozen.deployedSpellCount == 0)
     #expect(frozen.pendingSpellCount == 1)
 }
+
+
+@Test
+func heroCommandSurvivesJSONAndLegacyPlansStillLoad() throws {
+    let troop = DeploymentOrder(
+        kind: .barbarianKing, position: WorldPosition(x: 100, y: 300),
+        deploymentTime: 0
+    )
+    let plan = AttackPlan(
+        name: "Recorded hero", deployments: [troop],
+        heroAbilityOrders: [HeroAbilityOrder(
+            entityID: troop.entityID, activationTime: 3
+        )]
+    )
+    let data = try JSONEncoder().encode(plan)
+    let restored = try JSONDecoder().decode(AttackPlan.self, from: data)
+    #expect(restored.heroAbilityOrders.first?.entityID == troop.entityID)
+    #expect(restored.heroAbilityOrders.first?.activationTime == 3)
+    #expect(restored.latestDeploymentTime == 3)
+    var legacy = try #require(
+        JSONSerialization.jsonObject(with: data) as? [String: Any]
+    )
+    legacy.removeValue(forKey: "heroAbilityOrders")
+    let legacyData = try JSONSerialization.data(withJSONObject: legacy)
+    let oldPlan = try JSONDecoder().decode(AttackPlan.self, from: legacyData)
+    #expect(oldPlan.heroAbilityOrders.isEmpty)
+    #expect(oldPlan.deployments.first?.entityID == troop.entityID)
+}
+
+@Test
+func manualHeroCommandReplaysAtExactlyTheRecordedStep() throws {
+    let grid = PrototypeBattleMap.makeNavigationGrid()
+    let order = DeploymentOrder(
+        kind: .barbarianKing,
+        position: grid.worldPosition(for: GridCoordinate(column: 1, row: 8)),
+        deploymentTime: 0
+    )
+    let base = [BattleEntity(
+        kind: .townHall,
+        position: grid.worldPosition(for: GridCoordinate(column: 23, row: 8))
+    )]
+    let engine = SimulationEngine(
+        entities: base,
+        attackPlan: AttackPlan(name: "Hero replay", deployments: [order]),
+        gameData: PrototypeGameData(), navigationGrid: grid
+    )
+    engine.start()
+    for _ in 0..<4 { engine.advance(by: 0.25) }
+    let activationTime = engine.elapsedTime
+    #expect(engine.activateHeroAbility(for: .barbarianKing))
+    #expect(!engine.activateHeroAbility(for: .barbarianKing))
+    let recorded = engine.recordedAttackPlan
+    #expect(recorded.heroAbilityOrders.count == 1)
+    #expect(recorded.heroAbilityOrders.first?.activationTime == activationTime)
+    for _ in 0..<8 { engine.advance(by: 0.25) }
+    let positions = engine.entities.map(\.position)
+    let health = engine.entities.map(\.hitPoints)
+    let abilityTimers = engine.entities.map(\.heroAbilityRemaining)
+
+    let decoded = try JSONDecoder().decode(
+        AttackPlan.self, from: JSONEncoder().encode(recorded)
+    )
+    engine.loadAttackPlan(decoded)
+    engine.start()
+    for _ in 0..<3 { engine.advance(by: 0.25) }
+    #expect(engine.heroAbilityState(for: .barbarianKing) == .ready)
+    engine.advance(by: 0.25)
+    #expect(engine.heroAbilityState(for: .barbarianKing) == .active)
+    for _ in 0..<8 { engine.advance(by: 0.25) }
+    #expect(engine.entities.map(\.position) == positions)
+    #expect(engine.entities.map(\.hitPoints) == health)
+    #expect(engine.entities.map(\.heroAbilityRemaining) == abilityTimers)
+    #expect(engine.recordedAttackPlan.heroAbilityOrders.count == 1)
+}
+
+@Test
+func pausedHeroCommandIsRecordedWithoutAdvancingBattleTime() throws {
+    let grid = PrototypeBattleMap.makeNavigationGrid()
+    let order = DeploymentOrder(
+        kind: .archerQueen,
+        position: grid.worldPosition(for: GridCoordinate(column: 1, row: 8)),
+        deploymentTime: 0
+    )
+    let engine = SimulationEngine(
+        entities: [BattleEntity(
+            kind: .townHall,
+            position: grid.worldPosition(for: GridCoordinate(column: 23, row: 8))
+        )],
+        attackPlan: AttackPlan(name: "Paused command", deployments: [order]),
+        gameData: PrototypeGameData(), navigationGrid: grid
+    )
+    engine.start()
+    engine.advance(by: 0.25)
+    engine.togglePause()
+    let pausedTime = engine.elapsedTime
+    #expect(engine.activateHeroAbility(for: .archerQueen))
+    let timer = try #require(engine.entities.first { $0.id == order.entityID })
+        .heroAbilityRemaining
+    engine.advance(by: 0.25)
+    #expect(engine.elapsedTime == pausedTime)
+    #expect(engine.entities.first { $0.id == order.entityID }?.heroAbilityRemaining == timer)
+    #expect(engine.recordedAttackPlan.heroAbilityOrders.first?.activationTime == pausedTime)
+    engine.reset()
+    engine.start()
+    engine.advance(by: 0.25)
+    #expect(engine.heroAbilityState(for: .archerQueen) == .active)
+}
+
+@Test
+func heroCommandsArePreservedByRenameDuplicateAndLibraryReload() throws {
+    let key = "clashAttackLab.tests.heroCommands.\(UUID().uuidString)"
+    defer { UserDefaults.standard.removeObject(forKey: key) }
+    let library = AttackPlanLibrary(storageKey: key)
+    let troop = DeploymentOrder(
+        kind: .barbarianKing, position: WorldPosition(x: 100, y: 300),
+        deploymentTime: 0
+    )
+    let plan = AttackPlan(
+        name: "Original", deployments: [troop],
+        heroAbilityOrders: [HeroAbilityOrder(entityID: troop.entityID, activationTime: 4)]
+    )
+    library.save(plan)
+    library.rename(plan, to: "Renamed")
+    #expect(library.plans.first?.heroAbilityOrders.count == 1)
+    let copy = library.duplicate(plan)
+    #expect(copy.id != plan.id)
+    #expect(copy.heroAbilityOrders.first?.entityID == copy.deployments.first?.entityID)
+    let reloaded = AttackPlanLibrary(storageKey: key)
+    #expect(reloaded.plans.count == 2)
+    #expect(reloaded.plans.allSatisfy { $0.heroAbilityOrders.count == 1 })
+}
+
+@Test
+func editingAndRefiningKeepHeroCommandsAttachedToTheirDeployment() throws {
+    let grid = PrototypeBattleMap.makeNavigationGrid()
+    let troop = DeploymentOrder(
+        kind: .barbarianKing,
+        position: grid.worldPosition(for: GridCoordinate(column: 1, row: 8)),
+        deploymentTime: 2
+    )
+    let command = HeroAbilityOrder(entityID: troop.entityID, activationTime: 6)
+    var draft = ManualAttackPlan(
+        deployments: [troop], heroAbilityOrders: [command]
+    )
+    draft.updateOrderTime(id: troop.id, to: 4)
+    #expect(draft.makeAttackPlan().heroAbilityOrders.first?.activationTime == 8)
+    let refined = AttackPlanRefiner(navigationGrid: grid).variant(
+        from: draft.makeAttackPlan(), laneOffset: 1, tempoMultiplier: 1.2
+    )
+    #expect(refined.heroAbilityOrders.first?.entityID == troop.entityID)
+    let time = try #require(refined.heroAbilityOrders.first?.activationTime)
+    #expect(abs(time - 9.6) < 0.000001)
+    draft.removeOrder(id: troop.id)
+    #expect(draft.makeAttackPlan().heroAbilityOrders.isEmpty)
+}

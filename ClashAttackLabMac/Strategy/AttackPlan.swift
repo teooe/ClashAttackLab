@@ -41,22 +41,78 @@ nonisolated struct SpellDeploymentOrder: Identifiable, Codable {
     }
 }
 
+/// An explicit command applied at the end of a fixed simulation step.
+/// Entity identity, rather than troop kind, keeps commands unambiguous.
+nonisolated struct HeroAbilityOrder: Identifiable, Codable {
+    let id: UUID
+    let entityID: UUID
+    let activationTime: TimeInterval
+
+    init(id: UUID = UUID(), entityID: UUID, activationTime: TimeInterval) {
+        self.id = id
+        self.entityID = entityID
+        self.activationTime = activationTime
+    }
+}
+
 nonisolated struct AttackPlan: Identifiable, Codable {
     let id: UUID
     let name: String
     let deployments: [DeploymentOrder]
     let spellDeployments: [SpellDeploymentOrder]
+    let heroAbilityOrders: [HeroAbilityOrder]
 
     init(
         id: UUID = UUID(),
         name: String,
         deployments: [DeploymentOrder],
-        spellDeployments: [SpellDeploymentOrder] = []
+        spellDeployments: [SpellDeploymentOrder] = [],
+        heroAbilityOrders: [HeroAbilityOrder] = []
     ) {
         self.id = id
         self.name = name
         self.deployments = deployments
         self.spellDeployments = spellDeployments
+        self.heroAbilityOrders = heroAbilityOrders
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case id, name, deployments, spellDeployments, heroAbilityOrders
+    }
+
+    // Existing archives predate hero commands and remain readable.
+    init(from decoder: Decoder) throws {
+        let values = try decoder.container(keyedBy: CodingKeys.self)
+        id = try values.decode(UUID.self, forKey: .id)
+        name = try values.decode(String.self, forKey: .name)
+        deployments = try values.decode([DeploymentOrder].self, forKey: .deployments)
+        spellDeployments = try values.decodeIfPresent(
+            [SpellDeploymentOrder].self, forKey: .spellDeployments
+        ) ?? []
+        heroAbilityOrders = try values.decodeIfPresent(
+            [HeroAbilityOrder].self, forKey: .heroAbilityOrders
+        ) ?? []
+    }
+
+    var orderedHeroAbilityOrders: [HeroAbilityOrder] {
+        heroAbilityOrders.filter {
+            $0.activationTime.isFinite && $0.activationTime >= 0
+        }.sorted {
+            if $0.activationTime == $1.activationTime {
+                return $0.id.uuidString < $1.id.uuidString
+            }
+            return $0.activationTime < $1.activationTime
+        }
+    }
+
+    func recordingHeroAbility(_ order: HeroAbilityOrder) -> AttackPlan {
+        AttackPlan(
+            id: id, name: name, deployments: deployments,
+            spellDeployments: spellDeployments,
+            heroAbilityOrders: heroAbilityOrders.filter {
+                $0.entityID != order.entityID
+            } + [order]
+        )
     }
 
     var orderedDeployments: [DeploymentOrder] {
@@ -89,7 +145,8 @@ nonisolated struct AttackPlan: Identifiable, Codable {
 
     var latestDeploymentTime: TimeInterval {
         (deployments.map(\.deploymentTime) +
-            spellDeployments.map(\.deploymentTime)
+            spellDeployments.map(\.deploymentTime) +
+            heroAbilityOrders.map(\.activationTime)
         ).max() ?? 0
     }
 
@@ -125,17 +182,20 @@ nonisolated struct ManualAttackPlan: Identifiable {
     let name: String
     private(set) var deployments: [DeploymentOrder]
     private(set) var spellDeployments: [SpellDeploymentOrder]
+    private(set) var heroAbilityOrders: [HeroAbilityOrder]
 
     init(
         id: UUID = UUID(),
         name: String = "Piano manuale",
         deployments: [DeploymentOrder] = [],
-        spellDeployments: [SpellDeploymentOrder] = []
+        spellDeployments: [SpellDeploymentOrder] = [],
+        heroAbilityOrders: [HeroAbilityOrder] = []
     ) {
         self.id = id
         self.name = name
         self.deployments = deployments
         self.spellDeployments = spellDeployments
+        self.heroAbilityOrders = heroAbilityOrders
     }
 
     var totalOrderCount: Int {
@@ -144,7 +204,8 @@ nonisolated struct ManualAttackPlan: Identifiable {
 
     var latestDeploymentTime: TimeInterval {
         (deployments.map(\.deploymentTime) +
-            spellDeployments.map(\.deploymentTime)
+            spellDeployments.map(\.deploymentTime) +
+            heroAbilityOrders.map(\.activationTime)
         ).max() ?? 0
     }
 
@@ -191,6 +252,8 @@ nonisolated struct ManualAttackPlan: Identifiable {
     }
 
     mutating func removeOrder(id: UUID) {
+        let removedIDs = Set(deployments.filter { $0.id == id }.map(\.entityID))
+        heroAbilityOrders.removeAll { removedIDs.contains($0.entityID) }
         deployments.removeAll { $0.id == id }
         spellDeployments.removeAll { $0.id == id }
     }
@@ -205,6 +268,15 @@ nonisolated struct ManualAttackPlan: Identifiable {
                 position: order.position,
                 deploymentTime: min(59, max(0, time))
             )
+            let newTime = min(59, max(0, time))
+            heroAbilityOrders = heroAbilityOrders.map { command in
+                guard command.entityID == order.entityID else { return command }
+                return HeroAbilityOrder(
+                    id: command.id, entityID: command.entityID,
+                    activationTime: min(59, max(newTime,
+                        command.activationTime + newTime - order.deploymentTime))
+                )
+            }
             return
         }
 
@@ -245,6 +317,7 @@ nonisolated struct ManualAttackPlan: Identifiable {
     mutating func removeAllOrders() {
         deployments.removeAll()
         spellDeployments.removeAll()
+        heroAbilityOrders.removeAll()
     }
 
     func makeAttackPlan() -> AttackPlan {
@@ -252,7 +325,8 @@ nonisolated struct ManualAttackPlan: Identifiable {
             id: id,
             name: name,
             deployments: deployments,
-            spellDeployments: spellDeployments
+            spellDeployments: spellDeployments,
+            heroAbilityOrders: heroAbilityOrders
         )
     }
 
@@ -266,7 +340,7 @@ nonisolated struct ManualAttackPlan: Identifiable {
             return
         }
 
-        deployments.remove(at: index)
+        removeOrder(id: deployments[index].id)
     }
 
     private mutating func removeMostRecentSpell() {

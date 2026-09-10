@@ -129,6 +129,8 @@ final class BattleScene: SKScene {
         simulation.togglePause()
     }
 
+    var recordedAttackPlan: AttackPlan { simulation.recordedAttackPlan }
+
     func heroAbilityState(for kind: BattleEntityKind) -> HeroAbilityState {
         simulation.heroAbilityState(for: kind)
     }

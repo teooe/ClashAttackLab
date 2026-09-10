@@ -16,6 +16,9 @@ final class SimulationEngine {
     private var attackCounts: [BattleEntityRole: Int] = [:]
     private var movementPaths: [UUID: [WorldPosition]] = [:]
     private var pendingDeployments: [DeploymentOrder] = []
+    private var pendingHeroAbilityOrders: [HeroAbilityOrder] = []
+
+    var recordedAttackPlan: AttackPlan { attackPlan }
     private var pendingSpellDeployments: [SpellDeploymentOrder] = []
     private var releasedSiegeMachineIDs: Set<UUID> = []
     private(set) var releasedPayloadTroopCount = 0
@@ -150,6 +153,14 @@ final class SimulationEngine {
         }
 
         activateHeroAbility(at: index)
+        attackPlan = attackPlan.recordingHeroAbility(
+            HeroAbilityOrder(
+                entityID: entities[index].id,
+                activationTime: elapsedTime
+            )
+        )
+        // An explicit user command supersedes a future command for this hero.
+        pendingHeroAbilityOrders.removeAll { $0.entityID == entities[index].id }
         return true
     }
 
@@ -184,6 +195,7 @@ final class SimulationEngine {
         projectiles = []
         activeSpells = []
         pendingDeployments = attackPlan.orderedDeployments
+        pendingHeroAbilityOrders = attackPlan.orderedHeroAbilityOrders
         pendingSpellDeployments =
             attackPlan.orderedSpellDeployments
         releasedSiegeMachineIDs = []
@@ -256,6 +268,7 @@ final class SimulationEngine {
         defer {
             advanceActiveSpells(by: deltaTime)
             advanceHeroAbilities(by: deltaTime)
+            applyScheduledHeroAbilities()
         }
 
         if elapsedTime >= timeLimit {
@@ -399,6 +412,18 @@ final class SimulationEngine {
                 maximum,
                 entities[troopIndex].hitPoints + healing
             )
+        }
+    }
+
+    private func applyScheduledHeroAbilities() {
+        guard case .running = status else { return }
+        while let next = pendingHeroAbilityOrders.first,
+            next.activationTime <= elapsedTime + 1e-9 {
+            pendingHeroAbilityOrders.removeFirst()
+            guard let index = entities.indices.first(where: {
+                entities[$0].id == next.entityID && entities[$0].isAlive
+            }) else { continue }
+            activateHeroAbility(at: index)
         }
     }
 
