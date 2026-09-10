@@ -710,6 +710,18 @@ final class AttackLabSession: ObservableObject {
         manualNextDeploymentTime = min(59, max(0, updated))
     }
 
+    func setManualHeroAbilityTime(entityID: UUID, to time: TimeInterval) {
+        guard isManualPlanning else { return }
+        manualPlan.setHeroAbilityTime(entityID: entityID, to: time)
+        scene.loadAttackPlan(manualPlan.makeAttackPlan())
+    }
+
+    func removeManualHeroAbility(entityID: UUID) {
+        guard isManualPlanning else { return }
+        manualPlan.removeHeroAbility(entityID: entityID)
+        scene.loadAttackPlan(manualPlan.makeAttackPlan())
+    }
+
     func removeManualOrder(id: UUID) {
         guard isManualPlanning else { return }
         manualPlan.removeOrder(id: id)

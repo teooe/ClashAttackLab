@@ -199,7 +199,7 @@ nonisolated struct ManualAttackPlan: Identifiable {
     }
 
     var totalOrderCount: Int {
-        deployments.count + spellDeployments.count
+        deployments.count + spellDeployments.count + heroAbilityOrders.count
     }
 
     var latestDeploymentTime: TimeInterval {
@@ -223,6 +223,31 @@ nonisolated struct ManualAttackPlan: Identifiable {
 
     func spellCount(for kind: BattleSpellKind) -> Int {
         spellDeployments.filter { $0.kind == kind }.count
+    }
+
+    var heroDeployments: [DeploymentOrder] {
+        orderedDeployments.filter {
+            ($0.kind == .barbarianKing || $0.kind == .archerQueen) &&
+                $0.deploymentTime.isFinite &&
+                (0...59).contains($0.deploymentTime)
+        }
+    }
+
+    mutating func setHeroAbilityTime(entityID: UUID, to time: TimeInterval) {
+        guard time.isFinite,
+            let deployment = heroDeployments.first(where: { $0.entityID == entityID })
+        else { return }
+        let boundedTime = min(59, max(deployment.deploymentTime, time))
+        let existingID = heroAbilityOrders.first { $0.entityID == entityID }?.id
+        heroAbilityOrders.removeAll { $0.entityID == entityID }
+        heroAbilityOrders.append(HeroAbilityOrder(
+            id: existingID ?? UUID(), entityID: entityID,
+            activationTime: boundedTime
+        ))
+    }
+
+    mutating func removeHeroAbility(entityID: UUID) {
+        heroAbilityOrders.removeAll { $0.entityID == entityID }
     }
 
     mutating func append(
@@ -292,6 +317,14 @@ nonisolated struct ManualAttackPlan: Identifiable {
     }
 
     mutating func removeMostRecentOrder() {
+        let latestDeployment = (deployments.map(\.deploymentTime) +
+            spellDeployments.map(\.deploymentTime)).max() ?? -1
+        if let command = heroAbilityOrders.max(by: {
+            $0.activationTime < $1.activationTime
+        }), command.activationTime >= latestDeployment {
+            removeHeroAbility(entityID: command.entityID)
+            return
+        }
         let troopTime = deployments.map(\.deploymentTime).max()
         let spellTime = spellDeployments.map(\.deploymentTime).max()
 

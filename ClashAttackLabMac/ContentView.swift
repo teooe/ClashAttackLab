@@ -438,6 +438,8 @@ struct ContentView: View {
                 }
             }
 
+            manualHeroCommands
+
             if session.manualPlan.totalOrderCount == 0 {
                 Text("Nessun ordine: scegli una truppa o un incantesimo e clicca nella fascia ciano.")
                     .font(.caption)
@@ -541,6 +543,61 @@ struct ContentView: View {
         .padding(.horizontal)
         .padding(.vertical, 10)
         .background(Color.cyan.opacity(0.08))
+    }
+
+    private var manualHeroCommands: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            if !session.manualPlan.heroDeployments.isEmpty {
+                Text("Abilità eroi · l’attivazione automatica a vita bassa resta disponibile")
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
+                ForEach(session.manualPlan.heroDeployments) { deployment in
+                    manualHeroCommandRow(deployment)
+                }
+            }
+        }
+    }
+
+    private func manualHeroCommandRow(_ deployment: DeploymentOrder) -> some View {
+        let command = session.manualPlan.heroAbilityOrders.first {
+            $0.entityID == deployment.entityID
+        }
+        return HStack(spacing: 10) {
+            Text(troopName(for: deployment.kind))
+                .font(.caption.bold())
+            if let command {
+                Stepper(
+                    value: Binding(
+                        get: { command.activationTime },
+                        set: { session.setManualHeroAbilityTime(
+                            entityID: deployment.entityID, to: $0
+                        ) }
+                    ),
+                    in: deployment.deploymentTime...59,
+                    step: 0.5
+                ) {
+                    Text("Abilità @ \(command.activationTime, specifier: "%.1f") s")
+                        .font(.caption.monospacedDigit())
+                }
+                .frame(width: 230)
+                Button("Solo automatica") {
+                    session.removeManualHeroAbility(entityID: deployment.entityID)
+                }
+                .font(.caption)
+            } else {
+                Text("Automatica")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                Button("Programma abilità") {
+                    session.setManualHeroAbilityTime(
+                        entityID: deployment.entityID,
+                        to: deployment.deploymentTime + 4
+                    )
+                }
+                .font(.caption)
+            }
+            Spacer()
+        }
     }
 
     private func manualChoice(

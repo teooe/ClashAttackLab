@@ -2863,3 +2863,76 @@ func editingAndRefiningKeepHeroCommandsAttachedToTheirDeployment() throws {
     draft.removeOrder(id: troop.id)
     #expect(draft.makeAttackPlan().heroAbilityOrders.isEmpty)
 }
+
+
+@Test
+func heroScheduleEditorClampsTimeAndKeepsOneCommandPerHero() throws {
+    let hero = DeploymentOrder(
+        kind: .archerQueen, position: WorldPosition(x: 100, y: 300),
+        deploymentTime: 3
+    )
+    let troop = DeploymentOrder(
+        kind: .giant, position: hero.position, deploymentTime: 0
+    )
+    var draft = ManualAttackPlan(deployments: [hero, troop])
+    draft.setHeroAbilityTime(entityID: troop.entityID, to: 5)
+    #expect(draft.heroAbilityOrders.isEmpty)
+    draft.setHeroAbilityTime(entityID: hero.entityID, to: 0)
+    #expect(draft.heroAbilityOrders.first?.activationTime == 3)
+    let commandID = try #require(draft.heroAbilityOrders.first?.id)
+    draft.setHeroAbilityTime(entityID: hero.entityID, to: 100)
+    #expect(draft.heroAbilityOrders.count == 1)
+    #expect(draft.heroAbilityOrders.first?.activationTime == 59)
+    #expect(draft.heroAbilityOrders.first?.id == commandID)
+    draft.setHeroAbilityTime(entityID: hero.entityID, to: .nan)
+    #expect(draft.heroAbilityOrders.first?.activationTime == 59)
+    #expect(draft.totalOrderCount == 3)
+    draft.removeHeroAbility(entityID: hero.entityID)
+    #expect(draft.totalOrderCount == 2)
+    #expect(draft.deployments.count == 2)
+}
+
+@Test
+func removingLastOrderRemovesScheduledAbilityBeforeItsHero() {
+    let hero = DeploymentOrder(
+        kind: .barbarianKing, position: WorldPosition(x: 100, y: 300),
+        deploymentTime: 0
+    )
+    var draft = ManualAttackPlan(deployments: [hero])
+    draft.setHeroAbilityTime(entityID: hero.entityID, to: 4)
+    draft.removeMostRecentOrder()
+    #expect(draft.heroAbilityOrders.isEmpty)
+    #expect(draft.deployments.count == 1)
+    draft.removeMostRecentOrder()
+    #expect(draft.totalOrderCount == 0)
+}
+
+@Test
+func editedHeroScheduleRunsAtTheSelectedTime() throws {
+    let grid = PrototypeBattleMap.makeNavigationGrid()
+    let hero = DeploymentOrder(
+        kind: .barbarianKing,
+        position: grid.worldPosition(for: GridCoordinate(column: 1, row: 8)),
+        deploymentTime: 0
+    )
+    var draft = ManualAttackPlan(deployments: [hero])
+    draft.setHeroAbilityTime(entityID: hero.entityID, to: 2)
+    let engine = SimulationEngine(
+        entities: [BattleEntity(
+            kind: .townHall,
+            position: grid.worldPosition(for: GridCoordinate(column: 23, row: 8))
+        )],
+        attackPlan: draft.makeAttackPlan(),
+        gameData: PrototypeGameData(), navigationGrid: grid
+    )
+    engine.start()
+    for _ in 0..<6 { engine.advance(by: 0.25) }
+    #expect(engine.heroAbilityState(for: .barbarianKing) == .ready)
+    for _ in 0..<3 { engine.advance(by: 0.25) }
+    #expect(engine.heroAbilityState(for: .barbarianKing) == .active)
+    draft.removeHeroAbility(entityID: hero.entityID)
+    engine.loadAttackPlan(draft.makeAttackPlan())
+    engine.start()
+    for _ in 0..<9 { engine.advance(by: 0.25) }
+    #expect(engine.heroAbilityState(for: .barbarianKing) == .ready)
+}
