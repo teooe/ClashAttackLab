@@ -95,6 +95,9 @@ nonisolated struct CombatDefinition {
     /// Nil for ordinary troops and all defensive structures.
     let heroAbility: HeroAbilityDefinition?
 
+    /// Troops released when a siege machine is destroyed.
+    let siegePayload: [BattleEntityKind]
+
     init(
         displayName: String,
         role: BattleEntityRole,
@@ -113,7 +116,8 @@ nonisolated struct CombatDefinition {
         movementDomain: MovementDomain = .ground,
         attackTargetLayer: AttackTargetLayer = .both,
         targetingProfile: TargetingProfile?,
-        heroAbility: HeroAbilityDefinition? = nil
+        heroAbility: HeroAbilityDefinition? = nil,
+        siegePayload: [BattleEntityKind] = []
     ) {
         self.displayName = displayName
         self.role = role
@@ -133,6 +137,7 @@ nonisolated struct CombatDefinition {
         self.attackTargetLayer = attackTargetLayer
         self.targetingProfile = targetingProfile
         self.heroAbility = heroAbility
+        self.siegePayload = siegePayload
     }
 
     var countsForDestruction: Bool {

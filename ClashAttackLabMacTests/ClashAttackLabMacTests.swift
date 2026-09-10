@@ -2374,3 +2374,63 @@ func wallWreckerIsASingleSiegeMachineThatPrioritizesTownHall() throws {
 
     #expect(decision?.targetIndex == 2)
 }
+
+
+@Test
+func destroyedWallWreckerReleasesItsPayloadAndCountsItAsDeployed() {
+    let grid = PrototypeBattleMap.makeNavigationGrid()
+    let gameData = PrototypeGameData()
+    let wreckerPosition = grid.worldPosition(
+        for: GridCoordinate(column: 2, row: 8)
+    )
+    let cannonCoordinates = [
+        GridCoordinate(column: 3, row: 5),
+        GridCoordinate(column: 3, row: 6),
+        GridCoordinate(column: 3, row: 7),
+        GridCoordinate(column: 3, row: 8),
+        GridCoordinate(column: 3, row: 9),
+        GridCoordinate(column: 3, row: 10)
+    ]
+    var base = cannonCoordinates.map {
+        BattleEntity(
+            kind: .cannon,
+            position: grid.worldPosition(for: $0)
+        )
+    }
+    base.append(
+        BattleEntity(
+            kind: .townHall,
+            position: grid.worldPosition(
+                for: GridCoordinate(column: 22, row: 8)
+            )
+        )
+    )
+    let engine = SimulationEngine(
+        entities: base,
+        attackPlan: AttackPlan(
+            name: "Carico d’assedio",
+            deployments: [
+                DeploymentOrder(
+                    kind: .wallWrecker,
+                    position: wreckerPosition,
+                    deploymentTime: 0
+                )
+            ]
+        ),
+        gameData: gameData,
+        navigationGrid: grid
+    )
+    engine.start()
+
+    for _ in 0..<48 {
+        engine.advance(by: 0.25)
+    }
+
+    #expect(engine.releasedPayloadTroopCount == 3)
+    #expect(engine.deployedTroopCount == 4)
+    #expect(
+        engine.entities.filter {
+            $0.kind == .giant || $0.kind == .barbarian
+        }.count == 3
+    )
+}

@@ -272,7 +272,12 @@ nonisolated struct PrototypeGameData: GameDataProviding {
                 targetingProfile: TargetingProfile(
                     preference: .townHall,
                     evidence: .prototype
-                )
+                ),
+                siegePayload: [
+                    .giant,
+                    .barbarian,
+                    .barbarian
+                ]
             )
 
         case .cannon:

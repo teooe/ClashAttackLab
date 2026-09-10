@@ -226,7 +226,7 @@ struct ContentView: View {
                         symbol: "AR",
                         color: .brown,
                         title: "Ariete",
-                        detail: "assedio · Municipio"
+                        detail: "Municipio · rilascia 3 truppe"
                     )
 
                     Spacer()

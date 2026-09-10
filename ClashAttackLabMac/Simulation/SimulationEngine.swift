@@ -16,6 +16,8 @@ final class SimulationEngine {
     private var movementPaths: [UUID: [WorldPosition]] = [:]
     private var pendingDeployments: [DeploymentOrder] = []
     private var pendingSpellDeployments: [SpellDeploymentOrder] = []
+    private var releasedSiegeMachineIDs: Set<UUID> = []
+    private(set) var releasedPayloadTroopCount = 0
 
     private(set) var entities: [BattleEntity]
     private(set) var projectiles: [BattleProjectile] = []
@@ -33,7 +35,8 @@ final class SimulationEngine {
     }
 
     var deployedTroopCount: Int {
-        attackPlan.deployments.count - pendingDeployments.count
+        attackPlan.deployments.count - pendingDeployments.count +
+            releasedPayloadTroopCount
     }
 
     var livingTroopCount: Int {
@@ -182,6 +185,8 @@ final class SimulationEngine {
         pendingDeployments = attackPlan.orderedDeployments
         pendingSpellDeployments =
             attackPlan.orderedSpellDeployments
+        releasedSiegeMachineIDs = []
+        releasedPayloadTroopCount = 0
         score = scoringSystem.calculate(
             entities: entities,
             gameData: gameData
@@ -959,12 +964,55 @@ final class SimulationEngine {
     }
 
     private func apply(_ pendingDamage: [UUID: Double]) {
+        var payloadsToRelease: [(WorldPosition, [BattleEntityKind])] = []
+
         for index in entities.indices {
+            let wasAlive = entities[index].isAlive
             let damage = pendingDamage[entities[index].id, default: 0]
             entities[index].hitPoints = max(
                 0,
                 entities[index].hitPoints - damage
             )
+
+            let entityID = entities[index].id
+            let payload = definition(for: entities[index].kind).siegePayload
+            if
+                wasAlive,
+                !entities[index].isAlive,
+                !payload.isEmpty,
+                !releasedSiegeMachineIDs.contains(entityID)
+            {
+                releasedSiegeMachineIDs.insert(entityID)
+                payloadsToRelease.append((entities[index].position, payload))
+            }
+        }
+
+        for (position, payload) in payloadsToRelease {
+            releaseSiegePayload(payload, at: position)
+        }
+    }
+
+    private func releaseSiegePayload(
+        _ payload: [BattleEntityKind],
+        at position: WorldPosition
+    ) {
+        for (offset, kind) in payload.enumerated() {
+            let angle = Double(offset) *
+                (2 * Double.pi / Double(max(payload.count, 1)))
+            let radius = min(navigationGrid.cellSize * 0.28, 18)
+            let spawnPosition = WorldPosition(
+                x: position.x + cos(angle) * radius,
+                y: position.y + sin(angle) * radius
+            )
+            let payloadDefinition = definition(for: kind)
+            entities.append(
+                BattleEntity(
+                    kind: kind,
+                    position: spawnPosition,
+                    hitPoints: payloadDefinition.maxHitPoints
+                )
+            )
+            releasedPayloadTroopCount += 1
         }
     }
 
