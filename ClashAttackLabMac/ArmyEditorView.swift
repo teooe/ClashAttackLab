@@ -113,6 +113,13 @@ struct ArmyEditorView: View {
                     cost: 0,
                     value: $draft.wallWreckers
                 )
+                troopRow(
+                    symbol: "SP",
+                    color: .cyan,
+                    title: "Schiantapietre",
+                    cost: 0,
+                    value: $draft.stoneSlammers
+                )
             }
 
             GroupBox("Incantesimi") {

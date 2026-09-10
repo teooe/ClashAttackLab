@@ -79,7 +79,8 @@ final class AttackLabSession: ObservableObject {
             .dragon,
             .barbarianKing,
             .archerQueen,
-            .wallWrecker
+            .wallWrecker,
+            .stoneSlammer
         ].filter { armyConfiguration.troopCount(for: $0) > 0 }
     }
 

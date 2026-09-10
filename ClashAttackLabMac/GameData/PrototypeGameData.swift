@@ -280,6 +280,32 @@ nonisolated struct PrototypeGameData: GameDataProviding {
                 ]
             )
 
+        case .stoneSlammer:
+            return CombatDefinition(
+                displayName: "Schiantapietre",
+                role: .troop,
+                maxHitPoints: 1_850,
+                movementSpeed: 92,
+                attackDamage: 165,
+                minimumAttackRange: 0,
+                attackRange: 150,
+                attackInterval: 1.6,
+                canMove: true,
+                projectileKind: .mortarShell,
+                projectileSpeed: 420,
+                splashRadius: 78,
+                selfDestructsOnAttack: false,
+                movementDomain: .air,
+                targetingProfile: TargetingProfile(
+                    preference: .defenses,
+                    evidence: .prototype
+                ),
+                siegePayload: [
+                    .balloon,
+                    .balloon
+                ]
+            )
+
         case .cannon:
             return CombatDefinition(
                 displayName: "Cannone",

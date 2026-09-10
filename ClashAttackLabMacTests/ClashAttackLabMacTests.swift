@@ -2431,3 +2431,62 @@ func destroyedWallWreckerReleasesItsPayloadAndCountsItAsDeployed() {
         }.count == 3
     )
 }
+
+
+@Test
+func stoneSlammerFliesToDefensesAndUsesTheSharedPayloadSystem() throws {
+    let grid = PrototypeBattleMap.makeNavigationGrid()
+    let gameData = PrototypeGameData()
+    let definition = gameData.definition(for: .stoneSlammer)
+
+    #expect(definition.movementDomain == .air)
+    #expect(definition.targetingProfile?.preference == .defenses)
+    #expect(definition.splashRadius > 0)
+    #expect(definition.siegePayload == [.balloon, .balloon])
+
+    let invalidArmy = ArmyConfiguration(
+        giants: 0,
+        barbarians: 0,
+        archers: 0,
+        wallBreakers: 0,
+        wizards: 0,
+        healSpells: 0,
+        rageSpells: 0,
+        wallWreckers: 1,
+        stoneSlammers: 1
+    )
+    #expect(!invalidArmy.isValid)
+
+    let slammer = BattleEntity(
+        kind: .stoneSlammer,
+        position: grid.worldPosition(
+            for: GridCoordinate(column: 1, row: 8)
+        ),
+        hitPoints: definition.maxHitPoints
+    )
+    let townHall = BattleEntity(
+        kind: .townHall,
+        position: grid.worldPosition(
+            for: GridCoordinate(column: 4, row: 8)
+        ),
+        hitPoints: gameData.definition(for: .townHall).maxHitPoints
+    )
+    let cannon = BattleEntity(
+        kind: .cannon,
+        position: grid.worldPosition(
+            for: GridCoordinate(column: 12, row: 8)
+        ),
+        hitPoints: gameData.definition(for: .cannon).maxHitPoints
+    )
+    let decision = TargetSelectionSystem().selectTroopObjective(
+        for: 0,
+        among: [1, 2],
+        entities: [slammer, townHall, cannon],
+        gameData: gameData,
+        navigationGrid: grid,
+        breakableCells: [],
+        breakableTraversalCost: 0
+    )
+
+    #expect(decision?.targetIndex == 2)
+}

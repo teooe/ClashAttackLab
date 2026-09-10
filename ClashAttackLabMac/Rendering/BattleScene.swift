@@ -1025,6 +1025,8 @@ final class BattleScene: SKScene {
             return .systemPurple
         case .wallWrecker:
             return .systemBrown
+        case .stoneSlammer:
+            return .systemCyan
         case .cannon, .archerTower, .mortar, .airDefense,
              .townHall, .goldStorage, .wall:
             return .systemCyan
@@ -1053,6 +1055,8 @@ final class BattleScene: SKScene {
             return "AQ"
         case .wallWrecker:
             return "AR"
+        case .stoneSlammer:
+            return "SP"
         case .cannon:
             return "C"
         case .archerTower:
@@ -1140,6 +1144,13 @@ final class BattleScene: SKScene {
                 size: CGSize(width: 72, height: 52),
                 color: .systemBrown,
                 text: "AR"
+            )
+
+        case .stoneSlammer:
+            return makeLabeledCircle(
+                radius: 35,
+                color: .systemCyan,
+                text: "SP"
             )
 
         case .cannon:

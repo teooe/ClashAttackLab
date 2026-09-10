@@ -226,7 +226,14 @@ struct ContentView: View {
                         symbol: "AR",
                         color: .brown,
                         title: "Ariete",
-                        detail: "Municipio · rilascia 3 truppe"
+                        detail: "Municipio · carico terrestre"
+                    )
+
+                    legendItem(
+                        symbol: "SP",
+                        color: .cyan,
+                        title: "Schiantapietre",
+                        detail: "aria · carico aereo"
                     )
 
                     Spacer()
@@ -610,6 +617,8 @@ struct ContentView: View {
             return "Regina degli arcieri"
         case .wallWrecker:
             return "Ariete da guerra"
+        case .stoneSlammer:
+            return "Schiantapietre"
         case .cannon, .archerTower, .mortar, .airDefense,
              .townHall, .goldStorage, .wall:
             return "Edificio"
@@ -638,6 +647,8 @@ struct ContentView: View {
             return "AQ"
         case .wallWrecker:
             return "AR"
+        case .stoneSlammer:
+            return "SP"
         case .cannon, .archerTower, .mortar, .airDefense,
              .townHall, .goldStorage, .wall:
             return "?"
@@ -666,6 +677,8 @@ struct ContentView: View {
             return .purple
         case .wallWrecker:
             return .brown
+        case .stoneSlammer:
+            return .cyan
         case .cannon, .archerTower, .mortar, .airDefense,
              .townHall, .goldStorage, .wall:
             return .gray
