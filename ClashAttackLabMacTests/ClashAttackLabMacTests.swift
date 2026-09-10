@@ -2383,14 +2383,11 @@ func destroyedWallWreckerReleasesItsPayloadAndCountsItAsDeployed() {
     let wreckerPosition = grid.worldPosition(
         for: GridCoordinate(column: 2, row: 8)
     )
-    let cannonCoordinates = [
-        GridCoordinate(column: 3, row: 5),
-        GridCoordinate(column: 3, row: 6),
-        GridCoordinate(column: 3, row: 7),
-        GridCoordinate(column: 3, row: 8),
-        GridCoordinate(column: 3, row: 9),
-        GridCoordinate(column: 3, row: 10)
-    ]
+    let cannonCoordinates = (3...6).flatMap { column in
+        (5...10).map {
+            GridCoordinate(column: column, row: $0)
+        }
+    }
     var base = cannonCoordinates.map {
         BattleEntity(
             kind: .cannon,
@@ -2422,7 +2419,7 @@ func destroyedWallWreckerReleasesItsPayloadAndCountsItAsDeployed() {
     )
     engine.start()
 
-    for _ in 0..<48 {
+    for _ in 0..<20 {
         engine.advance(by: 0.25)
     }
 
