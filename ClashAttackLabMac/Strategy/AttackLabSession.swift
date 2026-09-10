@@ -26,11 +26,42 @@ final class AttackLabSession: ObservableObject {
     @Published private(set) var armyEntryAdvice: ArmyEntryAdvice?
     @Published private(set) var savedBases: [BaseSnapshot] = []
     @Published private(set) var savedBasePlanAnalysis: SavedBasePlanAnalysis?
+    @Published private(set) var heroAbilityMessage =
+        "Le abilità degli eroi sono pronte dopo il loro schieramento."
 
     let scene: BattleScene
 
     var candidatePlanCount: Int {
         candidatePlans.count
+    }
+
+    func activateHeroAbility(for kind: BattleEntityKind) {
+        let definition = gameData.definition(for: kind)
+        let stateBeforeActivation = scene.heroAbilityState(for: kind)
+
+        if scene.activateHeroAbility(for: kind) {
+            heroAbilityMessage = "\(definition.heroAbility?.displayName ?? definition.displayName) attivata."
+            return
+        }
+
+        switch stateBeforeActivation {
+        case .notDeployed:
+            heroAbilityMessage = "\(definition.displayName) non è ancora stato schierato."
+        case .ready:
+            heroAbilityMessage = "Avvia o riprendi la battaglia per usare l’abilità."
+        case .active:
+            heroAbilityMessage = "L’abilità di \(definition.displayName) è già attiva."
+        case .used:
+            heroAbilityMessage = "L’abilità di \(definition.displayName) è già stata usata."
+        case .defeated:
+            heroAbilityMessage = "\(definition.displayName) è stato sconfitto."
+        }
+    }
+
+    func restartSimulation() {
+        scene.restartSimulation()
+        heroAbilityMessage =
+            "Le abilità degli eroi sono pronte dopo il loro schieramento."
     }
 
     var editorNavigationGrid: NavigationGrid {

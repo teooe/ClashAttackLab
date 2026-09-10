@@ -2269,3 +2269,51 @@ func archerQueenActivatesRoyalCloakAndExtendsHerRange() throws {
     #expect(queen.heroAbilityUsed)
     #expect(queen.heroAbilityRemaining > 0)
 }
+
+
+@Test
+func manualHeroAbilityActivationRequiresADeployedHeroAndIsSingleUse() throws {
+    let grid = PrototypeBattleMap.makeNavigationGrid()
+    let gameData = PrototypeGameData()
+    let kingPosition = grid.worldPosition(
+        for: GridCoordinate(column: 1, row: 8)
+    )
+    let townHall = BattleEntity(
+        kind: .townHall,
+        position: grid.worldPosition(
+            for: GridCoordinate(column: 22, row: 8)
+        )
+    )
+    let engine = SimulationEngine(
+        entities: [townHall],
+        attackPlan: AttackPlan(
+            name: "Controllo abilità",
+            deployments: [
+                DeploymentOrder(
+                    kind: .barbarianKing,
+                    position: kingPosition,
+                    deploymentTime: 0
+                )
+            ]
+        ),
+        gameData: gameData,
+        navigationGrid: grid
+    )
+
+    #expect(engine.heroAbilityState(for: .barbarianKing) == .notDeployed)
+    #expect(!engine.activateHeroAbility(for: .barbarianKing))
+
+    engine.start()
+    engine.advance(by: 0.25)
+
+    #expect(engine.heroAbilityState(for: .barbarianKing) == .ready)
+    #expect(engine.activateHeroAbility(for: .barbarianKing))
+    #expect(engine.heroAbilityState(for: .barbarianKing) == .active)
+    #expect(!engine.activateHeroAbility(for: .barbarianKing))
+
+    let king = try #require(
+        engine.entities.first { $0.kind == .barbarianKing }
+    )
+    #expect(king.heroAbilityUsed)
+    #expect(king.heroAbilityRemaining > 0)
+}

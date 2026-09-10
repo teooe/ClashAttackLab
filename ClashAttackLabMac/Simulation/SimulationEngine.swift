@@ -105,6 +105,50 @@ final class SimulationEngine {
         }
     }
 
+    func heroAbilityState(for kind: BattleEntityKind) -> HeroAbilityState {
+        let matchingEntities = entities.filter { $0.kind == kind }
+
+        guard !matchingEntities.isEmpty else {
+            return .notDeployed
+        }
+
+        if matchingEntities.contains(where: { $0.heroAbilityIsActive }) {
+            return .active
+        }
+
+        if matchingEntities.contains(where: { $0.isAlive && !$0.heroAbilityUsed }) {
+            return .ready
+        }
+
+        if matchingEntities.contains(where: { $0.isAlive && $0.heroAbilityUsed }) {
+            return .used
+        }
+
+        return .defeated
+    }
+
+    @discardableResult
+    func activateHeroAbility(for kind: BattleEntityKind) -> Bool {
+        switch status {
+        case .running, .paused:
+            break
+        case .ready, .finished:
+            return false
+        }
+
+        guard let index = entities.indices.first(where: {
+            entities[$0].kind == kind &&
+                entities[$0].isAlive &&
+                !entities[$0].heroAbilityUsed &&
+                definition(for: entities[$0].kind).heroAbility != nil
+        }) else {
+            return false
+        }
+
+        activateHeroAbility(at: index)
+        return true
+    }
+
     func togglePause() {
         switch status {
         case .running:
@@ -356,13 +400,27 @@ final class SimulationEngine {
                 continue
             }
 
-            entities[index].heroAbilityUsed = true
-            entities[index].heroAbilityRemaining = ability.duration
-            entities[index].hitPoints = min(
-                maximum,
-                entities[index].hitPoints + ability.instantHealing
-            )
+            activateHeroAbility(at: index)
         }
+    }
+
+    private func activateHeroAbility(at index: Int) {
+        guard
+            entities.indices.contains(index),
+            entities[index].isAlive,
+            !entities[index].heroAbilityUsed,
+            let ability = definition(for: entities[index].kind).heroAbility
+        else {
+            return
+        }
+
+        let maximum = definition(for: entities[index].kind).maxHitPoints
+        entities[index].heroAbilityUsed = true
+        entities[index].heroAbilityRemaining = ability.duration
+        entities[index].hitPoints = min(
+            maximum,
+            entities[index].hitPoints + ability.instantHealing
+        )
     }
 
     private func advanceHeroAbilities(by deltaTime: TimeInterval) {

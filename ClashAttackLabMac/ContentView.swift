@@ -118,13 +118,40 @@ struct ContentView: View {
                 }
 
                 Button {
-                    session.scene.restartSimulation()
+                    session.restartSimulation()
                 } label: {
                     Label("Riavvia", systemImage: "arrow.counterclockwise")
                 }
                 .keyboardShortcut("r", modifiers: [.command])
             }
-            .padding()
+            .padding(.horizontal)
+            .padding(.top)
+
+            HStack(spacing: 12) {
+                Button {
+                    session.activateHeroAbility(for: .barbarianKing)
+                } label: {
+                    Label("Pugno di ferro", systemImage: "crown.fill")
+                }
+                .keyboardShortcut("1", modifiers: [.command])
+
+                Button {
+                    session.activateHeroAbility(for: .archerQueen)
+                } label: {
+                    Label("Manto reale", systemImage: "scope")
+                }
+                .keyboardShortcut("2", modifiers: [.command])
+
+                Text(session.heroAbilityMessage)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .lineLimit(1)
+
+                Spacer()
+            }
+            .disabled(session.isManualPlanning)
+            .padding(.horizontal)
+            .padding(.bottom)
 
             Divider()
 

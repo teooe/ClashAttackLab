@@ -129,6 +129,17 @@ final class BattleScene: SKScene {
         simulation.togglePause()
     }
 
+    func heroAbilityState(for kind: BattleEntityKind) -> HeroAbilityState {
+        simulation.heroAbilityState(for: kind)
+    }
+
+    @discardableResult
+    func activateHeroAbility(for kind: BattleEntityKind) -> Bool {
+        let didActivate = simulation.activateHeroAbility(for: kind)
+        updatePresentation()
+        return didActivate
+    }
+
     func restartSimulation() {
         simulation.reset()
         lastUpdateTime = nil

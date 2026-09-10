@@ -45,6 +45,14 @@ nonisolated struct TargetingProfile {
     let evidence: MechanicEvidence
 }
 
+nonisolated enum HeroAbilityState: Equatable {
+    case notDeployed
+    case ready
+    case active
+    case used
+    case defeated
+}
+
 nonisolated struct HeroAbilityDefinition {
     let displayName: String
     let activationHealthFraction: Double
