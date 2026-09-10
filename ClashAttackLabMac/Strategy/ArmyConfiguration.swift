@@ -21,6 +21,7 @@ nonisolated struct ArmyConfiguration: Equatable {
     var stoneSlammers: Int
     var healSpells: Int
     var rageSpells: Int
+    var freezeSpells: Int
 
     init(
         giants: Int,
@@ -30,6 +31,7 @@ nonisolated struct ArmyConfiguration: Equatable {
         wizards: Int,
         healSpells: Int,
         rageSpells: Int,
+        freezeSpells: Int = 0,
         balloons: Int = 0,
         dragons: Int = 0,
         barbarianKings: Int = 0,
@@ -50,6 +52,7 @@ nonisolated struct ArmyConfiguration: Equatable {
         self.stoneSlammers = stoneSlammers
         self.healSpells = healSpells
         self.rageSpells = rageSpells
+        self.freezeSpells = freezeSpells
     }
 
     static let prototypeDefault = ArmyConfiguration(
@@ -60,6 +63,7 @@ nonisolated struct ArmyConfiguration: Equatable {
         wizards: 1,
         healSpells: 1,
         rageSpells: 1,
+        freezeSpells: 1,
         balloons: 2,
         dragons: 1,
         barbarianKings: 1,
@@ -85,7 +89,7 @@ nonisolated struct ArmyConfiguration: Equatable {
     }
 
     var spellCapacityUsed: Int {
-        healSpells + rageSpells
+        healSpells + rageSpells + freezeSpells
     }
 
     var distinctTroopKindCount: Int {
@@ -178,6 +182,8 @@ nonisolated struct ArmyConfiguration: Equatable {
             return healSpells
         case .rage:
             return rageSpells
+        case .freeze:
+            return freezeSpells
         }
     }
 
@@ -223,7 +229,8 @@ nonisolated struct ArmyConfiguration: Equatable {
 
     var spellSequence: [BattleSpellKind] {
         Array(repeating: .heal, count: healSpells) +
-            Array(repeating: .rage, count: rageSpells)
+            Array(repeating: .rage, count: rageSpells) +
+            Array(repeating: .freeze, count: freezeSpells)
     }
 
     private var allCountsAreNonnegative: Bool {
@@ -240,7 +247,8 @@ nonisolated struct ArmyConfiguration: Equatable {
             wallWreckers,
             stoneSlammers,
             healSpells,
-            rageSpells
+            rageSpells,
+            freezeSpells
         ].allSatisfy { $0 >= 0 }
     }
 }

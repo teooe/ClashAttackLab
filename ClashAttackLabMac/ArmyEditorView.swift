@@ -136,6 +136,12 @@ struct ArmyEditorView: View {
                         title: "Furia",
                         value: $draft.rageSpells
                     )
+                    spellRow(
+                        symbol: "F",
+                        color: .cyan,
+                        title: "Gelo",
+                        value: $draft.freezeSpells
+                    )
                 }
                 .padding(.vertical, 4)
             }

@@ -258,6 +258,13 @@ struct ContentView: View {
                         detail: "danno + velocità"
                     )
 
+                    legendItem(
+                        symbol: "F",
+                        color: .cyan,
+                        title: "Gelo",
+                        detail: "blocca le difese"
+                    )
+
                     Spacer()
 
                     Text("Comportamenti e valori: prototipo esplicito")
@@ -691,6 +698,8 @@ struct ContentView: View {
             return "Cura"
         case .rage:
             return "Furia"
+        case .freeze:
+            return "Gelo"
         }
     }
 
@@ -700,6 +709,8 @@ struct ContentView: View {
             return "H"
         case .rage:
             return "R"
+        case .freeze:
+            return "F"
         }
     }
 
@@ -709,6 +720,8 @@ struct ContentView: View {
             return .green
         case .rage:
             return .purple
+        case .freeze:
+            return .cyan
         }
     }
 

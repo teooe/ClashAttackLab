@@ -17,6 +17,7 @@ nonisolated struct PrototypeGameData: GameDataProviding {
                 damageMultiplier: 1,
                 movementSpeedMultiplier: 1,
                 attackSpeedMultiplier: 1,
+                disablesDefenses: false,
                 behaviorEvidence: .documented,
                 tuningEvidence: .prototype
             )
@@ -30,6 +31,21 @@ nonisolated struct PrototypeGameData: GameDataProviding {
                 damageMultiplier: 1.5,
                 movementSpeedMultiplier: 1.35,
                 attackSpeedMultiplier: 1.35,
+                disablesDefenses: false,
+                behaviorEvidence: .documented,
+                tuningEvidence: .prototype
+            )
+
+        case .freeze:
+            return SpellDefinition(
+                displayName: "Gelo",
+                radius: 135,
+                duration: 4,
+                healingPerSecond: 0,
+                damageMultiplier: 1,
+                movementSpeedMultiplier: 1,
+                attackSpeedMultiplier: 1,
+                disablesDefenses: true,
                 behaviorEvidence: .documented,
                 tuningEvidence: .prototype
             )

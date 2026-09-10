@@ -216,6 +216,23 @@ final class SimulationEngine {
         gameData.spellDefinition(for: kind)
     }
 
+    func isDefenseDisabled(_ entityID: UUID) -> Bool {
+        guard let defense = entities.first(where: {
+            $0.id == entityID &&
+                $0.isAlive &&
+                definition(for: $0.kind).role == .defense
+        }) else {
+            return false
+        }
+
+        return activeSpells.contains { spell in
+            let spellData = spellDefinition(for: spell.kind)
+            return spellData.disablesDefenses &&
+                distance(from: defense.position, to: spell.position) <=
+                    spellData.radius
+        }
+    }
+
     func healthFraction(for entity: BattleEntity) -> Double {
         let maximum = definition(for: entity.kind).maxHitPoints
         guard maximum > 0 else {
@@ -450,6 +467,11 @@ final class SimulationEngine {
         possibleTargets: [Int],
         pendingDamage: inout [UUID: Double]
     ) {
+        guard !isDefenseDisabled(entities[defenseIndex].id) else {
+            entities[defenseIndex].currentTargetID = nil
+            return
+        }
+
         let definition = definition(for: entities[defenseIndex].kind)
         let targetIndex = resolveDefenseTarget(
             for: defenseIndex,

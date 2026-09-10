@@ -1050,7 +1050,7 @@ struct ClashAttackLabMacTests {
 
         #expect(plans.count == 24)
         #expect(baseline.totalDeploymentCount == 15)
-        #expect(baseline.totalSpellCount == 2)
+        #expect(baseline.totalSpellCount == 3)
 
         for plan in plans.dropFirst() {
             #expect(plan.deployments.map(\.kind) == baselineKinds)
@@ -2489,4 +2489,65 @@ func stoneSlammerFliesToDefensesAndUsesTheSharedPayloadSystem() throws {
     )
 
     #expect(decision?.targetIndex == 2)
+}
+
+
+@Test
+func freezeSpellDisablesDefenseOnlyWhileItsZoneIsActive() {
+    let grid = PrototypeBattleMap.makeNavigationGrid()
+    let gameData = PrototypeGameData()
+    let cannonPosition = grid.worldPosition(
+        for: GridCoordinate(column: 10, row: 8)
+    )
+    let cannon = BattleEntity(
+        kind: .cannon,
+        position: cannonPosition
+    )
+    let giantPosition = grid.worldPosition(
+        for: GridCoordinate(column: 1, row: 8)
+    )
+    let plan = AttackPlan(
+        name: "Controllo Gelo",
+        deployments: [
+            DeploymentOrder(
+                kind: .giant,
+                position: giantPosition,
+                deploymentTime: 0
+            )
+        ],
+        spellDeployments: [
+            SpellDeploymentOrder(
+                kind: .freeze,
+                position: cannonPosition,
+                deploymentTime: 0
+            )
+        ]
+    )
+    let engine = SimulationEngine(
+        entities: [
+            cannon,
+            BattleEntity(
+                kind: .townHall,
+                position: grid.worldPosition(
+                    for: GridCoordinate(column: 22, row: 8)
+                )
+            )
+        ],
+        attackPlan: plan,
+        gameData: gameData,
+        navigationGrid: grid
+    )
+    engine.start()
+    engine.advance(by: 0.25)
+
+    #expect(engine.isDefenseDisabled(cannon.id))
+    #expect(
+        engine.spellDefinition(for: .freeze).disablesDefenses
+    )
+
+    for _ in 0..<20 {
+        engine.advance(by: 0.25)
+    }
+
+    #expect(!engine.isDefenseDisabled(cannon.id))
 }

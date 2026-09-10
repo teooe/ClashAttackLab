@@ -85,7 +85,7 @@ final class AttackLabSession: ObservableObject {
     }
 
     var manualSpellChoices: [BattleSpellKind] {
-        [.heal, .rage].filter {
+        [.heal, .rage, .freeze].filter {
             armyConfiguration.spellCount(for: $0) > 0
         }
     }

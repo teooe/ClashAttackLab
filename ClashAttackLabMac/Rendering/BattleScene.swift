@@ -803,7 +803,10 @@ final class BattleScene: SKScene {
                 x: displayPosition.x,
                 y: displayPosition.y
             )
-            visual.root.alpha = entity.isAlive ? 1 : 0.08
+            let isFrozen = simulation.isDefenseDisabled(entity.id)
+            visual.root.alpha = entity.isAlive
+                ? (isFrozen ? 0.62 : 1)
+                : 0.08
             visual.root.setScale(
                 entity.heroAbilityIsActive ? 1.12 : 1
             )
@@ -813,8 +816,9 @@ final class BattleScene: SKScene {
             let abilityLabel = entity.heroAbilityIsActive
                 ? " · \(definition.heroAbility?.displayName ?? "")"
                 : ""
+            let frozenLabel = isFrozen ? " · CONGELATA" : ""
             visual.healthLabel.text =
-                "\(definition.displayName): \(Int(entity.hitPoints.rounded(.up)))/\(Int(definition.maxHitPoints))\(abilityLabel)"
+                "\(definition.displayName): \(Int(entity.hitPoints.rounded(.up)))/\(Int(definition.maxHitPoints))\(abilityLabel)\(frozenLabel)"
 
             let visibleTargetID =
                 entity.blockingWallID ??
@@ -989,6 +993,8 @@ final class BattleScene: SKScene {
             return .systemGreen
         case .rage:
             return .systemPurple
+        case .freeze:
+            return .systemCyan
         }
     }
 
@@ -998,6 +1004,8 @@ final class BattleScene: SKScene {
             return "H"
         case .rage:
             return "R"
+        case .freeze:
+            return "F"
         }
     }
 

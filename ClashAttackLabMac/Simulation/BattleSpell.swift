@@ -4,6 +4,7 @@ import Foundation
 nonisolated enum BattleSpellKind: Hashable, Codable {
     case heal
     case rage
+    case freeze
 }
 
 /// Separates documented spell behavior from temporary tuning values.
@@ -15,6 +16,7 @@ nonisolated struct SpellDefinition {
     let damageMultiplier: Double
     let movementSpeedMultiplier: Double
     let attackSpeedMultiplier: Double
+    let disablesDefenses: Bool
     let behaviorEvidence: MechanicEvidence
     let tuningEvidence: MechanicEvidence
 }

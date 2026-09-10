@@ -204,7 +204,7 @@ nonisolated struct AttackPlanGenerator {
             let row = formation.usesEntryAdvice
                 ? entryAdvice?.preferredRecommendation?.laneRow ?? fallbackRow
                 : fallbackRow
-            let column = kind == .heal ? 13 : 18
+            let column = spellColumn(for: kind)
 
             return SpellDeploymentOrder(
                 id: spellIDs[index],
@@ -225,6 +225,17 @@ nonisolated struct AttackPlanGenerator {
             deployments: deployments,
             spellDeployments: spellDeployments
         )
+    }
+
+    private func spellColumn(for kind: BattleSpellKind) -> Int {
+        switch kind {
+        case .heal:
+            return 13
+        case .rage:
+            return 18
+        case .freeze:
+            return 16
+        }
     }
 
     private func deploymentRow(
