@@ -13,6 +13,7 @@ struct ContentView: View {
 
     var body: some View {
         VStack(spacing: 0) {
+            SearchProgressView(session: session)
             HStack {
                 VStack(alignment: .leading, spacing: 4) {
                     Text("Clash Attack Lab")
@@ -946,6 +947,36 @@ struct ContentView: View {
                     .font(.caption2)
                     .foregroundStyle(.secondary)
             }
+        }
+    }
+}
+
+struct SearchProgressView: View {
+    @ObservedObject var session: AttackLabSession
+
+    var body: some View {
+        if session.isSearching {
+            HStack(spacing: 12) {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(session.searchTitle)
+                        .font(.caption.bold())
+                    ProgressView(
+                        value: Double(session.searchCompleted),
+                        total: Double(max(1, session.searchTotal))
+                    )
+                    Text("\(session.searchCompleted)/\(session.searchTotal) simulazioni")
+                        .font(.caption2.monospacedDigit())
+                }
+                Button("Annulla ricerca") { session.cancelSearch() }
+                    .font(.caption)
+            }
+            .padding(10)
+            .background(Color.accentColor.opacity(0.08))
+        } else if !session.searchMessage.isEmpty {
+            Text(session.searchMessage)
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .padding(6)
         }
     }
 }

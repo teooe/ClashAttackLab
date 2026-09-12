@@ -6,6 +6,7 @@ struct SavedBaseAnalysisView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
+            SearchProgressView(session: session)
             HStack {
                 Label(
                     "Analisi basi locali",

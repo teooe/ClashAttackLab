@@ -3,6 +3,56 @@ import Foundation
 import SpriteKit
 
 final class AttackLabSession: ObservableObject {
+    @Published private(set) var isSearching = false
+    @Published private(set) var searchTitle = ""
+    @Published private(set) var searchCompleted = 0
+    @Published private(set) var searchTotal = 0
+    @Published private(set) var searchMessage = ""
+    private var searchTask: Task<Void, Never>?
+    private var searchID: UUID?
+
+    func cancelSearch() {
+        guard isSearching else { return }
+        searchTask?.cancel()
+        searchTask = nil
+        searchID = nil
+        isSearching = false
+        searchMessage = "Ricerca annullata. I risultati precedenti restano disponibili."
+    }
+
+    private func startSearch(
+        title: String, total: Int,
+        operation: @escaping @MainActor () async throws -> Void
+    ) {
+        cancelSearch()
+        let id = UUID()
+        searchID = id
+        isSearching = true
+        searchTitle = title
+        searchTotal = total
+        searchCompleted = 0
+        searchMessage = ""
+        searchTask = Task { @MainActor [weak self] in
+            do {
+                try Task.checkCancellation()
+                try await operation()
+                guard let self, self.searchID == id else { return }
+                self.searchCompleted = total
+                self.searchMessage = "Ricerca completata."
+            } catch is CancellationError {
+                guard let self, self.searchID == id else { return }
+                self.searchMessage = "Ricerca annullata."
+            } catch {
+                guard let self, self.searchID == id else { return }
+                self.searchMessage = "Ricerca non completata: \(error.localizedDescription)"
+            }
+            guard let self, self.searchID == id else { return }
+            self.isSearching = false
+            self.searchTask = nil
+            self.searchID = nil
+        }
+    }
+
     @Published private(set) var evaluations: [AttackPlanEvaluation] = []
     @Published private(set) var selectedPlanID: UUID?
     @Published private(set) var armyConfiguration: ArmyConfiguration
@@ -36,6 +86,7 @@ final class AttackLabSession: ObservableObject {
     }
 
     func activateHeroAbility(for kind: BattleEntityKind) {
+        cancelSearch()
         let definition = gameData.definition(for: kind)
         let stateBeforeActivation = scene.heroAbilityState(for: kind)
 
@@ -260,57 +311,53 @@ final class AttackLabSession: ObservableObject {
 
     /// Tests the current plan on the active base and every saved custom base.
     func analyzeCurrentPlanAcrossSavedBases() {
-        guard !isManualPlanning else {
-            return
-        }
-
-        var seenBaseIDs = Set<UUID>()
+        guard !isManualPlanning else { return }
+        let plan = activePlan
+        var seen = Set<UUID>()
         let bases = ([activeBaseSnapshot] + savedBases).filter {
-            seenBaseIDs.insert($0.id).inserted &&
-                $0.isValid(on: navigationGrid)
+            seen.insert($0.id).inserted && $0.isValid(on: navigationGrid)
         }
-
-        let entries = bases.compactMap {
-            snapshot -> CustomBaseAttackEvaluation? in
-            let entities = snapshot.makeEntities(
-                navigationGrid: navigationGrid
-            )
-            let evaluator = AttackPlanEvaluator(
-                baseEntities: entities,
-                gameData: gameData,
-                navigationGrid: navigationGrid
-            )
-
-            guard let evaluation = evaluator.evaluate([activePlan]).first else {
-                return nil
+        startSearch(title: "Analisi basi salvate", total: bases.count) { [weak self] in
+            guard let self else { return }
+            var entries: [CustomBaseAttackEvaluation] = []
+            for snapshot in bases {
+                try Task.checkCancellation()
+                let evaluator = AttackPlanEvaluator(
+                    baseEntities: snapshot.makeEntities(navigationGrid: self.navigationGrid),
+                    gameData: self.gameData, navigationGrid: self.navigationGrid
+                )
+                let results = try await evaluator.evaluateAsync([plan])
+                try Task.checkCancellation()
+                if let evaluation = results.first {
+                    entries.append(CustomBaseAttackEvaluation(base: snapshot, evaluation: evaluation))
+                }
+                self.searchCompleted += 1
             }
-
-            return CustomBaseAttackEvaluation(
-                base: snapshot,
-                evaluation: evaluation
-            )
+            self.savedBasePlanAnalysis = SavedBasePlanAnalysis(plan: plan, entries: entries)
         }
-
-        savedBasePlanAnalysis = SavedBasePlanAnalysis(
-            plan: activePlan,
-            entries: entries
-        )
     }
 
     func analyzeCurrentPlanAcrossBases() {
         guard !isManualPlanning else { return }
-        currentPlanAnalysis = makeRobustnessAnalysis(for: activePlan)
+        let plan = activePlan
+        startSearch(title: "Analisi su più basi", total: PrototypeBaseLayout.allCases.count) { [weak self] in
+            guard let self else { return }
+            let result = try await self.makeRobustnessAnalysis(for: plan)
+            try Task.checkCancellation()
+            self.currentPlanAnalysis = result
+        }
     }
 
     func rankSavedPlansAcrossBases() {
         guard !isManualPlanning else { return }
-
-        var seenPlanIDs = Set<UUID>()
-        let candidates = ([activePlan] + savedPlans).filter {
-            seenPlanIDs.insert($0.id).inserted
+        var seen = Set<UUID>()
+        let plans = ([activePlan] + savedPlans).filter { seen.insert($0.id).inserted }
+        startSearch(title: "Classifica piani salvati", total: plans.count * PrototypeBaseLayout.allCases.count) { [weak self] in
+            guard let self else { return }
+            let results = try await self.analyzePlans(plans)
+            try Task.checkCancellation()
+            self.robustnessRankings = results
         }
-        let analyses = candidates.map { makeRobustnessAnalysis(for: $0) }
-        robustnessRankings = AttackPlanRobustnessRanker.rank(analyses)
     }
 
     /// Runs the automatically generated plans against every prototype base.
@@ -319,17 +366,19 @@ final class AttackLabSession: ObservableObject {
     /// on screen. The result is a robustness tournament that exposes strategies
     /// which remain effective when the layout changes.
     func rankGeneratedPlansAcrossBases() {
-        guard !isManualPlanning else {
-            return
+        guard !isManualPlanning else { return }
+        let plans = candidatePlans
+        startSearch(title: "Torneo strategie", total: plans.count * PrototypeBaseLayout.allCases.count) { [weak self] in
+            guard let self else { return }
+            let results = try await self.analyzePlans(plans)
+            try Task.checkCancellation()
+            self.generatedPlanRankings = results
         }
-
-        let analyses = candidatePlans.map { makeRobustnessAnalysis(for: $0) }
-        generatedPlanRankings = AttackPlanRobustnessRanker.rank(analyses)
     }
 
     func loadGeneratedPlan(_ plan: AttackPlan) {
         loadSavedPlan(plan)
-        currentPlanAnalysis = makeRobustnessAnalysis(for: plan)
+        analyzeCurrentPlanAcrossBases()
     }
 
     /// Searches lane and deployment-tempo variants of the active plan.
@@ -337,19 +386,17 @@ final class AttackLabSession: ObservableObject {
     /// Each candidate is tested on every available prototype base before the
     /// deterministic ranking chooses the recommendation.
     func refineCurrentPlanAcrossBases() {
-        guard !isManualPlanning else {
-            return
+        guard !isManualPlanning else { return }
+        let plan = activePlan
+        let variants = AttackPlanRefiner(navigationGrid: navigationGrid).variants(for: plan)
+        startSearch(title: "Ottimizzazione", total: variants.count * PrototypeBaseLayout.allCases.count) { [weak self] in
+            guard let self else { return }
+            let results = try await self.analyzePlans(variants)
+            try Task.checkCancellation()
+            self.refinementReport = AttackPlanRefinementReport(
+                sourcePlan: plan, rankedCandidates: results
+            )
         }
-
-        let variants = AttackPlanRefiner(
-            navigationGrid: navigationGrid
-        ).variants(for: activePlan)
-        let analyses = variants.map { makeRobustnessAnalysis(for: $0) }
-
-        refinementReport = AttackPlanRefinementReport(
-            sourcePlan: activePlan,
-            rankedCandidates: AttackPlanRobustnessRanker.rank(analyses)
-        )
     }
 
     func loadRefinedPlan(_ plan: AttackPlan) {
@@ -383,34 +430,36 @@ final class AttackLabSession: ObservableObject {
 
     private func makeRobustnessAnalysis(
         for plan: AttackPlan
-    ) -> AttackPlanRobustnessAnalysis {
-        let entries: [BaseAttackEvaluation] =
-            PrototypeBaseLayout.allCases.compactMap {
-                layout -> BaseAttackEvaluation? in
-                let entities = PrototypeBattleMap.makeBaseEntities(
-                    navigationGrid: navigationGrid,
-                    layout: layout
-                )
-                let layoutEvaluator = AttackPlanEvaluator(
-                    baseEntities: entities,
-                    gameData: gameData,
-                    navigationGrid: navigationGrid
-                )
-
-                guard let evaluation = layoutEvaluator.evaluate([plan]).first else {
-                    return nil
-                }
-
-                return BaseAttackEvaluation(
-                    layout: layout,
-                    evaluation: evaluation
-                )
+    ) async throws -> AttackPlanRobustnessAnalysis {
+        var entries: [BaseAttackEvaluation] = []
+        for layout in PrototypeBaseLayout.allCases {
+            try Task.checkCancellation()
+            let entities = PrototypeBattleMap.makeBaseEntities(
+                navigationGrid: navigationGrid, layout: layout
+            )
+            let evaluator = AttackPlanEvaluator(
+                baseEntities: entities, gameData: gameData,
+                navigationGrid: navigationGrid
+            )
+            let results = try await evaluator.evaluateAsync([plan])
+            try Task.checkCancellation()
+            if let evaluation = results.first {
+                entries.append(BaseAttackEvaluation(layout: layout, evaluation: evaluation))
             }
+            searchCompleted += 1
+        }
+        return AttackPlanRobustnessAnalysis(plan: plan, entries: entries)
+    }
 
-        return AttackPlanRobustnessAnalysis(
-            plan: plan,
-            entries: entries
-        )
+    private func analyzePlans(
+        _ plans: [AttackPlan]
+    ) async throws -> [AttackPlanRobustnessAnalysis] {
+        var results: [AttackPlanRobustnessAnalysis] = []
+        for plan in plans {
+            results.append(try await makeRobustnessAnalysis(for: plan))
+        }
+        try Task.checkCancellation()
+        return AttackPlanRobustnessRanker.rank(results)
     }
 
     func clearAttackHistory() {
@@ -448,12 +497,16 @@ final class AttackLabSession: ObservableObject {
     }
 
     func compareSavedPlans(_ plans: [AttackPlan]) {
-        guard !plans.isEmpty else {
-            comparisonEvaluations = []
-            return
+        guard !isManualPlanning else { return }
+        let evaluator = self.evaluator
+        startSearch(title: "Confronto piani", total: plans.count) { [weak self] in
+            guard let self else { return }
+            let results = try await evaluator.evaluateAsync(plans) {
+                self.searchCompleted = $0
+            }
+            try Task.checkCancellation()
+            self.comparisonEvaluations = results
         }
-
-        comparisonEvaluations = evaluator.evaluate(plans)
     }
 
     func saveCurrentPlan() {
@@ -462,6 +515,7 @@ final class AttackLabSession: ObservableObject {
     }
 
     func loadSavedPlan(_ plan: AttackPlan) {
+        cancelSearch()
         guard !isManualPlanning else { return }
         activePlan = plan
         selectedPlanID = plan.id
@@ -471,6 +525,7 @@ final class AttackLabSession: ObservableObject {
     }
 
     func editSavedPlan(_ plan: AttackPlan) {
+        cancelSearch()
         guard !isManualPlanning else { return }
 
         manualPlan = ManualAttackPlan(
@@ -516,23 +571,29 @@ final class AttackLabSession: ObservableObject {
     }
 
     func findBestAttack() {
-        guard !isManualPlanning else {
-            return
+        guard !isManualPlanning else { return }
+        let plans = candidatePlans
+        let evaluator = self.evaluator
+        startSearch(title: "Ricerca attacco", total: plans.count) { [weak self] in
+            guard let self else { return }
+            let results = try await evaluator.evaluateAsync(plans) {
+                self.searchCompleted = $0
+            }
+            try Task.checkCancellation()
+            self.evaluations = results
+            if let best = results.first {
+                self.activePlan = best.plan
+                self.selectedPlanID = best.plan.id
+                self.lastSimulationResult = nil
+                self.scene.loadAttackPlan(best.plan)
+            }
         }
-
-        let rankedEvaluations = evaluator.evaluate(candidatePlans)
-        evaluations = rankedEvaluations
-
-        guard let best = rankedEvaluations.first else {
-            return
-        }
-
-        select(best)
     }
 
     func applyArmyConfiguration(
         _ configuration: ArmyConfiguration
     ) {
+        cancelSearch()
         guard configuration.isValid else {
             return
         }
@@ -559,6 +620,7 @@ final class AttackLabSession: ObservableObject {
     }
 
     func applyBaseLayout(_ layout: PrototypeBaseLayout) {
+        cancelSearch()
         let entities = PrototypeBattleMap.makeBaseEntities(
             navigationGrid: navigationGrid,
             layout: layout
@@ -601,6 +663,7 @@ final class AttackLabSession: ObservableObject {
 
     /// Loads a validated JSON base as a live simulation scenario.
     func applyImportedBase(_ snapshot: BaseSnapshot) {
+        cancelSearch()
         guard !isManualPlanning, snapshot.isValid(on: navigationGrid) else {
             return
         }
@@ -664,6 +727,7 @@ final class AttackLabSession: ObservableObject {
     }
 
     func beginManualPlanning() {
+        cancelSearch()
         guard !isManualPlanning else {
             return
         }
@@ -760,6 +824,7 @@ final class AttackLabSession: ObservableObject {
     }
 
     func select(_ evaluation: AttackPlanEvaluation) {
+        cancelSearch()
         guard !isManualPlanning else {
             return
         }

@@ -10,6 +10,7 @@ struct PlanLibraryView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
+            SearchProgressView(session: session)
             HStack {
                 Label("Piani d’attacco", systemImage: "tray.full")
                     .font(.title2.bold())

@@ -6,6 +6,7 @@ struct StrategyRankingView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
+            SearchProgressView(session: session)
             HStack {
                 Label("Classifica robustezza", systemImage: "trophy")
                     .font(.title2.bold())

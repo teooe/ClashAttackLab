@@ -3015,3 +3015,102 @@ func heroTimingSearchDeduplicatesClampedTimesAndSkipsNonHeroes() {
     #expect(variants.count == 1)
     #expect(variants.first?.heroAbilityOrders.first?.activationTime == 59)
 }
+
+
+@Test
+func cooperativeEvaluationMatchesSynchronousResults() async throws {
+    let grid = PrototypeBattleMap.makeNavigationGrid()
+    let base = PrototypeBattleMap.makeBaseEntities(navigationGrid: grid)
+    let evaluator = AttackPlanEvaluator(
+        baseEntities: base, gameData: PrototypeGameData(), navigationGrid: grid
+    )
+    let plans = Array(AttackPlanGenerator(navigationGrid: grid).generate().prefix(2))
+    let expected = evaluator.evaluate(plans)
+    var progress: [Int] = []
+    let actual = try await evaluator.evaluateAsync(plans) { progress.append($0) }
+    #expect(progress == [0, 1, 2])
+    #expect(actual.map(\.plan.id) == expected.map(\.plan.id))
+    #expect(actual.map(\.stars) == expected.map(\.stars))
+    #expect(actual.map(\.destructionPercentage) == expected.map(\.destructionPercentage))
+    #expect(actual.map { $0.result.elapsedTime } == expected.map { $0.result.elapsedTime })
+    #expect(actual.map { $0.result.survivingTroops } == expected.map { $0.result.survivingTroops })
+    #expect(actual.map { $0.result.metrics.damageToBase } == expected.map { $0.result.metrics.damageToBase })
+}
+
+@Test
+func cooperativeEvaluationHonorsCancellationBeforeStarting() async {
+    let grid = PrototypeBattleMap.makeNavigationGrid()
+    let evaluator = AttackPlanEvaluator(
+        baseEntities: PrototypeBattleMap.makeBaseEntities(navigationGrid: grid),
+        gameData: PrototypeGameData(), navigationGrid: grid
+    )
+    let plans = AttackPlanGenerator(navigationGrid: grid).generate()
+    let task = Task { @MainActor in
+        try await evaluator.evaluateAsync(plans)
+    }
+    task.cancel()
+    do {
+        _ = try await task.value
+        Issue.record("A cancelled evaluation must not return a ranking.")
+    } catch is CancellationError {
+        // Expected.
+    } catch {
+        Issue.record("Unexpected error: \(error)")
+    }
+}
+
+@Test
+func cooperativeEvaluationYieldsAndCanBeCancelledDuringSearch() async {
+    let grid = PrototypeBattleMap.makeNavigationGrid()
+    let evaluator = AttackPlanEvaluator(
+        baseEntities: PrototypeBattleMap.makeBaseEntities(navigationGrid: grid),
+        gameData: PrototypeGameData(), navigationGrid: grid
+    )
+    let plans = AttackPlanGenerator(navigationGrid: grid).generate()
+    var started = false
+    var completed = 0
+    let task = Task { @MainActor in
+        try await evaluator.evaluateAsync(plans) {
+            started = true
+            completed = $0
+        }
+    }
+    while !started { await Task.yield() }
+    task.cancel()
+    do {
+        _ = try await task.value
+        Issue.record("Interrupted search must not publish partial results.")
+    } catch is CancellationError {
+        #expect(completed < plans.count)
+    } catch {
+        Issue.record("Unexpected error: \(error)")
+    }
+}
+
+@Test
+func replacingAndCancellingSessionSearchDoesNotPublishStaleResults() async {
+    let session = AttackLabSession()
+    session.findBestAttack()
+    #expect(session.isSearching)
+    session.rankGeneratedPlansAcrossBases()
+    #expect(session.isSearching)
+    #expect(session.searchTitle == "Torneo strategie")
+    session.cancelSearch()
+    #expect(!session.isSearching)
+    for _ in 0..<10 { await Task.yield() }
+    #expect(session.evaluations.isEmpty)
+    #expect(session.generatedPlanRankings.isEmpty)
+    #expect(session.searchMessage.contains("annullata"))
+}
+
+@Test
+func loadingAnotherPlanCancelsAnActiveSearch() async {
+    let session = AttackLabSession()
+    session.findBestAttack()
+    let plan = AttackPlan(name: "Replacement", deployments: [])
+    session.loadSavedPlan(plan)
+    #expect(!session.isSearching)
+    for _ in 0..<10 { await Task.yield() }
+    #expect(session.selectedPlanID == plan.id)
+    #expect(session.evaluations.isEmpty)
+}

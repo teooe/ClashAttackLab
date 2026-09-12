@@ -6,6 +6,7 @@ struct StrategyRefinementView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
+            SearchProgressView(session: session)
             HStack {
                 Label("Ottimizzazione del piano", systemImage: "wand.and.stars")
                     .font(.title2.bold())

@@ -46,6 +46,45 @@ struct AttackPlanEvaluator {
             .sorted(by: isBetter)
     }
 
+    /// Cooperative evaluation on the simulation actor. Yields between bounded
+    /// batches so UI events and cancellation can run without changing ticks.
+    func evaluateAsync(
+        _ plans: [AttackPlan],
+        progress: (Int) -> Void = { _ in }
+    ) async throws -> [AttackPlanEvaluation] {
+        var evaluations: [AttackPlanEvaluation] = []
+        try Task.checkCancellation()
+        progress(0)
+        for (index, plan) in plans.enumerated() {
+            let engine = SimulationEngine(
+                entities: baseEntities, attackPlan: plan,
+                gameData: gameData, navigationGrid: navigationGrid
+            )
+            engine.start()
+            for iteration in 0..<300 {
+                try Task.checkCancellation()
+                if case .finished = engine.status { break }
+                engine.advance(by: 0.25)
+                if iteration.isMultiple(of: 4) {
+                    await Task.yield()
+                }
+            }
+            try Task.checkCancellation()
+            guard case .finished(let result) = engine.status else {
+                throw EvaluationError.incompleteSimulation
+            }
+            evaluations.append(AttackPlanEvaluation(plan: plan, result: result))
+            progress(index + 1)
+            await Task.yield()
+        }
+        try Task.checkCancellation()
+        return evaluations.sorted(by: isBetter)
+    }
+
+    enum EvaluationError: Error {
+        case incompleteSimulation
+    }
+
     private func evaluate(
         _ plan: AttackPlan
     ) -> AttackPlanEvaluation? {

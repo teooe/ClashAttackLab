@@ -12,6 +12,7 @@ struct StrategyAnalysisView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
+            SearchProgressView(session: session)
             HStack {
                 Label("Analisi strategica", systemImage: "chart.bar.xaxis")
                     .font(.title2.bold())
