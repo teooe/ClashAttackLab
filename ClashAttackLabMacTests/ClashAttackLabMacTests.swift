@@ -2936,3 +2936,82 @@ func editedHeroScheduleRunsAtTheSelectedTime() throws {
     for _ in 0..<9 { engine.advance(by: 0.25) }
     #expect(engine.heroAbilityState(for: .barbarianKing) == .ready)
 }
+
+
+@Test
+func heroTimingSearchPreservesArmySpellsAndBaseline() throws {
+    let grid = PrototypeBattleMap.makeNavigationGrid()
+    let position = grid.worldPosition(for: GridCoordinate(column: 1, row: 8))
+    let king = DeploymentOrder(kind: .barbarianKing, position: position, deploymentTime: 1)
+    let queen = DeploymentOrder(kind: .archerQueen, position: position, deploymentTime: 3)
+    let plan = AttackPlan(
+        name: "Hero search", deployments: [king, queen],
+        spellDeployments: [SpellDeploymentOrder(
+            kind: .rage, position: position, deploymentTime: 5
+        )]
+    )
+    let refiner = AttackPlanRefiner(navigationGrid: grid)
+    let variants = refiner.heroTimingVariants(for: plan)
+    #expect(!variants.isEmpty)
+    #expect(variants.count <= 9)
+    let fullSearch = refiner.variants(for: plan)
+    #expect(fullSearch.contains { $0.id == plan.id })
+    #expect(fullSearch.count == 21 + variants.count)
+    for variant in variants {
+        #expect(variant.deployments.map(\.id) == plan.deployments.map(\.id))
+        #expect(variant.deployments.map(\.entityID) == plan.deployments.map(\.entityID))
+        #expect(variant.deployments.map(\.position) == plan.deployments.map(\.position))
+        #expect(variant.deployments.map(\.deploymentTime) == plan.deployments.map(\.deploymentTime))
+        #expect(variant.spellDeployments.map(\.id) == plan.spellDeployments.map(\.id))
+        #expect(variant.spellDeployments.map(\.deploymentTime) == plan.spellDeployments.map(\.deploymentTime))
+        for command in variant.heroAbilityOrders {
+            let hero = try #require(plan.deployments.first { $0.entityID == command.entityID })
+            #expect(command.activationTime >= hero.deploymentTime)
+            #expect(command.activationTime <= 59)
+        }
+    }
+}
+
+@Test
+func heroTimingSearchIncludesAutomaticAndChangesOneHeroAtATime() {
+    let position = WorldPosition(x: 100, y: 300)
+    let king = DeploymentOrder(kind: .barbarianKing, position: position, deploymentTime: 0)
+    let queen = DeploymentOrder(kind: .archerQueen, position: position, deploymentTime: 0)
+    let plan = AttackPlan(
+        name: "Recorded timings", deployments: [king, queen],
+        heroAbilityOrders: [
+            HeroAbilityOrder(entityID: king.entityID, activationTime: 6),
+            HeroAbilityOrder(entityID: queen.entityID, activationTime: 10)
+        ]
+    )
+    let variants = AttackPlanRefiner(
+        navigationGrid: PrototypeBattleMap.makeNavigationGrid()
+    ).heroTimingVariants(for: plan)
+    #expect(variants.contains { candidate in
+        candidate.heroAbilityOrders.count == 1 &&
+            candidate.heroAbilityOrders.first?.entityID == queen.entityID
+    })
+    #expect(variants.contains { candidate in
+        candidate.heroAbilityOrders.contains {
+            $0.entityID == king.entityID && $0.activationTime == 4
+        } && candidate.heroAbilityOrders.contains {
+            $0.entityID == queen.entityID && $0.activationTime == 10
+        }
+    })
+}
+
+@Test
+func heroTimingSearchDeduplicatesClampedTimesAndSkipsNonHeroes() {
+    let grid = PrototypeBattleMap.makeNavigationGrid()
+    let refiner = AttackPlanRefiner(navigationGrid: grid)
+    let position = WorldPosition(x: 100, y: 300)
+    let ordinary = AttackPlan(name: "No heroes", deployments: [
+        DeploymentOrder(kind: .giant, position: position, deploymentTime: 0)
+    ])
+    #expect(refiner.heroTimingVariants(for: ordinary).isEmpty)
+    let hero = DeploymentOrder(kind: .barbarianKing, position: position, deploymentTime: 59)
+    let late = AttackPlan(name: "Late hero", deployments: [hero])
+    let variants = refiner.heroTimingVariants(for: late)
+    #expect(variants.count == 1)
+    #expect(variants.first?.heroAbilityOrders.first?.activationTime == 59)
+}

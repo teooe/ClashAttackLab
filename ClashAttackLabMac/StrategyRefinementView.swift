@@ -22,7 +22,7 @@ struct StrategyRefinementView: View {
             }
 
             Text(
-                "Conserva esercito e incantesimi: prova corsia, ritmo, profondità del deploy e tempi delle magie su tutte le basi."
+                "Conserva esercito e incantesimi: prova corsia, ritmo, profondità del deploy, tempi delle magie e abilità degli eroi su tutte le basi. L’attivazione automatica a vita bassa resta attiva."
             )
             .font(.callout)
             .foregroundStyle(.secondary)

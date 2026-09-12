@@ -71,7 +71,77 @@ nonisolated struct AttackPlanRefiner {
             )
         ]
 
-        return laneAndTempoVariants + tacticalVariants
+        return laneAndTempoVariants + tacticalVariants +
+            heroTimingVariants(for: sourcePlan)
+    }
+
+    /// A bounded search: at most nine extra simulations per base.
+    /// It changes hero commands independently of deployment and spell timing.
+    /// Automatic low-health activation remains enabled in every candidate.
+    func heroTimingVariants(for sourcePlan: AttackPlan) -> [AttackPlan] {
+        let heroes = Array(sourcePlan.orderedDeployments.filter {
+            ($0.kind == .barbarianKing || $0.kind == .archerQueen) &&
+                $0.deploymentTime.isFinite && (0...59).contains($0.deploymentTime)
+        }.prefix(2))
+        guard !heroes.isEmpty else { return [] }
+        var result: [AttackPlan] = []
+        var signatures: Set<String> = [heroSignature(sourcePlan.heroAbilityOrders)]
+
+        func append(_ commands: [HeroAbilityOrder], label: String) {
+            guard signatures.insert(heroSignature(commands)).inserted else {
+                return
+            }
+            result.append(AttackPlan(
+                name: "\(sourcePlan.name) · \(label)",
+                deployments: sourcePlan.deployments,
+                spellDeployments: sourcePlan.spellDeployments,
+                heroAbilityOrders: commands
+            ))
+        }
+
+        for hero in heroes {
+            let existing = sourcePlan.heroAbilityOrders.first {
+                $0.entityID == hero.entityID
+            }
+            let otherCommands = sourcePlan.heroAbilityOrders.filter {
+                $0.entityID != hero.entityID
+            }
+            let heroName = hero.kind == .barbarianKing ? "Re" : "Regina"
+            append(otherCommands, label: "\(heroName) automatica")
+            let anchor = existing?.activationTime ?? (hero.deploymentTime + 6)
+            for offset in [-2.0, 2.0] {
+                let time = min(59, max(hero.deploymentTime, anchor + offset))
+                let command = HeroAbilityOrder(
+                    id: existing?.id ?? UUID(),
+                    entityID: hero.entityID,
+                    activationTime: time
+                )
+                append(otherCommands + [command],
+                    label: "\(heroName) abilità @ \(String(format: "%.1f", time)) s")
+            }
+        }
+
+        let heroIDs = Set(heroes.map(\.entityID))
+        let remaining = sourcePlan.heroAbilityOrders.filter {
+            !heroIDs.contains($0.entityID)
+        }
+        for delay in [4.0, 8.0, 12.0] {
+            let commands = heroes.map { hero in
+                HeroAbilityOrder(
+                    entityID: hero.entityID,
+                    activationTime: min(59, hero.deploymentTime + delay)
+                )
+            }
+            append(remaining + commands,
+                label: "eroi abilità a +\(Int(delay)) s dal deploy")
+        }
+        return result
+    }
+
+    private func heroSignature(_ commands: [HeroAbilityOrder]) -> String {
+        commands.map {
+            "\($0.entityID.uuidString):\($0.activationTime)"
+        }.sorted().joined(separator: "|")
     }
 
     /// Builds one explainable lane/timing variation for an external planner.
