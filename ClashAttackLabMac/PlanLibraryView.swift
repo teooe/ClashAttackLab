@@ -1,4 +1,5 @@
 import SwiftUI
+import UniformTypeIdentifiers
 
 struct PlanLibraryView: View {
     @ObservedObject var session: AttackLabSession
@@ -7,6 +8,11 @@ struct PlanLibraryView: View {
     @State private var showingRename = false
     @State private var renameText = ""
     @State private var planToRename: AttackPlan?
+    @State private var showingImport = false
+    @State private var showingExport = false
+    @State private var exportDocument = AttackPlanJSONDocument(data: Data())
+    @State private var transferMessage = ""
+    @State private var showingTransferMessage = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
@@ -47,6 +53,17 @@ struct PlanLibraryView: View {
                 Spacer()
 
                 Text("\(session.savedPlans.count) salvati")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+
+            HStack {
+                Button("Importa JSON…") { showingImport = true }
+                Button("Esporta selezionati…") {
+                    exportPlans(session.savedPlans.filter { selectedPlanIDs.contains($0.id) })
+                }
+                .disabled(selectedPlanIDs.isEmpty)
+                Text("File di piani del simulatore; la base si esporta separatamente.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
@@ -102,6 +119,7 @@ struct PlanLibraryView: View {
                             .buttonStyle(.bordered)
 
                             Menu {
+                                Button("Esporta JSON…") { exportPlans([plan]) }
                                 Button("Rinomina") {
                                     planToRename = plan
                                     renameText = plan.name
@@ -157,6 +175,42 @@ struct PlanLibraryView: View {
         }
         .padding(20)
         .frame(minWidth: 760, minHeight: 560)
+        .fileImporter(
+            isPresented: $showingImport,
+            allowedContentTypes: [.json],
+            allowsMultipleSelection: false
+        ) { result in
+            do {
+                guard let url = try result.get().first else { return }
+                let access = url.startAccessingSecurityScopedResource()
+                defer { if access { url.stopAccessingSecurityScopedResource() } }
+                let handle = try FileHandle(forReadingFrom: url)
+                defer { try? handle.close() }
+                let data = try handle.read(upToCount: AttackPlanArchiveCodec.maximumBytes + 1) ?? Data()
+                let count = try session.importAttackPlans(data)
+                showTransferMessage("\(count) piani importati come nuove copie.")
+            } catch {
+                showTransferMessage(error.localizedDescription)
+            }
+        }
+        .fileExporter(
+            isPresented: $showingExport,
+            document: exportDocument,
+            contentType: .json,
+            defaultFilename: "ClashAttackLab-piani"
+        ) { result in
+            switch result {
+            case .success:
+                showTransferMessage("Esportazione completata.")
+            case .failure(let error):
+                showTransferMessage(error.localizedDescription)
+            }
+        }
+        .alert("Scambio piani", isPresented: $showingTransferMessage) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text(transferMessage)
+        }
         .alert("Rinomina piano", isPresented: $showingRename) {
             TextField("Nome", text: $renameText)
             Button("Annulla", role: .cancel) {}
@@ -166,5 +220,41 @@ struct PlanLibraryView: View {
                 }
             }
         }
+    }
+
+    private func exportPlans(_ plans: [AttackPlan]) {
+        do {
+            exportDocument = AttackPlanJSONDocument(
+                data: try session.exportAttackPlans(plans)
+            )
+            showingExport = true
+        } catch {
+            showTransferMessage(error.localizedDescription)
+        }
+    }
+
+    private func showTransferMessage(_ message: String) {
+        transferMessage = message
+        showingTransferMessage = true
+    }
+
+}
+
+
+nonisolated struct AttackPlanJSONDocument: FileDocument {
+    static var readableContentTypes: [UTType] { [.json] }
+    var data: Data
+
+    init(data: Data) { self.data = data }
+
+    init(configuration: ReadConfiguration) throws {
+        guard let contents = configuration.file.regularFileContents else {
+            throw CocoaError(.fileReadCorruptFile)
+        }
+        data = contents
+    }
+
+    func fileWrapper(configuration: WriteConfiguration) throws -> FileWrapper {
+        FileWrapper(regularFileWithContents: data)
     }
 }

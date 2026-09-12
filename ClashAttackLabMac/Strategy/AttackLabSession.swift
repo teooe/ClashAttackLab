@@ -529,6 +529,17 @@ final class AttackLabSession: ObservableObject {
         }
     }
 
+    func exportAttackPlans(_ plans: [AttackPlan]) throws -> Data {
+        try AttackPlanArchiveCodec.encode(plans, on: navigationGrid)
+    }
+
+    @discardableResult
+    func importAttackPlans(_ data: Data) throws -> Int {
+        let count = try planLibrary.importArchive(data, on: navigationGrid)
+        savedPlans = planLibrary.plans
+        return count
+    }
+
     func saveCurrentPlan() {
         planLibrary.save(activePlan)
         savedPlans = planLibrary.plans
@@ -537,6 +548,9 @@ final class AttackLabSession: ObservableObject {
     func loadSavedPlan(_ plan: AttackPlan) {
         cancelSearch()
         guard !isManualPlanning else { return }
+        if plan.armyConfiguration.isValid && plan.armyConfiguration != armyConfiguration {
+            applyArmyConfiguration(plan.armyConfiguration)
+        }
         activePlan = plan
         selectedPlanID = plan.id
         evaluations = []
@@ -548,6 +562,7 @@ final class AttackLabSession: ObservableObject {
         cancelSearch()
         guard !isManualPlanning else { return }
 
+        loadSavedPlan(plan)
         manualPlan = ManualAttackPlan(
             id: plan.id,
             name: plan.name,

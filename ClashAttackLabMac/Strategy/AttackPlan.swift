@@ -389,3 +389,26 @@ nonisolated struct ManualAttackPlan: Identifiable {
         spellDeployments.remove(at: index)
     }
 }
+
+
+extension AttackPlan {
+    /// Army represented by the orders, independent of the current UI selection.
+    nonisolated var armyConfiguration: ArmyConfiguration {
+        ArmyConfiguration(
+            giants: deploymentCount(for: .giant),
+            barbarians: deploymentCount(for: .barbarian),
+            archers: deploymentCount(for: .archer),
+            wallBreakers: deploymentCount(for: .wallBreaker),
+            wizards: deploymentCount(for: .wizard),
+            healSpells: spellDeployments.filter { $0.kind == .heal }.count,
+            rageSpells: spellDeployments.filter { $0.kind == .rage }.count,
+            freezeSpells: spellDeployments.filter { $0.kind == .freeze }.count,
+            balloons: deploymentCount(for: .balloon),
+            dragons: deploymentCount(for: .dragon),
+            barbarianKings: deploymentCount(for: .barbarianKing),
+            archerQueens: deploymentCount(for: .archerQueen),
+            wallWreckers: deploymentCount(for: .wallWrecker),
+            stoneSlammers: deploymentCount(for: .stoneSlammer)
+        )
+    }
+}

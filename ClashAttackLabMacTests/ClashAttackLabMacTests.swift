@@ -3235,3 +3235,157 @@ func weakestBaseUsesDestructionToBreakEqualStarsAndHandlesEmptyResults() {
     #expect(first.weakestEntry?.layout == .corridor)
     #expect(empty.weakestEntry == nil)
 }
+
+
+private func testPlanArchiveData(
+    _ plans: [AttackPlan], grid: NavigationGrid, version: Int = 1
+) throws -> Data {
+    try JSONEncoder().encode(AttackPlanArchive(
+        format: "clash-attack-lab-plans", version: version,
+        profile: "prototype-v1", columns: grid.columns, rows: grid.rows,
+        cellSize: grid.cellSize, origin: grid.origin, plans: plans
+    ))
+}
+
+@Test
+func planArchiveRoundTripsArmySpellsAndHeroCommands() throws {
+    let grid = PrototypeBattleMap.makeNavigationGrid()
+    let basePlan = try #require(AttackPlanGenerator(navigationGrid: grid).generate().first)
+    let hero = try #require(basePlan.deployments.first { $0.kind == .barbarianKing })
+    let plan = basePlan.recordingHeroAbility(HeroAbilityOrder(
+        entityID: hero.entityID, activationTime: hero.deploymentTime + 4
+    ))
+    let data = try AttackPlanArchiveCodec.encode([plan], on: grid)
+    let restored = try #require(AttackPlanArchiveCodec.decode(data, on: grid).first)
+    #expect(restored.id == plan.id)
+    #expect(restored.deployments.map(\.entityID) == plan.deployments.map(\.entityID))
+    #expect(restored.spellDeployments.map(\.id) == plan.spellDeployments.map(\.id))
+    #expect(restored.heroAbilityOrders.first?.entityID == hero.entityID)
+    #expect(restored.heroAbilityOrders.first?.activationTime == hero.deploymentTime + 4)
+    #expect(restored.armyConfiguration == plan.armyConfiguration)
+}
+
+@Test
+func importingPlansAddsCopiesWithoutOverwritingSavedEntries() throws {
+    let key = "clashAttackLab.tests.planImport.\(UUID().uuidString)"
+    defer { UserDefaults.standard.removeObject(forKey: key) }
+    let grid = PrototypeBattleMap.makeNavigationGrid()
+    let plan = try #require(AttackPlanGenerator(navigationGrid: grid).generate().first)
+    let library = AttackPlanLibrary(storageKey: key)
+    library.save(plan)
+    let data = try AttackPlanArchiveCodec.encode([plan], on: grid)
+    #expect(try library.importArchive(data, on: grid) == 1)
+    #expect(try library.importArchive(data, on: grid) == 1)
+    #expect(library.plans.count == 3)
+    #expect(Set(library.plans.map(\.id)).count == 3)
+    #expect(library.plans.last?.id == plan.id)
+    #expect(library.plans.first?.deployments.first?.entityID == plan.deployments.first?.entityID)
+    #expect(AttackPlanLibrary(storageKey: key).plans.count == 3)
+}
+
+@Test
+func invalidBatchImportLeavesTheWholeLibraryUnchanged() throws {
+    let key = "clashAttackLab.tests.atomicImport.\(UUID().uuidString)"
+    defer { UserDefaults.standard.removeObject(forKey: key) }
+    let grid = PrototypeBattleMap.makeNavigationGrid()
+    let plan = try #require(AttackPlanGenerator(navigationGrid: grid).generate().first)
+    let library = AttackPlanLibrary(storageKey: key)
+    library.save(plan)
+    let invalid = AttackPlan(name: "No troops", deployments: [])
+    let data = try testPlanArchiveData([plan, invalid], grid: grid)
+    #expect(throws: AttackPlanArchiveError.self) {
+        try library.importArchive(data, on: grid)
+    }
+    #expect(library.plans.map(\.id) == [plan.id])
+    #expect(AttackPlanLibrary(storageKey: key).plans.map(\.id) == [plan.id])
+}
+
+@Test
+func planArchiveRejectsDuplicateIDsAndHeroCommandsBeforeDeployment() throws {
+    let grid = PrototypeBattleMap.makeNavigationGrid()
+    let position = grid.worldPosition(for: GridCoordinate(column: 1, row: 8))
+    let hero = DeploymentOrder(kind: .barbarianKing, position: position, deploymentTime: 3)
+    let duplicate = AttackPlan(name: "Duplicate", deployments: [hero, hero])
+    #expect(throws: AttackPlanArchiveError.self) {
+        try AttackPlanArchiveCodec.validate([duplicate], on: grid)
+    }
+    let early = AttackPlan(name: "Early", deployments: [hero],
+        heroAbilityOrders: [HeroAbilityOrder(entityID: hero.entityID, activationTime: 2)])
+    #expect(throws: AttackPlanArchiveError.self) {
+        try AttackPlanArchiveCodec.validate([early], on: grid)
+    }
+    let dangling = AttackPlan(name: "Missing hero", deployments: [hero],
+        heroAbilityOrders: [HeroAbilityOrder(entityID: UUID(), activationTime: 4)])
+    #expect(throws: AttackPlanArchiveError.self) {
+        try AttackPlanArchiveCodec.validate([dangling], on: grid)
+    }
+}
+
+@Test
+func planArchiveRejectsInvalidPositionsTimesAndArmyCapacity() {
+    let grid = PrototypeBattleMap.makeNavigationGrid()
+    let legal = grid.worldPosition(for: GridCoordinate(column: 1, row: 8))
+    let invalidOrders = [
+        DeploymentOrder(kind: .giant, position: WorldPosition(x: .nan, y: 300), deploymentTime: 0),
+        DeploymentOrder(kind: .giant, position: legal, deploymentTime: .infinity),
+        DeploymentOrder(kind: .giant, position: grid.worldPosition(
+            for: GridCoordinate(column: 10, row: 8)), deploymentTime: 0),
+        DeploymentOrder(kind: .cannon, position: legal, deploymentTime: 0)
+    ]
+    for order in invalidOrders {
+        #expect(throws: AttackPlanArchiveError.self) {
+            try AttackPlanArchiveCodec.validate([
+                AttackPlan(name: "Invalid", deployments: [order])
+            ], on: grid)
+        }
+    }
+    let oversized = AttackPlan(name: "Too many", deployments: (0..<7).map { _ in
+        DeploymentOrder(kind: .giant, position: legal, deploymentTime: 0)
+    })
+    #expect(throws: AttackPlanArchiveError.self) {
+        try AttackPlanArchiveCodec.validate([oversized], on: grid)
+    }
+}
+
+@Test
+func planArchiveRejectsIncompatibleAndOversizedFiles() throws {
+    let grid = PrototypeBattleMap.makeNavigationGrid()
+    let plan = try #require(AttackPlanGenerator(navigationGrid: grid).generate().first)
+    let newer = try testPlanArchiveData([plan], grid: grid, version: 99)
+    #expect(throws: AttackPlanArchiveError.self) {
+        try AttackPlanArchiveCodec.decode(newer, on: grid)
+    }
+    let otherGrid = NavigationGrid(
+        columns: 30, rows: grid.rows, cellSize: grid.cellSize,
+        origin: grid.origin, blockedCells: []
+    )
+    let incompatible = try testPlanArchiveData([plan], grid: otherGrid)
+    #expect(throws: AttackPlanArchiveError.self) {
+        try AttackPlanArchiveCodec.decode(incompatible, on: grid)
+    }
+    #expect(throws: AttackPlanArchiveError.self) {
+        try AttackPlanArchiveCodec.decode(
+            Data(repeating: 32, count: AttackPlanArchiveCodec.maximumBytes + 1),
+            on: grid
+        )
+    }
+}
+
+@Test
+func openingSavedPlanSynchronizesItsArmyWithTheEditor() {
+    let session = AttackLabSession()
+    let grid = PrototypeBattleMap.makeNavigationGrid()
+    let plan = AttackPlan(name: "Queen only", deployments: [
+        DeploymentOrder(kind: .archerQueen, position: grid.worldPosition(
+            for: GridCoordinate(column: 1, row: 8)), deploymentTime: 0)
+    ])
+    session.loadSavedPlan(plan)
+    #expect(session.armyConfiguration.archerQueens == 1)
+    #expect(session.armyConfiguration.giants == 0)
+    #expect(session.selectedPlanID == plan.id)
+    session.editSavedPlan(plan)
+    #expect(session.isManualPlanning)
+    #expect(session.manualPlan.deployments.first?.entityID == plan.deployments.first?.entityID)
+    session.cancelManualPlanning()
+    #expect(session.selectedPlanID == plan.id)
+}
