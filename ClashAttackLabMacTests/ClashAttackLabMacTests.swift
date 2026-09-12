@@ -3114,3 +3114,25 @@ func loadingAnotherPlanCancelsAnActiveSearch() async {
     #expect(session.selectedPlanID == plan.id)
     #expect(session.evaluations.isEmpty)
 }
+
+
+@Test
+func equalCostPathfindingUsesStableCoordinateTieBreaks() throws {
+    let grid = NavigationGrid(
+        columns: 5, rows: 5, cellSize: 40,
+        origin: WorldPosition(x: 0, y: 0),
+        blockedCells: [GridCoordinate(column: 2, row: 2)]
+    )
+    let start = grid.worldPosition(for: GridCoordinate(column: 0, row: 2))
+    let goal = grid.worldPosition(for: GridCoordinate(column: 4, row: 2))
+    let pathfinder = AStarPathfinder()
+    let expected = try #require(pathfinder.findPath(from: start, to: goal, in: grid))
+    #expect(expected.waypoints.contains {
+        (grid.coordinate(for: $0)?.row ?? 2) < 2
+    })
+    for _ in 0..<30 {
+        let result = try #require(pathfinder.findPath(from: start, to: goal, in: grid))
+        #expect(result.waypoints == expected.waypoints)
+        #expect(result.totalCost == expected.totalCost)
+    }
+}

@@ -30,8 +30,13 @@ nonisolated struct AStarPathfinder {
         ]
 
         while let current = openSet.min(by: {
-            estimatedTotalCost[$0, default: .infinity] <
-                estimatedTotalCost[$1, default: .infinity]
+            let firstCost = estimatedTotalCost[$0, default: .infinity]
+            let secondCost = estimatedTotalCost[$1, default: .infinity]
+            if firstCost != secondCost { return firstCost < secondCost }
+            // Set iteration order is randomized. Resolve equal costs with a
+            // total coordinate ordering so replays choose the same route.
+            if $0.row != $1.row { return $0.row < $1.row }
+            return $0.column < $1.column
         }) {
             if current == goal {
                 let coordinates = reconstructPath(
