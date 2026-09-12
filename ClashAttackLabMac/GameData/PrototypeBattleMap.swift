@@ -61,13 +61,17 @@ nonisolated enum PrototypeBattleMap {
         let objectiveCoordinates = objectives(for: layout)
         var entities = objectiveCoordinates.map { kind, coordinate in
             BattleEntity(
+                id: SimulationIdentity.make("base:\(layout.id):\(kind):\(coordinate.column):\(coordinate.row)"),
                 kind: kind,
                 position: navigationGrid.worldPosition(for: coordinate)
             )
         }
 
-        entities += wallCoordinates(for: layout).map {
+        entities += wallCoordinates(for: layout).sorted {
+            $0.row == $1.row ? $0.column < $1.column : $0.row < $1.row
+        }.map {
             BattleEntity(
+                id: SimulationIdentity.make("wall:\(layout.id):\($0.column):\($0.row)"),
                 kind: .wall,
                 position: navigationGrid.worldPosition(for: $0)
             )

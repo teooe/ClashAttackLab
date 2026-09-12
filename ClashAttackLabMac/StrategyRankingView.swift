@@ -7,6 +7,7 @@ struct StrategyRankingView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
             SearchProgressView(session: session)
+            RobustnessObjectivePicker(session: session)
             HStack {
                 Label("Classifica robustezza", systemImage: "trophy")
                     .font(.title2.bold())
@@ -22,7 +23,7 @@ struct StrategyRankingView: View {
                 }
             }
 
-            Text("Ordine: stelle medie, distruzione, superstiti e durata.")
+            Text(session.robustnessObjective.explanation)
                 .font(.callout)
                 .foregroundStyle(.secondary)
 
@@ -48,6 +49,9 @@ struct StrategyRankingView: View {
                         VStack(alignment: .leading, spacing: 4) {
                             Text(analysis.plan.name)
                                 .font(.headline)
+                                Text(analysis.weakestBaseSummary)
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
                             Text(
                                 String(
                                     format: "⭐ %.2f · %.1f%% · %.1f superstiti · %.1f s",
@@ -90,5 +94,23 @@ struct StrategyRankingView: View {
                 session.rankSavedPlansAcrossBases()
             }
         }
+    }
+}
+
+
+struct RobustnessObjectivePicker: View {
+    @ObservedObject var session: AttackLabSession
+
+    var body: some View {
+        Picker("Priorità", selection: Binding(
+            get: { session.robustnessObjective },
+            set: { session.setRobustnessObjective($0) }
+        )) {
+            ForEach(RobustnessObjective.allCases) { objective in
+                Text(objective.title).tag(objective)
+            }
+        }
+        .pickerStyle(.segmented)
+        .help(session.robustnessObjective.explanation)
     }
 }

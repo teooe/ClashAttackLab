@@ -53,8 +53,12 @@ nonisolated struct AttackPlanGenerator {
 
         let troopKinds = armyConfiguration.deploymentSequence
         let spellKinds = armyConfiguration.spellSequence
-        let entityIDs = troopKinds.map { _ in UUID() }
-        let spellIDs = spellKinds.map { _ in UUID() }
+        let entityIDs = troopKinds.enumerated().map {
+            SimulationIdentity.make("troop:\($0.offset):\($0.element)")
+        }
+        let spellIDs = spellKinds.enumerated().map {
+            SimulationIdentity.make("spell:\($0.offset):\($0.element)")
+        }
 
         return formations.flatMap { formation in
             tempos.flatMap { tempo in
@@ -182,6 +186,7 @@ nonisolated struct AttackPlanGenerator {
             )
 
             return DeploymentOrder(
+                id: entityIDs[index],
                 entityID: entityIDs[index],
                 kind: kind,
                 position: navigationGrid.worldPosition(

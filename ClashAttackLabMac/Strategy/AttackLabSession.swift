@@ -3,6 +3,26 @@ import Foundation
 import SpriteKit
 
 final class AttackLabSession: ObservableObject {
+    @Published private(set) var robustnessObjective: RobustnessObjective = .average
+
+    func setRobustnessObjective(_ objective: RobustnessObjective) {
+        robustnessObjective = objective
+        robustnessRankings = AttackPlanRobustnessRanker.rank(
+            robustnessRankings, objective: objective
+        )
+        generatedPlanRankings = AttackPlanRobustnessRanker.rank(
+            generatedPlanRankings, objective: objective
+        )
+        if let report = refinementReport {
+            refinementReport = AttackPlanRefinementReport(
+                sourcePlan: report.sourcePlan,
+                rankedCandidates: AttackPlanRobustnessRanker.rank(
+                    report.rankedCandidates, objective: objective
+                )
+            )
+        }
+    }
+
     @Published private(set) var isSearching = false
     @Published private(set) var searchTitle = ""
     @Published private(set) var searchCompleted = 0
@@ -459,7 +479,7 @@ final class AttackLabSession: ObservableObject {
             results.append(try await makeRobustnessAnalysis(for: plan))
         }
         try Task.checkCancellation()
-        return AttackPlanRobustnessRanker.rank(results)
+        return AttackPlanRobustnessRanker.rank(results, objective: robustnessObjective)
     }
 
     func clearAttackHistory() {

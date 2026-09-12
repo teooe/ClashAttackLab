@@ -47,18 +47,70 @@ struct AttackPlanRobustnessAnalysis: Identifiable {
             .reduce(0, +) / Double(entries.count)
     }
 
+    /// Lowest outcome by stars, then destruction on that same base.
+    var weakestEntry: BaseAttackEvaluation? {
+        entries.min {
+            if $0.evaluation.stars != $1.evaluation.stars {
+                return $0.evaluation.stars < $1.evaluation.stars
+            }
+            if $0.evaluation.destructionPercentage != $1.evaluation.destructionPercentage {
+                return $0.evaluation.destructionPercentage < $1.evaluation.destructionPercentage
+            }
+            return $0.layout.id < $1.layout.id
+        }
+    }
+
+    var weakestBaseSummary: String {
+        guard let entry = weakestEntry else { return "Nessuna base valutata" }
+        return "Base peggiore: \(entry.layout.displayName) · \(entry.evaluation.stars)★ · \(String(format: "%.1f", entry.evaluation.destructionPercentage))%"
+    }
+
     var threeStarCount: Int {
         entries.filter { $0.evaluation.stars == 3 }.count
     }
 }
 
 
+nonisolated enum RobustnessObjective: String, CaseIterable, Identifiable {
+    case average
+    case weakestBase
+    var id: String { rawValue }
+    var title: String {
+        switch self {
+        case .average: return "Media"
+        case .weakestBase: return "Base peggiore"
+        }
+    }
+    var explanation: String {
+        switch self {
+        case .average:
+            return "Ordina per stelle medie, distruzione, superstiti e durata."
+        case .weakestBase:
+            return "Privilegia stelle e distruzione sulla base peggiore; a parità confronta le medie."
+        }
+    }
+}
+
 /// Deterministic ordering used when comparing saved strategies across bases.
 enum AttackPlanRobustnessRanker {
     static func rank(
-        _ analyses: [AttackPlanRobustnessAnalysis]
+        _ analyses: [AttackPlanRobustnessAnalysis],
+        objective: RobustnessObjective = .average
     ) -> [AttackPlanRobustnessAnalysis] {
         analyses.sorted { first, second in
+            if first.entries.isEmpty != second.entries.isEmpty {
+                return !first.entries.isEmpty
+            }
+            if objective == .weakestBase {
+                let firstStars = first.weakestEntry?.evaluation.stars ?? 0
+                let secondStars = second.weakestEntry?.evaluation.stars ?? 0
+                if firstStars != secondStars { return firstStars > secondStars }
+                let firstDestruction = first.weakestEntry?.evaluation.destructionPercentage ?? 0
+                let secondDestruction = second.weakestEntry?.evaluation.destructionPercentage ?? 0
+                if firstDestruction != secondDestruction {
+                    return firstDestruction > secondDestruction
+                }
+            }
             if first.averageStars != second.averageStars {
                 return first.averageStars > second.averageStars
             }

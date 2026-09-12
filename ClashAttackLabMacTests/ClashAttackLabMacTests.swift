@@ -3136,3 +3136,102 @@ func equalCostPathfindingUsesStableCoordinateTieBreaks() throws {
         #expect(result.totalCost == expected.totalCost)
     }
 }
+
+
+@Test
+func regeneratedPrototypeBasesKeepIdentityAndEntityOrder() {
+    let grid = PrototypeBattleMap.makeNavigationGrid()
+    for layout in PrototypeBaseLayout.allCases {
+        let first = PrototypeBattleMap.makeBaseEntities(navigationGrid: grid, layout: layout)
+        let second = PrototypeBattleMap.makeBaseEntities(navigationGrid: grid, layout: layout)
+        #expect(first.map(\.id) == second.map(\.id))
+        #expect(first.map(\.position) == second.map(\.position))
+        #expect(first.map(\.kind) == second.map(\.kind))
+        #expect(Set(first.map(\.id)).count == first.count)
+    }
+}
+
+@Test
+func regeneratedCandidatesAndBasesProduceTheSameBattle() async throws {
+    let grid = PrototypeBattleMap.makeNavigationGrid()
+    let firstPlan = try #require(AttackPlanGenerator(navigationGrid: grid).generate().first)
+    let secondPlan = try #require(AttackPlanGenerator(navigationGrid: grid).generate().first)
+    #expect(firstPlan.deployments.map(\.id) == secondPlan.deployments.map(\.id))
+    #expect(firstPlan.deployments.map(\.entityID) == secondPlan.deployments.map(\.entityID))
+    #expect(firstPlan.spellDeployments.map(\.id) == secondPlan.spellDeployments.map(\.id))
+    let firstEvaluator = AttackPlanEvaluator(
+        baseEntities: PrototypeBattleMap.makeBaseEntities(navigationGrid: grid),
+        gameData: PrototypeGameData(), navigationGrid: grid
+    )
+    let secondEvaluator = AttackPlanEvaluator(
+        baseEntities: PrototypeBattleMap.makeBaseEntities(navigationGrid: grid),
+        gameData: PrototypeGameData(), navigationGrid: grid
+    )
+    let firstResults = try await firstEvaluator.evaluateAsync([firstPlan])
+    let secondResults = try await secondEvaluator.evaluateAsync([secondPlan])
+    let first = try #require(firstResults.first?.result)
+    let second = try #require(secondResults.first?.result)
+    #expect(first.elapsedTime == second.elapsedTime)
+    #expect(first.survivingTroops == second.survivingTroops)
+    #expect(first.score.stars == second.score.stars)
+    #expect(first.score.destructionPercentage == second.score.destructionPercentage)
+    #expect(first.metrics.damageToBase == second.metrics.damageToBase)
+}
+
+private func robustnessFixture(
+    name: String, outcomes: [(Int, Double)]
+) -> AttackPlanRobustnessAnalysis {
+    let plan = AttackPlan(name: name, deployments: [])
+    let entries = outcomes.enumerated().map { index, outcome in
+        BaseAttackEvaluation(
+            layout: PrototypeBaseLayout.allCases[index],
+            evaluation: AttackPlanEvaluation(
+                plan: plan,
+                result: SimulationResult(
+                    winner: .defenses, elapsedTime: 30,
+                    timeExpired: true, finishReason: .timeExpired,
+                    deployedTroops: 1, survivingTroops: 1, survivingDefenses: 1,
+                    troopAttackCount: 1, defenseAttackCount: 1,
+                    score: BaseScoreSnapshot(
+                        destructionPercentage: outcome.1, stars: outcome.0,
+                        townHallDestroyed: false, destroyedBuildings: 0, totalBuildings: 1
+                    ),
+                    metrics: BattleSummaryMetrics(
+                        damageToBase: outcome.1, hitPointsLostByArmy: 0,
+                        troopsLost: 0, destroyedWalls: 0, spellsCast: 0
+                    )
+                )
+            )
+        )
+    }
+    return AttackPlanRobustnessAnalysis(plan: plan, entries: entries)
+}
+
+@Test
+func weakestBaseRankingCanPreferConsistencyOverAHigherAverage() {
+    let uneven = robustnessFixture(name: "Uneven", outcomes: [(3, 100), (3, 100), (1, 50)])
+    let consistent = robustnessFixture(name: "Consistent", outcomes: [(2, 70), (2, 70), (2, 70)])
+    let candidates = [uneven, consistent]
+    #expect(AttackPlanRobustnessRanker.rank(candidates).first?.plan.id == uneven.plan.id)
+    #expect(AttackPlanRobustnessRanker.rank(
+        candidates, objective: .weakestBase
+    ).first?.plan.id == consistent.plan.id)
+    #expect(uneven.weakestEntry?.layout == .doubleCore)
+    #expect(uneven.weakestEntry?.evaluation.stars == 1)
+    #expect(uneven.weakestBaseSummary.contains("Doppio nucleo"))
+}
+
+@Test
+func weakestBaseUsesDestructionToBreakEqualStarsAndHandlesEmptyResults() {
+    let first = robustnessFixture(name: "First", outcomes: [(2, 80), (2, 60)])
+    let second = robustnessFixture(name: "Second", outcomes: [(2, 80), (2, 70)])
+    let empty = AttackPlanRobustnessAnalysis(
+        plan: AttackPlan(name: "Empty", deployments: []), entries: []
+    )
+    let ranked = AttackPlanRobustnessRanker.rank(
+        [empty, first, second], objective: .weakestBase
+    )
+    #expect(ranked.map(\.plan.name) == ["Second", "First", "Empty"])
+    #expect(first.weakestEntry?.layout == .corridor)
+    #expect(empty.weakestEntry == nil)
+}

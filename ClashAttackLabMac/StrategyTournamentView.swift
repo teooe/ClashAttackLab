@@ -8,6 +8,7 @@ struct StrategyTournamentView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
             SearchProgressView(session: session)
+            RobustnessObjectivePicker(session: session)
             HStack {
                 Label(
                     "Torneo delle strategie",
@@ -59,6 +60,9 @@ struct StrategyTournamentView: View {
                             VStack(alignment: .leading, spacing: 4) {
                                 Text(analysis.plan.name)
                                     .font(.headline)
+                                Text(analysis.weakestBaseSummary)
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
 
                                 Text(
                                     String(
