@@ -29,15 +29,18 @@ struct ContentView: View {
 
                 Spacer()
 
-                Button {
-                    session.findBestAttack()
+                Menu {
+                    Button("Ottimizza deploy · esercito invariato") {
+                        session.findBestAttack()
+                    }
+                    Button("Confronta anche altri eserciti") {
+                        session.findBestArmyAndAttack()
+                    }
                 } label: {
-                    Label(
-                        "Trova tra \(session.candidatePlanCount)",
-                        systemImage: "wand.and.stars"
-                    )
+                    Label("Trova attacco", systemImage: "wand.and.stars")
                 }
-                .buttonStyle(.borderedProminent)
+                .disabled(session.isManualPlanning)
+                .help("La ricerca degli eserciti usa sostituzioni a pari capacità del prototipo.")
 
                 Button {
                     showingArmyBuilder = true
@@ -822,14 +825,14 @@ struct ContentView: View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
                 Label(
-                    "Piani simulati · \(session.baseLayout.displayName)",
+                    "Piani simulati · \(session.activeBaseSnapshot.name)",
                     systemImage: "cpu"
                 )
                 .font(.caption.bold())
 
                 Spacer()
 
-                Text("Il migliore è già caricato: premi Avvia per rivederlo")
+                Text("Seleziona un risultato oppure premi Avvia per rivedere quello caricato")
                     .font(.caption2)
                     .foregroundStyle(.secondary)
             }
@@ -880,6 +883,10 @@ struct ContentView: View {
                         }
                     }
 
+                    Text(armySummary(for: evaluation.plan.armyConfiguration))
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+
                     Text(
                         String(
                             format: "%d★ · %.0f%% · %.1f s · %d superstiti",
@@ -924,6 +931,18 @@ struct ContentView: View {
             }
         }
         .buttonStyle(.plain)
+    }
+
+    private func armySummary(for army: ArmyConfiguration) -> String {
+        let counts: [(String, Int)] = [
+            ("G", army.giants), ("B", army.barbarians), ("A", army.archers),
+            ("WB", army.wallBreakers), ("W", army.wizards),
+            ("BL", army.balloons), ("DR", army.dragons),
+            ("BK", army.barbarianKings), ("AQ", army.archerQueens),
+            ("AR", army.wallWreckers), ("SP", army.stoneSlammers)
+        ]
+        let units = counts.filter { $0.1 > 0 }.map { "\($0.0)×\($0.1)" }
+        return units.joined(separator: " · ")
     }
 
     private func legendItem(

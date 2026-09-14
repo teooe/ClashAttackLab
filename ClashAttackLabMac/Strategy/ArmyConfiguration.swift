@@ -252,3 +252,47 @@ nonisolated struct ArmyConfiguration: Equatable {
         ].allSatisfy { $0 >= 0 }
     }
 }
+
+
+nonisolated struct ArmySearchVariant {
+    let name: String
+    let configuration: ArmyConfiguration
+}
+
+/// Local, bounded exploration of equal-capacity prototype armies.
+/// It does not claim to enumerate every possible composition.
+nonisolated enum ArmyCompositionSearch {
+    static func variants(from source: ArmyConfiguration) -> [ArmySearchVariant] {
+        guard source.isValid else { return [] }
+        var result = [ArmySearchVariant(name: "Esercito attuale", configuration: source)]
+        func append(_ name: String, change: (inout ArmyConfiguration) -> Void) {
+            var candidate = source
+            change(&candidate)
+            guard candidate.isValid,
+                candidate.troopCapacityUsed == source.troopCapacityUsed,
+                !result.contains(where: { $0.configuration == candidate }) else { return }
+            result.append(ArmySearchVariant(name: name, configuration: candidate))
+        }
+        if source.barbarians > 0 {
+            append("Barbari → Arcieri") { $0.archers += $0.barbarians; $0.barbarians = 0 }
+        }
+        if source.archers > 0 {
+            append("Arcieri → Barbari") { $0.barbarians += $0.archers; $0.archers = 0 }
+        }
+        if source.giants > 0 {
+            append("Gigante → Mago e Barbaro") {
+                $0.giants -= 1; $0.wizards += 1; $0.barbarians += 1
+            }
+            append("Gigante → Mongolfiera e Drago") {
+                $0.giants -= 1; $0.balloons += 1; $0.dragons += 1
+            }
+        }
+        if source.wizards > 0 {
+            append("Mago → quattro Arcieri") { $0.wizards -= 1; $0.archers += 4 }
+        }
+        if source.balloons > 0 {
+            append("Mongolfiera → tre Barbari") { $0.balloons -= 1; $0.barbarians += 3 }
+        }
+        return result
+    }
+}

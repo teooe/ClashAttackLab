@@ -3389,3 +3389,87 @@ func openingSavedPlanSynchronizesItsArmyWithTheEditor() {
     session.cancelManualPlanning()
     #expect(session.selectedPlanID == plan.id)
 }
+
+
+@Test
+func armySearchPreservesPrototypeCapacityAndSpecialUnits() {
+    let source = ArmyConfiguration.prototypeDefault
+    let variants = ArmyCompositionSearch.variants(from: source)
+    #expect(variants.count == 7)
+    #expect(variants.first?.configuration == source)
+    for variant in variants {
+        let army = variant.configuration
+        #expect(army.isValid)
+        #expect(army.troopCapacityUsed == source.troopCapacityUsed)
+        #expect(army.barbarianKings == source.barbarianKings)
+        #expect(army.archerQueens == source.archerQueens)
+        #expect(army.wallWreckers == source.wallWreckers)
+        #expect(army.stoneSlammers == source.stoneSlammers)
+        #expect(army.healSpells == source.healSpells)
+        #expect(army.rageSpells == source.rageSpells)
+        #expect(army.freezeSpells == source.freezeSpells)
+    }
+    for index in variants.indices {
+        #expect(!variants.prefix(index).contains {
+            $0.configuration == variants[index].configuration
+        })
+    }
+}
+
+@Test
+func armySearchHandlesSparseArmiesAndGeneratesValidPlanArchives() throws {
+    let grid = PrototypeBattleMap.makeNavigationGrid()
+    var source = ArmyConfiguration(
+        giants: 0, barbarians: 1, archers: 0, wallBreakers: 0,
+        wizards: 0, healSpells: 0, rageSpells: 0
+    )
+    let variants = ArmyCompositionSearch.variants(from: source)
+    #expect(variants.count == 2)
+    #expect(variants.last?.configuration.archers == 1)
+    for variant in ArmyCompositionSearch.variants(from: .prototypeDefault) {
+        let plans = AttackPlanGenerator(
+            navigationGrid: grid, armyConfiguration: variant.configuration
+        ).generate()
+        try AttackPlanArchiveCodec.validate(plans, on: grid)
+        #expect(plans.allSatisfy { $0.armyConfiguration == variant.configuration })
+    }
+    source.barbarians = 0
+    #expect(ArmyCompositionSearch.variants(from: source).isEmpty)
+}
+
+@Test
+func selectingAnEvaluationSynchronizesTheArmyConfiguration() throws {
+    let grid = PrototypeBattleMap.makeNavigationGrid()
+    let plan = AttackPlan(name: "Archers", deployments: [
+        DeploymentOrder(
+            kind: .archer,
+            position: grid.worldPosition(for: GridCoordinate(column: 1, row: 8)),
+            deploymentTime: 0
+        )
+    ])
+    let evaluator = AttackPlanEvaluator(
+        baseEntities: PrototypeBattleMap.makeBaseEntities(navigationGrid: grid),
+        gameData: PrototypeGameData(), navigationGrid: grid
+    )
+    let evaluation = try #require(evaluator.evaluate([plan]).first)
+    let session = AttackLabSession()
+    session.select(evaluation)
+    #expect(session.armyConfiguration == plan.armyConfiguration)
+    #expect(session.selectedPlanID == plan.id)
+    #expect(session.candidatePlanCount > 0)
+}
+
+@Test
+func armyCompositionSearchCanBeCancelledWithoutChangingTheSelectedArmy() async {
+    let session = AttackLabSession()
+    let originalArmy = session.armyConfiguration
+    let originalID = session.selectedPlanID
+    session.findBestArmyAndAttack()
+    #expect(session.isSearching)
+    session.cancelSearch()
+    for _ in 0..<10 { await Task.yield() }
+    #expect(!session.isSearching)
+    #expect(session.armyConfiguration == originalArmy)
+    #expect(session.selectedPlanID == originalID)
+    #expect(session.evaluations.isEmpty)
+}

@@ -57,7 +57,7 @@ final class AttackLabSession: ObservableObject {
                 try Task.checkCancellation()
                 try await operation()
                 guard let self, self.searchID == id else { return }
-                self.searchCompleted = total
+                self.searchCompleted = self.searchTotal
                 self.searchMessage = "Ricerca completata."
             } catch is CancellationError {
                 guard let self, self.searchID == id else { return }
@@ -617,12 +617,84 @@ final class AttackLabSession: ObservableObject {
             try Task.checkCancellation()
             self.evaluations = results
             if let best = results.first {
-                self.activePlan = best.plan
-                self.selectedPlanID = best.plan.id
-                self.lastSimulationResult = nil
-                self.scene.loadAttackPlan(best.plan)
+                self.applyEvaluationSelection(best)
             }
         }
+    }
+
+    /// Search equal-capacity armies against the active base, using the same
+    /// formation matrix for each. Keep the user's current plan as baseline.
+    func findBestArmyAndAttack() {
+        guard !isManualPlanning else { return }
+        let sourcePlan = activePlan
+        let sourceArmy = sourcePlan.armyConfiguration
+        let variants = ArmyCompositionSearch.variants(from: sourceArmy)
+        guard !variants.isEmpty else { return }
+        let evaluator = self.evaluator
+        startSearch(
+            title: "Ricerca eserciti e deploy",
+            total: 1 + variants.count * 30
+        ) { [weak self] in
+            guard let self else { return }
+            var plans = [sourcePlan]
+            for variant in variants {
+                try Task.checkCancellation()
+                let guidance = self.makeGuidedCandidatePlans(
+                    for: variant.configuration,
+                    entities: self.baseEntities,
+                    baseName: self.activeBaseSnapshot.name
+                )
+                plans += guidance.plans.map { plan in
+                    AttackPlan(
+                        name: "\(variant.name) · \(plan.name)",
+                        deployments: plan.deployments,
+                        spellDeployments: plan.spellDeployments,
+                        heroAbilityOrders: plan.deployments.compactMap { deployment in
+                            guard let original = sourcePlan.deployments.first(where: {
+                                $0.kind == deployment.kind
+                            }), let command = sourcePlan.heroAbilityOrders.first(where: {
+                                $0.entityID == original.entityID
+                            }) else { return nil }
+                            return HeroAbilityOrder(
+                                entityID: deployment.entityID,
+                                activationTime: min(59, max(deployment.deploymentTime,
+                                    deployment.deploymentTime + command.activationTime -
+                                        original.deploymentTime))
+                            )
+                        }
+                    )
+                }
+                await Task.yield()
+            }
+            try Task.checkCancellation()
+            self.searchTotal = plans.count
+            let results = try await evaluator.evaluateAsync(plans) {
+                self.searchCompleted = $0
+            }
+            try Task.checkCancellation()
+            self.evaluations = results
+            if let best = results.first {
+                self.applyEvaluationSelection(best)
+            }
+        }
+    }
+
+    private func applyEvaluationSelection(_ evaluation: AttackPlanEvaluation) {
+        let configuration = evaluation.plan.armyConfiguration
+        if configuration.isValid && configuration != armyConfiguration {
+            let guidance = makeGuidedCandidatePlans(
+                for: configuration, entities: baseEntities,
+                baseName: activeBaseSnapshot.name
+            )
+            armyConfiguration = configuration
+            armyEntryAdvice = guidance.advice
+            candidatePlans = guidance.plans
+            resetManualDraft()
+        }
+        activePlan = evaluation.plan
+        selectedPlanID = evaluation.plan.id
+        lastSimulationResult = nil
+        scene.loadAttackPlan(evaluation.plan)
     }
 
     func applyArmyConfiguration(
@@ -864,9 +936,7 @@ final class AttackLabSession: ObservableObject {
             return
         }
 
-        activePlan = evaluation.plan
-        selectedPlanID = evaluation.plan.id
-        scene.loadAttackPlan(evaluation.plan)
+        applyEvaluationSelection(evaluation)
     }
 
     private func appendManualPlacement(at position: WorldPosition) {
