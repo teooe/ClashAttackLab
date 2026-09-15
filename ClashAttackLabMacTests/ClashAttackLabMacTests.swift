@@ -2956,7 +2956,7 @@ func heroTimingSearchPreservesArmySpellsAndBaseline() throws {
     #expect(variants.count <= 9)
     let fullSearch = refiner.variants(for: plan)
     #expect(fullSearch.contains { $0.id == plan.id })
-    #expect(fullSearch.count == 21 + variants.count)
+    #expect(fullSearch.count == 21 + variants.count + plan.spellDeployments.count * 4)
     for variant in variants {
         #expect(variant.deployments.map(\.id) == plan.deployments.map(\.id))
         #expect(variant.deployments.map(\.entityID) == plan.deployments.map(\.entityID))
@@ -3947,4 +3947,43 @@ func lightningPlannerTargetsDenseDefensiveClusterAndSpreadsRepeatedCasts() throw
         previousPositions: [first]
     ))
     #expect(first != second)
+}
+
+
+@Test
+func spellTacticalSearchVariesEachCastAndPreservesTheArmy() throws {
+    let grid = PrototypeBattleMap.makeNavigationGrid()
+    let position = grid.worldPosition(for: GridCoordinate(column: 12, row: 8))
+    let plan = AttackPlan(
+        name: "Ricerca magie",
+        deployments: [
+            DeploymentOrder(
+                kind: .giant,
+                position: grid.worldPosition(for: GridCoordinate(column: 1, row: 8)),
+                deploymentTime: 0
+            )
+        ],
+        spellDeployments: [
+            SpellDeploymentOrder(kind: .lightning, position: position, deploymentTime: 4),
+            SpellDeploymentOrder(kind: .rage, position: position, deploymentTime: 7)
+        ]
+    )
+    let variants = AttackPlanRefiner(navigationGrid: grid).spellTacticalVariants(for: plan)
+    #expect(variants.count == 8)
+    #expect(variants.allSatisfy { $0.armyConfiguration == plan.armyConfiguration })
+    #expect(variants.allSatisfy {
+        $0.deployments.map(\.entityID) == plan.deployments.map(\.entityID)
+    })
+    #expect(variants.allSatisfy {
+        $0.spellDeployments.map(\.id) == plan.spellDeployments.map(\.id)
+    })
+    #expect(variants.contains {
+        $0.spellDeployments[0].position != position
+    })
+    #expect(variants.contains {
+        $0.spellDeployments[0].deploymentTime != 4
+    })
+    #expect(variants.allSatisfy {
+        $0.spellDeployments.allSatisfy { (0...59).contains($0.deploymentTime) }
+    })
 }

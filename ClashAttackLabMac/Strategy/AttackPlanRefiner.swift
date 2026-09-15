@@ -72,7 +72,47 @@ nonisolated struct AttackPlanRefiner {
         ]
 
         return laneAndTempoVariants + tacticalVariants +
-            heroTimingVariants(for: sourcePlan)
+            heroTimingVariants(for: sourcePlan) +
+            spellTacticalVariants(for: sourcePlan)
+    }
+
+    /// Explores every scheduled spell independently without changing the army.
+    /// Four bounded alternatives per cast vary impact cell and timing.
+    func spellTacticalVariants(for sourcePlan: AttackPlan) -> [AttackPlan] {
+        var variants: [AttackPlan] = []
+        for spellIndex in sourcePlan.spellDeployments.indices {
+            let original = sourcePlan.spellDeployments[spellIndex]
+            let alternatives: [(row: Int, column: Int, time: TimeInterval, label: String)] = [
+                (-1, 0, 0, "alto"),
+                (1, 0, 0, "basso"),
+                (0, -1, -1, "anticipato"),
+                (0, 1, 1, "ritardato")
+            ]
+            for alternative in alternatives {
+                var spells = sourcePlan.spellDeployments
+                spells[spellIndex] = SpellDeploymentOrder(
+                    id: original.id,
+                    kind: original.kind,
+                    position: shiftedSpellPosition(
+                        from: original.position,
+                        rowOffset: alternative.row,
+                        columnOffset: alternative.column
+                    ),
+                    deploymentTime: adjustedSpellTime(
+                        original.deploymentTime,
+                        multiplier: 1,
+                        offset: alternative.time
+                    )
+                )
+                variants.append(AttackPlan(
+                    name: "\(sourcePlan.name) · magia \(spellIndex + 1) \(alternative.label)",
+                    deployments: sourcePlan.deployments,
+                    spellDeployments: spells,
+                    heroAbilityOrders: sourcePlan.heroAbilityOrders
+                ))
+            }
+        }
+        return variants
     }
 
     /// A bounded search: at most nine extra simulations per base.
@@ -242,6 +282,22 @@ nonisolated struct AttackPlanRefiner {
 
         return navigationGrid.worldPosition(
             for: GridCoordinate(column: column, row: row)
+        )
+    }
+
+    private func shiftedSpellPosition(
+        from position: WorldPosition,
+        rowOffset: Int,
+        columnOffset: Int
+    ) -> WorldPosition {
+        guard let coordinate = navigationGrid.coordinate(for: position) else {
+            return position
+        }
+        return navigationGrid.worldPosition(
+            for: GridCoordinate(
+                column: min(navigationGrid.columns - 1, max(0, coordinate.column + columnOffset)),
+                row: clampedRow(coordinate.row + rowOffset)
+            )
         )
     }
 
