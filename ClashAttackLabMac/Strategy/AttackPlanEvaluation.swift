@@ -166,3 +166,136 @@ struct AttackPlanEvaluator {
         return first.plan.name < second.plan.name
     }
 }
+
+
+/// Bounded prototype conditions used to stress-test a strategy. They model
+/// tuning uncertainty, not official game modes or real matchmaking variance.
+nonisolated enum PrototypeCombatScenario: String, CaseIterable, Identifiable {
+    case neutral
+    case attackerFavored
+    case defenseFavored
+
+    var id: String { rawValue }
+
+    var displayName: String {
+        switch self {
+        case .neutral: return "Neutra"
+        case .attackerFavored: return "Attacco +10%"
+        case .defenseFavored: return "Difese +10%"
+        }
+    }
+
+    var explanation: String {
+        switch self {
+        case .neutral:
+            return "Valori sintetici di riferimento."
+        case .attackerFavored:
+            return "Vita e danno delle truppe aumentati del 10%."
+        case .defenseFavored:
+            return "Vita e danno di difese, edifici e muri aumentati del 10%."
+        }
+    }
+
+    var troopMultiplier: Double {
+        self == .attackerFavored ? 1.1 :
+            self == .defenseFavored ? 0.9 : 1
+    }
+
+    var baseMultiplier: Double {
+        self == .defenseFavored ? 1.1 :
+            self == .attackerFavored ? 0.9 : 1
+    }
+}
+
+/// Decorates the versioned prototype data without touching the deterministic
+/// engine. Spells and target-selection rules remain unchanged.
+nonisolated struct ScenarioAdjustedGameData: GameDataProviding {
+    let base: any GameDataProviding
+    let scenario: PrototypeCombatScenario
+
+    func definition(for kind: BattleEntityKind) -> CombatDefinition {
+        let definition = base.definition(for: kind)
+        let multiplier: Double
+
+        switch definition.role {
+        case .troop:
+            multiplier = scenario.troopMultiplier
+        case .defense, .building, .wall:
+            multiplier = scenario.baseMultiplier
+        }
+
+        return CombatDefinition(
+            displayName: definition.displayName,
+            role: definition.role,
+            maxHitPoints: definition.maxHitPoints * multiplier,
+            movementSpeed: definition.movementSpeed,
+            attackDamage: definition.attackDamage * multiplier,
+            damageMultiplierAgainstWalls: definition.damageMultiplierAgainstWalls,
+            minimumAttackRange: definition.minimumAttackRange,
+            attackRange: definition.attackRange,
+            attackInterval: definition.attackInterval,
+            canMove: definition.canMove,
+            projectileKind: definition.projectileKind,
+            projectileSpeed: definition.projectileSpeed,
+            splashRadius: definition.splashRadius,
+            selfDestructsOnAttack: definition.selfDestructsOnAttack,
+            movementDomain: definition.movementDomain,
+            attackTargetLayer: definition.attackTargetLayer,
+            targetingProfile: definition.targetingProfile,
+            heroAbility: definition.heroAbility,
+            siegePayload: definition.siegePayload
+        )
+    }
+
+    func spellDefinition(for kind: BattleSpellKind) -> SpellDefinition {
+        base.spellDefinition(for: kind)
+    }
+}
+
+nonisolated struct ScenarioAttackEvaluation: Identifiable {
+    let scenario: PrototypeCombatScenario
+    let evaluation: AttackPlanEvaluation
+
+    var id: PrototypeCombatScenario { scenario }
+}
+
+nonisolated struct AttackPlanScenarioAnalysis {
+    let plan: AttackPlan
+    let entries: [ScenarioAttackEvaluation]
+
+    var averageStars: Double {
+        guard !entries.isEmpty else { return 0 }
+        return entries.map { Double($0.evaluation.stars) }
+            .reduce(0, +) / Double(entries.count)
+    }
+
+    var averageDestruction: Double {
+        guard !entries.isEmpty else { return 0 }
+        return entries.map(\.evaluation.destructionPercentage)
+            .reduce(0, +) / Double(entries.count)
+    }
+
+    var worstCase: ScenarioAttackEvaluation? {
+        entries.min {
+            if $0.evaluation.stars != $1.evaluation.stars {
+                return $0.evaluation.stars < $1.evaluation.stars
+            }
+            return $0.evaluation.destructionPercentage <
+                $1.evaluation.destructionPercentage
+        }
+    }
+
+    var isThreeStarStable: Bool {
+        !entries.isEmpty && entries.allSatisfy {
+            $0.evaluation.stars == 3
+        }
+    }
+
+    var stabilityLabel: String {
+        if isThreeStarStable {
+            return "Tripla stabile"
+        }
+        guard let worstCase else { return "Nessun dato" }
+        return "Caso peggiore: \(worstCase.evaluation.stars)★"
+    }
+}

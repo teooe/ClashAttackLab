@@ -3651,3 +3651,70 @@ func baseStrategyLibraryPersistsAndReplacesStrategyForTheSameBase() {
     }
     #expect(library.records.isEmpty)
 }
+
+
+@Test
+func scenarioAdjustedGameDataScalesOnlyTheRelevantSide() {
+    let base = PrototypeGameData()
+    let attackerFavored = ScenarioAdjustedGameData(
+        base: base,
+        scenario: .attackerFavored
+    )
+    let defenseFavored = ScenarioAdjustedGameData(
+        base: base,
+        scenario: .defenseFavored
+    )
+
+    #expect(
+        attackerFavored.definition(for: .giant).maxHitPoints ==
+            base.definition(for: .giant).maxHitPoints * 1.1
+    )
+    #expect(
+        attackerFavored.definition(for: .cannon).attackDamage ==
+            base.definition(for: .cannon).attackDamage * 0.9
+    )
+    #expect(
+        defenseFavored.definition(for: .giant).attackDamage ==
+            base.definition(for: .giant).attackDamage * 0.9
+    )
+    #expect(
+        defenseFavored.definition(for: .wall).maxHitPoints ==
+            base.definition(for: .wall).maxHitPoints * 1.1
+    )
+    #expect(
+        defenseFavored.spellDefinition(for: .freeze).duration ==
+            base.spellDefinition(for: .freeze).duration
+    )
+}
+
+@Test
+func scenarioAnalysisReportsWorstCaseAndStability() {
+    let fixture = savedBaseRobustnessFixture(
+        name: "Stress",
+        outcomes: [(3, 100), (3, 99), (1, 45)]
+    )
+    let evaluations = fixture.entries.map(\.evaluation)
+    let analysis = AttackPlanScenarioAnalysis(
+        plan: fixture.plan,
+        entries: [
+            ScenarioAttackEvaluation(
+                scenario: .neutral,
+                evaluation: evaluations[0]
+            ),
+            ScenarioAttackEvaluation(
+                scenario: .attackerFavored,
+                evaluation: evaluations[1]
+            ),
+            ScenarioAttackEvaluation(
+                scenario: .defenseFavored,
+                evaluation: evaluations[2]
+            )
+        ]
+    )
+
+    #expect(analysis.averageStars == Double(7) / 3)
+    #expect(analysis.averageDestruction == Double(244) / 3)
+    #expect(analysis.worstCase?.scenario == .defenseFavored)
+    #expect(!analysis.isThreeStarStable)
+    #expect(analysis.stabilityLabel == "Caso peggiore: 1★")
+}

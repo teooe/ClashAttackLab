@@ -104,6 +104,8 @@ final class AttackLabSession: ObservableObject {
     @Published private(set) var baseStrategyBook: BaseStrategyBook?
     @Published private(set) var savedBaseStrategies:
         [BaseStrategyRecord] = []
+    @Published private(set) var scenarioAnalysis:
+        AttackPlanScenarioAnalysis?
     @Published private(set) var heroAbilityMessage =
         "Le abilità degli eroi sono pronte dopo il loro schieramento."
 
@@ -276,6 +278,53 @@ final class AttackLabSession: ObservableObject {
                 )
             )
             self.attackHistory = self.historyStore.entries
+        }
+    }
+
+    /// Stress-tests the current plan under three bounded prototype conditions.
+    /// This is an explainable sensitivity check, not a probability claim.
+    func analyzeCurrentPlanUnderScenarios() {
+        guard !isManualPlanning else { return }
+        let plan = activePlan
+        let entities = baseEntities
+        let scenarios = PrototypeCombatScenario.allCases
+
+        startSearch(
+            title: "Stress test del piano",
+            total: scenarios.count
+        ) { [weak self] in
+            guard let self else { return }
+            var entries: [ScenarioAttackEvaluation] = []
+
+            for scenario in scenarios {
+                try Task.checkCancellation()
+                let scenarioData = ScenarioAdjustedGameData(
+                    base: self.gameData,
+                    scenario: scenario
+                )
+                let evaluator = AttackPlanEvaluator(
+                    baseEntities: entities,
+                    gameData: scenarioData,
+                    navigationGrid: self.navigationGrid
+                )
+                let results = try await evaluator.evaluateAsync([plan])
+                try Task.checkCancellation()
+                if let evaluation = results.first {
+                    entries.append(
+                        ScenarioAttackEvaluation(
+                            scenario: scenario,
+                            evaluation: evaluation
+                        )
+                    )
+                }
+                self.searchCompleted += 1
+                await Task.yield()
+            }
+
+            self.scenarioAnalysis = AttackPlanScenarioAnalysis(
+                plan: plan,
+                entries: entries
+            )
         }
     }
 
@@ -810,7 +859,9 @@ final class AttackLabSession: ObservableObject {
         activePlan = plan
         selectedPlanID = plan.id
         evaluations = []
+        scenarioAnalysis = nil
         lastSimulationResult = nil
+        scenarioAnalysis = nil
         scene.loadAttackPlan(plan)
     }
 
@@ -950,6 +1001,7 @@ final class AttackLabSession: ObservableObject {
         activePlan = evaluation.plan
         selectedPlanID = evaluation.plan.id
         lastSimulationResult = nil
+        scenarioAnalysis = nil
         scene.loadAttackPlan(evaluation.plan)
     }
 
@@ -976,6 +1028,7 @@ final class AttackLabSession: ObservableObject {
         armyEntryAdvice = guidance.advice
         candidatePlans = guidance.plans
         evaluations = []
+        scenarioAnalysis = nil
         activePlan = firstPlan
         selectedPlanID = firstPlan.id
         resetManualDraft()
@@ -1011,6 +1064,7 @@ final class AttackLabSession: ObservableObject {
             navigationGrid: navigationGrid
         )
         evaluations = []
+        scenarioAnalysis = nil
         baseReconnaissance = nil
         armyEntryAdvice = guidance.advice
         candidatePlans = guidance.plans
@@ -1051,6 +1105,7 @@ final class AttackLabSession: ObservableObject {
         activeBaseSnapshot = snapshot
         baseEntities = entities
         evaluations = []
+        scenarioAnalysis = nil
         currentPlanAnalysis = nil
         baseReconnaissance = nil
         armyEntryAdvice = guidance.advice
@@ -1119,6 +1174,7 @@ final class AttackLabSession: ObservableObject {
         activePlan = plan
         selectedPlanID = plan.id
         evaluations = []
+        scenarioAnalysis = nil
         finishManualMode(restoreActivePlan: false)
         scene.loadAttackPlan(plan)
     }

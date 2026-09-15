@@ -9,6 +9,7 @@ struct StrategyAnalysisView: View {
     @State private var showingBaseReconnaissance = false
     @State private var showingArmyEntryAdvice = false
     @State private var showingSavedBaseAnalysis = false
+    @State private var showingScenarioAnalysis = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
@@ -39,6 +40,12 @@ struct StrategyAnalysisView: View {
                 Button("Torneo") {
                     session.rankGeneratedPlansAcrossBases()
                     showingTournament = true
+                }
+                .disabled(session.isManualPlanning)
+
+                Button("Stress test") {
+                    session.analyzeCurrentPlanUnderScenarios()
+                    showingScenarioAnalysis = true
                 }
                 .disabled(session.isManualPlanning)
 
@@ -162,6 +169,9 @@ struct StrategyAnalysisView: View {
         .sheet(isPresented: $showingSavedBaseAnalysis) {
             SavedBaseAnalysisView(session: session)
         }
+        .sheet(isPresented: $showingScenarioAnalysis) {
+            ScenarioAnalysisView(session: session)
+        }
     }
 
     private func summaryCard(
@@ -174,6 +184,117 @@ struct StrategyAnalysisView: View {
                 .foregroundStyle(.secondary)
             Text(value)
                 .font(.title3.bold())
+        }
+        .padding(10)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color.secondary.opacity(0.1))
+        .clipShape(RoundedRectangle(cornerRadius: 10))
+    }
+}
+
+
+/// Shows the bounded sensitivity analysis without mixing it with the normal
+/// multi-base ranking. Each result is still deterministic for its scenario.
+struct ScenarioAnalysisView: View {
+    @ObservedObject var session: AttackLabSession
+    @Environment(\.dismiss) private var dismiss
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            SearchProgressView(session: session)
+
+            HStack {
+                Label(
+                    "Stress test del piano",
+                    systemImage: "shield.lefthalf.filled"
+                )
+                .font(.title2.bold())
+                Spacer()
+                Button("Ricalcola") {
+                    session.analyzeCurrentPlanUnderScenarios()
+                }
+                .buttonStyle(.borderedProminent)
+                .disabled(session.isManualPlanning)
+                Button("Fine") { dismiss() }
+            }
+
+            Text(
+                "Confronto deterministico con valori prototipo neutri, attacco +10% e difese +10%. Non è una probabilità né una statistica ufficiale."
+            )
+            .font(.callout)
+            .foregroundStyle(.secondary)
+
+            if let analysis = session.scenarioAnalysis {
+                Text(analysis.plan.name)
+                    .font(.headline)
+
+                HStack(spacing: 10) {
+                    card(
+                        title: "Stelle medie",
+                        value: String(format: "%.2f", analysis.averageStars)
+                    )
+                    card(
+                        title: "Distruzione media",
+                        value: String(
+                            format: "%.1f%%",
+                            analysis.averageDestruction
+                        )
+                    )
+                    card(
+                        title: "Stabilità",
+                        value: analysis.stabilityLabel
+                    )
+                }
+
+                List(analysis.entries) { entry in
+                    HStack {
+                        VStack(alignment: .leading, spacing: 3) {
+                            Text(entry.scenario.displayName)
+                                .font(.headline)
+                            Text(entry.scenario.explanation)
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                        Spacer()
+                        VStack(alignment: .trailing, spacing: 3) {
+                            Text("⭐ \(entry.evaluation.stars)")
+                                .font(.headline)
+                            Text(
+                                String(
+                                    format: "%.1f%% · %d superstiti · %.1f s",
+                                    entry.evaluation.destructionPercentage,
+                                    entry.evaluation.result.survivingTroops,
+                                    entry.evaluation.result.elapsedTime
+                                )
+                            )
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                        }
+                    }
+                    .padding(.vertical, 4)
+                }
+            } else {
+                ContentUnavailableView(
+                    "Nessuno stress test",
+                    systemImage: "shield",
+                    description: Text(
+                        "Premi Ricalcola per valutare il piano corrente."
+                    )
+                )
+            }
+        }
+        .padding(20)
+        .frame(minWidth: 700, minHeight: 480)
+    }
+
+    private func card(title: String, value: String) -> some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(title)
+                .font(.caption)
+                .foregroundStyle(.secondary)
+            Text(value)
+                .font(.title3.bold())
+                .lineLimit(1)
         }
         .padding(10)
         .frame(maxWidth: .infinity, alignment: .leading)
