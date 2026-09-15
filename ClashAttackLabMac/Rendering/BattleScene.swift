@@ -999,6 +999,8 @@ final class BattleScene: SKScene {
             return .systemCyan
         case .lightning:
             return .systemYellow
+        case .earthquake:
+            return .systemOrange
         }
     }
 
@@ -1012,6 +1014,8 @@ final class BattleScene: SKScene {
             return "F"
         case .lightning:
             return "L"
+        case .earthquake:
+            return "E"
         }
     }
 

@@ -169,7 +169,7 @@ final class AttackLabSession: ObservableObject {
     }
 
     var manualSpellChoices: [BattleSpellKind] {
-        [.heal, .rage, .freeze, .lightning].filter {
+        [.heal, .rage, .freeze, .lightning, .earthquake].filter {
             armyConfiguration.spellCount(for: $0) > 0
         }
     }

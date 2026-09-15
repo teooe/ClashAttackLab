@@ -148,6 +148,12 @@ struct ArmyEditorView: View {
                         title: "Fulmine",
                         value: $draft.lightningSpells
                     )
+                    spellRow(
+                        symbol: "E",
+                        color: .orange,
+                        title: "Terremoto",
+                        value: $draft.earthquakeSpells
+                    )
                 }
                 .padding(.vertical, 4)
             }

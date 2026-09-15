@@ -23,6 +23,7 @@ nonisolated struct ArmyConfiguration: Equatable {
     var rageSpells: Int
     var freezeSpells: Int
     var lightningSpells: Int
+    var earthquakeSpells: Int
 
     init(
         giants: Int,
@@ -34,6 +35,7 @@ nonisolated struct ArmyConfiguration: Equatable {
         rageSpells: Int,
         freezeSpells: Int = 0,
         lightningSpells: Int = 0,
+        earthquakeSpells: Int = 0,
         balloons: Int = 0,
         dragons: Int = 0,
         barbarianKings: Int = 0,
@@ -56,6 +58,7 @@ nonisolated struct ArmyConfiguration: Equatable {
         self.rageSpells = rageSpells
         self.freezeSpells = freezeSpells
         self.lightningSpells = lightningSpells
+        self.earthquakeSpells = earthquakeSpells
     }
 
     static let prototypeDefault = ArmyConfiguration(
@@ -68,6 +71,7 @@ nonisolated struct ArmyConfiguration: Equatable {
         rageSpells: 1,
         freezeSpells: 0,
         lightningSpells: 1,
+        earthquakeSpells: 1,
         balloons: 2,
         dragons: 1,
         barbarianKings: 1,
@@ -93,7 +97,7 @@ nonisolated struct ArmyConfiguration: Equatable {
     }
 
     var spellCapacityUsed: Int {
-        healSpells + rageSpells + freezeSpells + lightningSpells
+        healSpells + rageSpells + freezeSpells + lightningSpells + earthquakeSpells
     }
 
     var distinctTroopKindCount: Int {
@@ -190,6 +194,8 @@ nonisolated struct ArmyConfiguration: Equatable {
             return freezeSpells
         case .lightning:
             return lightningSpells
+        case .earthquake:
+            return earthquakeSpells
         }
     }
 
@@ -237,7 +243,8 @@ nonisolated struct ArmyConfiguration: Equatable {
         Array(repeating: .heal, count: healSpells) +
             Array(repeating: .rage, count: rageSpells) +
             Array(repeating: .freeze, count: freezeSpells) +
-            Array(repeating: .lightning, count: lightningSpells)
+            Array(repeating: .lightning, count: lightningSpells) +
+            Array(repeating: .earthquake, count: earthquakeSpells)
     }
 
     private var allCountsAreNonnegative: Bool {
@@ -256,7 +263,8 @@ nonisolated struct ArmyConfiguration: Equatable {
             healSpells,
             rageSpells,
             freezeSpells,
-            lightningSpells
+            lightningSpells,
+            earthquakeSpells
         ].allSatisfy { $0 >= 0 }
     }
 }

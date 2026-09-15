@@ -763,6 +763,8 @@ struct ContentView: View {
             return "Gelo"
         case .lightning:
             return "Fulmine"
+        case .earthquake:
+            return "Terremoto"
         }
     }
 
@@ -776,6 +778,8 @@ struct ContentView: View {
             return "F"
         case .lightning:
             return "L"
+        case .earthquake:
+            return "E"
         }
     }
 
@@ -789,6 +793,8 @@ struct ContentView: View {
             return .cyan
         case .lightning:
             return .yellow
+        case .earthquake:
+            return .orange
         }
     }
 

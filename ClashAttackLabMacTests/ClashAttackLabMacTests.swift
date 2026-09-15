@@ -1050,7 +1050,7 @@ struct ClashAttackLabMacTests {
 
         #expect(plans.count == 24)
         #expect(baseline.totalDeploymentCount == 15)
-        #expect(baseline.totalSpellCount == 3)
+        #expect(baseline.totalSpellCount == 4)
 
         for plan in plans.dropFirst() {
             #expect(plan.deployments.map(\.kind) == baselineKinds)
@@ -3986,4 +3986,74 @@ func spellTacticalSearchVariesEachCastAndPreservesTheArmy() throws {
     #expect(variants.allSatisfy {
         $0.spellDeployments.allSatisfy { (0...59).contains($0.deploymentTime) }
     })
+}
+
+
+@Test
+func earthquakeDamagesWallsMoreThanNearbyBuildingsAndOpensABreach() throws {
+    let grid = PrototypeBattleMap.makeNavigationGrid()
+    let gameData = PrototypeGameData()
+    let impact = grid.worldPosition(for: GridCoordinate(column: 10, row: 8))
+    let wall = BattleEntity(
+        kind: .wall,
+        position: impact,
+        hitPoints: gameData.definition(for: .wall).maxHitPoints
+    )
+    let storage = BattleEntity(
+        kind: .goldStorage,
+        position: grid.worldPosition(for: GridCoordinate(column: 11, row: 8)),
+        hitPoints: gameData.definition(for: .goldStorage).maxHitPoints
+    )
+    let plan = AttackPlan(
+        name: "Breach",
+        deployments: [
+            DeploymentOrder(
+                kind: .barbarian,
+                position: grid.worldPosition(for: GridCoordinate(column: 1, row: 8)),
+                deploymentTime: 30
+            )
+        ],
+        spellDeployments: [
+            SpellDeploymentOrder(kind: .earthquake, position: impact, deploymentTime: 0)
+        ]
+    )
+    let engine = SimulationEngine(
+        entities: [wall, storage],
+        attackPlan: plan,
+        gameData: gameData,
+        navigationGrid: grid
+    )
+    engine.start()
+    engine.advance(by: 0.1)
+    let damagedWall = try #require(engine.entities.first { $0.id == wall.id })
+    let damagedStorage = try #require(engine.entities.first { $0.id == storage.id })
+    let wallLoss = gameData.definition(for: .wall).maxHitPoints - damagedWall.hitPoints
+    let buildingLoss = gameData.definition(for: .goldStorage).maxHitPoints - damagedStorage.hitPoints
+    #expect(wallLoss == gameData.spellDefinition(for: .earthquake).instantDamage * 4)
+    #expect(buildingLoss == gameData.spellDefinition(for: .earthquake).instantDamage)
+    #expect(wallLoss > buildingLoss)
+}
+
+@Test
+func earthquakePlannerPrefersDenseWallSegments() throws {
+    let grid = PrototypeBattleMap.makeNavigationGrid()
+    let gameData = PrototypeGameData()
+    let walls = [
+        GridCoordinate(column: 9, row: 6),
+        GridCoordinate(column: 9, row: 7),
+        GridCoordinate(column: 9, row: 8),
+        GridCoordinate(column: 9, row: 9)
+    ].map {
+        BattleEntity(
+            kind: .wall,
+            position: grid.worldPosition(for: $0),
+            hitPoints: gameData.definition(for: .wall).maxHitPoints
+        )
+    }
+    let planner = EarthquakePlacementPlanner(navigationGrid: grid, gameData: gameData)
+    let target = try #require(planner.position(entities: walls))
+    let radius = gameData.spellDefinition(for: .earthquake).radius
+    #expect(walls.filter {
+        hypot(target.x - $0.position.x, target.y - $0.position.y) <= radius
+    }.count >= 3)
 }

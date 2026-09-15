@@ -374,11 +374,16 @@ final class SimulationEngine {
             pendingSpellDeployments.removeFirst()
             if definition.instantDamage > 0 {
                 var damage: [UUID: Double] = [:]
-                for index in entities.indices where entities[index].isAlive &&
-                    (gameData.definition(for: entities[index].kind).role == .defense ||
-                     gameData.definition(for: entities[index].kind).role == .building) &&
-                    distance(from: entities[index].position, to: next.position) <= definition.radius {
-                    damage[entities[index].id, default: 0] += definition.instantDamage
+                for index in entities.indices where entities[index].isAlive {
+                    let role = gameData.definition(for: entities[index].kind).role
+                    let isStandardTarget = role == .defense || role == .building
+                    let isEarthquakeWall = next.kind == .earthquake && role == .wall
+                    guard (isStandardTarget || isEarthquakeWall) &&
+                        distance(from: entities[index].position, to: next.position) <= definition.radius
+                    else { continue }
+                    let wallMultiplier = role == .wall ? 4.0 : 1.0
+                    damage[entities[index].id, default: 0] +=
+                        definition.instantDamage * wallMultiplier
                 }
                 apply(damage)
             } else {

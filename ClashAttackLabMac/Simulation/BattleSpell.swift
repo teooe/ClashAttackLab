@@ -6,6 +6,7 @@ nonisolated enum BattleSpellKind: Hashable, Codable {
     case rage
     case freeze
     case lightning
+    case earthquake
 }
 
 /// Separates documented spell behavior from temporary tuning values.

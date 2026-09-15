@@ -214,8 +214,13 @@ nonisolated struct AttackPlanGenerator {
             navigationGrid: navigationGrid,
             gameData: gameData
         )
+        let earthquakePlanner = EarthquakePlacementPlanner(
+            navigationGrid: navigationGrid,
+            gameData: gameData
+        )
         var previousFreezePositions: [WorldPosition] = []
         var previousLightningPositions: [WorldPosition] = []
+        var previousEarthquakePositions: [WorldPosition] = []
         let spellDeployments = spellKinds.indices.map { index in
             let kind = spellKinds[index]
             let supportsFirstLane = index.isMultiple(of: 2)
@@ -246,6 +251,12 @@ nonisolated struct AttackPlanGenerator {
                     previousPositions: previousLightningPositions
                 ) ?? fallback
                 previousLightningPositions.append(position)
+            } else if kind == .earthquake {
+                position = earthquakePlanner.position(
+                    entities: baseEntities,
+                    previousPositions: previousEarthquakePositions
+                ) ?? fallback
+                previousEarthquakePositions.append(position)
             } else {
                 position = fallback
             }
@@ -276,6 +287,8 @@ nonisolated struct AttackPlanGenerator {
             return 16
         case .lightning:
             return 17
+        case .earthquake:
+            return 14
         }
     }
 
@@ -465,5 +478,52 @@ nonisolated struct LightningPlacementPlanner {
             }
         }
         return bestPosition
+    }
+}
+
+
+/// Scores wall clusters first, then nearby objectives, to create useful breaches.
+nonisolated struct EarthquakePlacementPlanner {
+    let navigationGrid: NavigationGrid
+    let gameData: any GameDataProviding
+
+    func position(
+        entities: [BattleEntity],
+        previousPositions: [WorldPosition] = []
+    ) -> WorldPosition? {
+        let radius = gameData.spellDefinition(for: .earthquake).radius
+        let targets = entities.filter { entity in
+            guard entity.isAlive else { return false }
+            let role = gameData.definition(for: entity.kind).role
+            return role == .wall || role == .defense || role == .building
+        }
+        guard !targets.isEmpty else { return nil }
+        var best: WorldPosition?
+        var bestScore = -Double.infinity
+        for row in 0..<navigationGrid.rows {
+            for column in 0..<navigationGrid.columns {
+                let center = navigationGrid.worldPosition(
+                    for: GridCoordinate(column: column, row: row)
+                )
+                var score = 0.0
+                for entity in targets where hypot(
+                    center.x - entity.position.x,
+                    center.y - entity.position.y
+                ) <= radius {
+                    let role = gameData.definition(for: entity.kind).role
+                    score += role == .wall ? 1_000 : (role == .defense ? 250 : 100)
+                }
+                if previousPositions.contains(where: {
+                    hypot(center.x - $0.x, center.y - $0.y) <= radius
+                }) {
+                    score -= 5_000
+                }
+                if score > bestScore {
+                    bestScore = score
+                    best = center
+                }
+            }
+        }
+        return best
     }
 }

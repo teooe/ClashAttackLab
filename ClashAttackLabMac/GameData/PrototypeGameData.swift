@@ -60,6 +60,14 @@ nonisolated struct PrototypeGameData: GameDataProviding {
                 attackSpeedMultiplier: 1, disablesDefenses: false,
                 behaviorEvidence: .documented, tuningEvidence: .prototype
             )
+        case .earthquake:
+            return SpellDefinition(
+                displayName: "Terremoto", radius: 150, duration: 0,
+                healingPerSecond: 0, instantDamage: 180,
+                damageMultiplier: 1, movementSpeedMultiplier: 1,
+                attackSpeedMultiplier: 1, disablesDefenses: false,
+                behaviorEvidence: .approximated, tuningEvidence: .prototype
+            )
         }
     }
 
