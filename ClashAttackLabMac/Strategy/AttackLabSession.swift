@@ -101,6 +101,7 @@ final class AttackLabSession: ObservableObject {
     @Published private(set) var savedBasePlanAnalysis: SavedBasePlanAnalysis?
     @Published private(set) var savedBasePlanRankings:
         [SavedBasePlanRobustnessAnalysis] = []
+    @Published private(set) var baseStrategyBook: BaseStrategyBook?
     @Published private(set) var heroAbilityMessage =
         "Le abilità degli eroi sono pronte dopo il loro schieramento."
 
@@ -381,6 +382,96 @@ final class AttackLabSession: ObservableObject {
                 self.applyReliableSavedBasePlan(winner)
             }
         }
+    }
+
+
+    /// Builds a separate recommendation for every compatible local/imported
+    /// base. Candidate generation adapts to each base layout before evaluation.
+    func findBestAttackForEachSavedBase() {
+        guard !isManualPlanning else { return }
+        let sourcePlan = activePlan
+        let bases = comparableSavedBases()
+        let variants = ArmyCompositionSearch.variants(
+            from: sourcePlan.armyConfiguration
+        )
+        guard !bases.isEmpty, !variants.isEmpty else { return }
+
+        startSearch(
+            title: "Strategie personalizzate per le basi",
+            total: bases.count * (1 + variants.count * 18)
+        ) { [weak self] in
+            guard let self else { return }
+            var candidateSets: [(BaseSnapshot, [AttackPlan])] = []
+
+            for base in bases {
+                try Task.checkCancellation()
+                let entities = base.makeEntities(
+                    navigationGrid: self.navigationGrid
+                )
+                var plans = [sourcePlan]
+                for variant in variants {
+                    try Task.checkCancellation()
+                    let guidance = self.makeGuidedCandidatePlans(
+                        for: variant.configuration,
+                        entities: entities,
+                        baseName: base.name
+                    )
+                    plans += guidance.plans.prefix(18).map {
+                        self.plan(
+                            $0,
+                            named: "\(variant.name) · \($0.name)",
+                            transferringHeroTimingFrom: sourcePlan
+                        )
+                    }
+                    await Task.yield()
+                }
+                candidateSets.append((base, plans))
+            }
+
+            self.searchTotal = candidateSets.reduce(0) { total, item in
+                total + item.1.count
+            }
+            var completed = 0
+            var recommendations: [BaseStrategyRecommendation] = []
+
+            for (base, plans) in candidateSets {
+                try Task.checkCancellation()
+                let evaluator = AttackPlanEvaluator(
+                    baseEntities: base.makeEntities(
+                        navigationGrid: self.navigationGrid
+                    ),
+                    gameData: self.gameData,
+                    navigationGrid: self.navigationGrid
+                )
+                let results = try await evaluator.evaluateAsync(plans) {
+                    self.searchCompleted = completed + $0
+                }
+                try Task.checkCancellation()
+                if let evaluation = results.first {
+                    recommendations.append(
+                        BaseStrategyRecommendation(
+                            base: base,
+                            evaluation: evaluation,
+                            candidateCount: plans.count
+                        )
+                    )
+                }
+                completed += plans.count
+                self.searchCompleted = completed
+                await Task.yield()
+            }
+
+            self.baseStrategyBook = BaseStrategyBook(
+                recommendations: recommendations
+            )
+        }
+    }
+
+    /// Opens the base first, then applies the plan created specifically for it.
+    func loadBaseStrategy(_ recommendation: BaseStrategyRecommendation) {
+        guard !isManualPlanning else { return }
+        applyImportedBase(recommendation.base)
+        applyEvaluationSelection(recommendation.evaluation)
     }
 
     func loadReliableSavedBasePlan(

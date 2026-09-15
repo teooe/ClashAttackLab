@@ -3573,3 +3573,38 @@ func savedBaseReliabilityRankingHandlesEmptyAnalyses() {
     #expect(ranked.map(\.plan.name) == ["Secondo", "Primo", "Vuoto"])
     #expect(empty.weakestEntry == nil)
 }
+
+
+@Test
+func baseStrategyBookSummarizesPerBaseRecommendations() {
+    let first = savedBaseRobustnessFixture(
+        name: "Prima",
+        outcomes: [(3, 100)]
+    )
+    let second = savedBaseRobustnessFixture(
+        name: "Seconda",
+        outcomes: [(1, 40)]
+    )
+    let firstEntry = try! #require(first.entries.first)
+    let secondEntry = try! #require(second.entries.first)
+    let book = BaseStrategyBook(
+        recommendations: [
+            BaseStrategyRecommendation(
+                base: firstEntry.base,
+                evaluation: firstEntry.evaluation,
+                candidateCount: 84
+            ),
+            BaseStrategyRecommendation(
+                base: secondEntry.base,
+                evaluation: secondEntry.evaluation,
+                candidateCount: 84
+            )
+        ]
+    )
+
+    #expect(book.baseCount == 2)
+    #expect(book.threeStarCount == 1)
+    #expect(book.averageStars == 2)
+    #expect(book.averageDestruction == 70)
+    #expect(book.recommendations[0].candidateCount == 84)
+}

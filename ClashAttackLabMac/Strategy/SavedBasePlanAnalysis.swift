@@ -147,3 +147,42 @@ nonisolated enum SavedBasePlanRanker {
         }
     }
 }
+
+
+/// A recommendation tailored to one saved/imported base. It is produced
+/// locally from bounded prototype candidates and does not claim game-perfect AI.
+nonisolated struct BaseStrategyRecommendation: Identifiable {
+    let base: BaseSnapshot
+    let evaluation: AttackPlanEvaluation
+    let candidateCount: Int
+
+    var id: UUID { base.id }
+    var stars: Int { evaluation.stars }
+    var destructionPercentage: Double {
+        evaluation.destructionPercentage
+    }
+    var survivors: Int {
+        evaluation.result.survivingTroops
+    }
+}
+
+/// A batch of independently optimized recommendations, one for each base.
+/// This differs from a robust plan: every base receives its own deploy plan.
+nonisolated struct BaseStrategyBook {
+    let recommendations: [BaseStrategyRecommendation]
+
+    var baseCount: Int { recommendations.count }
+    var threeStarCount: Int {
+        recommendations.filter { $0.stars == 3 }.count
+    }
+    var averageStars: Double {
+        guard !recommendations.isEmpty else { return 0 }
+        return recommendations.map { Double($0.stars) }
+            .reduce(0, +) / Double(recommendations.count)
+    }
+    var averageDestruction: Double {
+        guard !recommendations.isEmpty else { return 0 }
+        return recommendations.map(\.destructionPercentage)
+            .reduce(0, +) / Double(recommendations.count)
+    }
+}

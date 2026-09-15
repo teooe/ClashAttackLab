@@ -23,6 +23,10 @@ struct SavedBaseAnalysisView: View {
                     Button("Trova piano affidabile") {
                         session.findReliableArmyAndAttackAcrossSavedBases()
                     }
+                    Divider()
+                    Button("Trova strategia per ogni base") {
+                        session.findBestAttackForEachSavedBase()
+                    }
                 } label: {
                     Label("Ricerca", systemImage: "wand.and.stars")
                 }
@@ -41,7 +45,9 @@ struct SavedBaseAnalysisView: View {
 
             RobustnessObjectivePicker(session: session)
 
-            if !session.savedBasePlanRankings.isEmpty {
+            if let book = session.baseStrategyBook {
+                strategyBookResults(book)
+            } else if !session.savedBasePlanRankings.isEmpty {
                 reliablePlanResults
             } else if let analysis = session.savedBasePlanAnalysis {
                 HStack(spacing: 10) {
@@ -116,6 +122,79 @@ struct SavedBaseAnalysisView: View {
         }
     }
 
+
+
+    private func strategyBookResults(
+        _ book: BaseStrategyBook
+    ) -> some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text("Strategie personalizzate per base")
+                .font(.headline)
+            Text(
+                "Ogni consiglio è cercato separatamente sulla sua base: non è un unico piano riutilizzato ovunque."
+            )
+            .font(.caption)
+            .foregroundStyle(.secondary)
+
+            HStack(spacing: 10) {
+                summaryCard(title: "Basi", value: "\(book.baseCount)")
+                summaryCard(
+                    title: "Stelle medie",
+                    value: String(format: "%.2f", book.averageStars)
+                )
+                summaryCard(
+                    title: "Distruzione media",
+                    value: String(
+                        format: "%.1f%%",
+                        book.averageDestruction
+                    )
+                )
+                summaryCard(
+                    title: "Triplette",
+                    value: "\(book.threeStarCount)/\(book.baseCount)"
+                )
+            }
+
+            List(book.recommendations) { recommendation in
+                HStack(spacing: 12) {
+                    VStack(alignment: .leading, spacing: 3) {
+                        Text(recommendation.base.name)
+                            .font(.headline)
+                        Text(recommendation.evaluation.plan.name)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                        Text(
+                            "\(recommendation.candidateCount) candidati valutati · " +
+                            "\(recommendation.base.objectiveCount) strutture"
+                        )
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                    }
+                    Spacer()
+                    VStack(alignment: .trailing, spacing: 3) {
+                        Text("⭐ \(recommendation.stars)")
+                            .font(.headline)
+                        Text(
+                            String(
+                                format: "%.1f%% · %d superstiti · %.1f s",
+                                recommendation.destructionPercentage,
+                                recommendation.survivors,
+                                recommendation.evaluation.result.elapsedTime
+                            )
+                        )
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                    }
+                    Button("Apri") {
+                        session.loadBaseStrategy(recommendation)
+                        dismiss()
+                    }
+                    .buttonStyle(.borderedProminent)
+                }
+                .padding(.vertical, 4)
+            }
+        }
+    }
 
     private var reliablePlanResults: some View {
         VStack(alignment: .leading, spacing: 10) {
