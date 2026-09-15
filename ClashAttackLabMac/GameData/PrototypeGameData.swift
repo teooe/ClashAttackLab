@@ -14,6 +14,7 @@ nonisolated struct PrototypeGameData: GameDataProviding {
                 radius: 145,
                 duration: 6,
                 healingPerSecond: 100,
+                instantDamage: 0,
                 damageMultiplier: 1,
                 movementSpeedMultiplier: 1,
                 attackSpeedMultiplier: 1,
@@ -28,6 +29,7 @@ nonisolated struct PrototypeGameData: GameDataProviding {
                 radius: 155,
                 duration: 7,
                 healingPerSecond: 0,
+                instantDamage: 0,
                 damageMultiplier: 1.5,
                 movementSpeedMultiplier: 1.35,
                 attackSpeedMultiplier: 1.35,
@@ -42,12 +44,21 @@ nonisolated struct PrototypeGameData: GameDataProviding {
                 radius: 135,
                 duration: 4,
                 healingPerSecond: 0,
+                instantDamage: 0,
                 damageMultiplier: 1,
                 movementSpeedMultiplier: 1,
                 attackSpeedMultiplier: 1,
                 disablesDefenses: true,
                 behaviorEvidence: .documented,
                 tuningEvidence: .prototype
+            )
+        case .lightning:
+            return SpellDefinition(
+                displayName: "Fulmine", radius: 125, duration: 0,
+                healingPerSecond: 0, instantDamage: 320,
+                damageMultiplier: 1, movementSpeedMultiplier: 1,
+                attackSpeedMultiplier: 1, disablesDefenses: false,
+                behaviorEvidence: .documented, tuningEvidence: .prototype
             )
         }
     }

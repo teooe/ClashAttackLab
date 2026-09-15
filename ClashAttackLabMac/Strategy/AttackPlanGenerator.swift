@@ -263,6 +263,8 @@ nonisolated struct AttackPlanGenerator {
             return 18
         case .freeze:
             return 16
+        case .lightning:
+            return 17
         }
     }
 

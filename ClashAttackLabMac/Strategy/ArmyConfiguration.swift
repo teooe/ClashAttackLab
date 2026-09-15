@@ -22,6 +22,7 @@ nonisolated struct ArmyConfiguration: Equatable {
     var healSpells: Int
     var rageSpells: Int
     var freezeSpells: Int
+    var lightningSpells: Int
 
     init(
         giants: Int,
@@ -32,6 +33,7 @@ nonisolated struct ArmyConfiguration: Equatable {
         healSpells: Int,
         rageSpells: Int,
         freezeSpells: Int = 0,
+        lightningSpells: Int = 0,
         balloons: Int = 0,
         dragons: Int = 0,
         barbarianKings: Int = 0,
@@ -53,6 +55,7 @@ nonisolated struct ArmyConfiguration: Equatable {
         self.healSpells = healSpells
         self.rageSpells = rageSpells
         self.freezeSpells = freezeSpells
+        self.lightningSpells = lightningSpells
     }
 
     static let prototypeDefault = ArmyConfiguration(
@@ -64,6 +67,7 @@ nonisolated struct ArmyConfiguration: Equatable {
         healSpells: 1,
         rageSpells: 1,
         freezeSpells: 1,
+        lightningSpells: 1,
         balloons: 2,
         dragons: 1,
         barbarianKings: 1,
@@ -89,7 +93,7 @@ nonisolated struct ArmyConfiguration: Equatable {
     }
 
     var spellCapacityUsed: Int {
-        healSpells + rageSpells + freezeSpells
+        healSpells + rageSpells + freezeSpells + lightningSpells
     }
 
     var distinctTroopKindCount: Int {
@@ -184,6 +188,8 @@ nonisolated struct ArmyConfiguration: Equatable {
             return rageSpells
         case .freeze:
             return freezeSpells
+        case .lightning:
+            return lightningSpells
         }
     }
 
@@ -230,7 +236,8 @@ nonisolated struct ArmyConfiguration: Equatable {
     var spellSequence: [BattleSpellKind] {
         Array(repeating: .heal, count: healSpells) +
             Array(repeating: .rage, count: rageSpells) +
-            Array(repeating: .freeze, count: freezeSpells)
+            Array(repeating: .freeze, count: freezeSpells) +
+            Array(repeating: .lightning, count: lightningSpells)
     }
 
     private var allCountsAreNonnegative: Bool {
@@ -248,7 +255,8 @@ nonisolated struct ArmyConfiguration: Equatable {
             stoneSlammers,
             healSpells,
             rageSpells,
-            freezeSpells
+            freezeSpells,
+            lightningSpells
         ].allSatisfy { $0 >= 0 }
     }
 }

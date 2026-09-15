@@ -5,6 +5,7 @@ nonisolated enum BattleSpellKind: Hashable, Codable {
     case heal
     case rage
     case freeze
+    case lightning
 }
 
 /// Separates documented spell behavior from temporary tuning values.
@@ -13,6 +14,7 @@ nonisolated struct SpellDefinition {
     let radius: Double
     let duration: TimeInterval
     let healingPerSecond: Double
+    let instantDamage: Double
     let damageMultiplier: Double
     let movementSpeedMultiplier: Double
     let attackSpeedMultiplier: Double

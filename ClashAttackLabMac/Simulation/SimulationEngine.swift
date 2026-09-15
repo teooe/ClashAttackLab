@@ -371,15 +371,19 @@ final class SimulationEngine {
             next.deploymentTime <= elapsedTime
         {
             let definition = spellDefinition(for: next.kind)
-            activeSpells.append(
-                ActiveBattleSpell(
-                    id: next.id,
-                    kind: next.kind,
-                    position: next.position,
-                    remainingDuration: definition.duration
-                )
-            )
             pendingSpellDeployments.removeFirst()
+            if definition.instantDamage > 0 {
+                var damage: [UUID: Double] = [:]
+                for index in entities.indices where entities[index].isAlive &&
+                    (gameData.definition(for: entities[index].kind).role == .defense ||
+                     gameData.definition(for: entities[index].kind).role == .building) &&
+                    distance(from: entities[index].position, to: next.position) <= definition.radius {
+                    damage[entities[index].id, default: 0] += definition.instantDamage
+                }
+                apply(damage)
+            } else {
+                activeSpells.append(ActiveBattleSpell(id: next.id, kind: next.kind, position: next.position, remainingDuration: definition.duration))
+            }
             recordEvent(
                 .spellCast,
                 "\(definition.displayName) lanciata"
