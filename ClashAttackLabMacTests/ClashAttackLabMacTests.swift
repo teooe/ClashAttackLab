@@ -4029,7 +4029,11 @@ func earthquakeDamagesWallsMoreThanNearbyBuildingsAndOpensABreach() throws {
     let damagedStorage = try #require(engine.entities.first { $0.id == storage.id })
     let wallLoss = gameData.definition(for: .wall).maxHitPoints - damagedWall.hitPoints
     let buildingLoss = gameData.definition(for: .goldStorage).maxHitPoints - damagedStorage.hitPoints
-    #expect(wallLoss == gameData.spellDefinition(for: .earthquake).instantDamage * 4)
+    #expect(wallLoss == min(
+        gameData.definition(for: .wall).maxHitPoints,
+        gameData.spellDefinition(for: .earthquake).instantDamage * 4
+    ))
+    #expect(!damagedWall.isAlive)
     #expect(buildingLoss == gameData.spellDefinition(for: .earthquake).instantDamage)
     #expect(wallLoss > buildingLoss)
 }
