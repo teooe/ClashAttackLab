@@ -102,6 +102,8 @@ final class AttackLabSession: ObservableObject {
     @Published private(set) var savedBasePlanRankings:
         [SavedBasePlanRobustnessAnalysis] = []
     @Published private(set) var baseStrategyBook: BaseStrategyBook?
+    @Published private(set) var savedBaseStrategies:
+        [BaseStrategyRecord] = []
     @Published private(set) var heroAbilityMessage =
         "Le abilità degli eroi sono pronte dopo il loro schieramento."
 
@@ -198,6 +200,7 @@ final class AttackLabSession: ObservableObject {
     private let planLibrary = AttackPlanLibrary()
     private let historyStore = AttackHistoryStore()
     private let baseLibrary = BaseSnapshotLibrary()
+    private let baseStrategyLibrary = BaseStrategyLibrary()
 
     init() {
         let gameData = PrototypeGameData()
@@ -259,6 +262,7 @@ final class AttackLabSession: ObservableObject {
         self.savedPlans = planLibrary.plans
         self.attackHistory = historyStore.entries
         self.savedBases = baseLibrary.bases
+        self.savedBaseStrategies = baseStrategyLibrary.records
         self.armyEntryAdvice = initialEntryAdvice
         self.scene.simulationFinishedHandler = { [weak self] result in
             guard let self else { return }
@@ -464,7 +468,28 @@ final class AttackLabSession: ObservableObject {
             self.baseStrategyBook = BaseStrategyBook(
                 recommendations: recommendations
             )
+            self.baseStrategyLibrary.save(
+                recommendations.map { BaseStrategyRecord(recommendation: $0) }
+            )
+            self.savedBaseStrategies = self.baseStrategyLibrary.records
         }
+    }
+
+    /// Reopens a durable recommendation from the local strategy archive.
+    func loadSavedBaseStrategy(_ record: BaseStrategyRecord) {
+        guard !isManualPlanning else { return }
+        applyImportedBase(record.base)
+        loadSavedPlan(record.plan)
+    }
+
+    func deleteSavedBaseStrategy(_ record: BaseStrategyRecord) {
+        baseStrategyLibrary.delete(record)
+        savedBaseStrategies = baseStrategyLibrary.records
+    }
+
+    func clearSavedBaseStrategies() {
+        baseStrategyLibrary.clear()
+        savedBaseStrategies = []
     }
 
     /// Opens the base first, then applies the plan created specifically for it.

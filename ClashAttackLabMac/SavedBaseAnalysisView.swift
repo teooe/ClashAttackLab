@@ -47,6 +47,8 @@ struct SavedBaseAnalysisView: View {
 
             if let book = session.baseStrategyBook {
                 strategyBookResults(book)
+            } else if !session.savedBaseStrategies.isEmpty {
+                savedStrategyResults
             } else if !session.savedBasePlanRankings.isEmpty {
                 reliablePlanResults
             } else if let analysis = session.savedBasePlanAnalysis {
@@ -123,6 +125,73 @@ struct SavedBaseAnalysisView: View {
     }
 
 
+
+
+    private var savedStrategyResults: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            HStack {
+                Text("Strategie locali salvate")
+                    .font(.headline)
+                Spacer()
+                Button("Cancella archivio", role: .destructive) {
+                    session.clearSavedBaseStrategies()
+                }
+            }
+            Text(
+                "Sono i migliori piani calcolati per ogni base al momento dell’ultima ricerca."
+            )
+            .font(.caption)
+            .foregroundStyle(.secondary)
+
+            List(session.savedBaseStrategies) { record in
+                HStack(spacing: 12) {
+                    VStack(alignment: .leading, spacing: 3) {
+                        Text(record.base.name)
+                            .font(.headline)
+                        Text(record.plan.name)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                        Text(
+                            "\(record.candidateCount) candidati · salvata " +
+                            record.savedAt.formatted(
+                                date: .abbreviated,
+                                time: .shortened
+                            )
+                        )
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                    }
+                    Spacer()
+                    VStack(alignment: .trailing, spacing: 3) {
+                        Text("⭐ \(record.stars)")
+                            .font(.headline)
+                        Text(
+                            String(
+                                format: "%.1f%% · %d superstiti · %.1f s",
+                                record.destructionPercentage,
+                                record.survivingTroops,
+                                record.duration
+                            )
+                        )
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                    }
+                    Button("Apri") {
+                        session.loadSavedBaseStrategy(record)
+                        dismiss()
+                    }
+                    .buttonStyle(.borderedProminent)
+                    Button(role: .destructive) {
+                        session.deleteSavedBaseStrategy(record)
+                    } label: {
+                        Image(systemName: "trash")
+                    }
+                    .buttonStyle(.borderless)
+                }
+                .padding(.vertical, 4)
+            }
+        }
+    }
 
     private func strategyBookResults(
         _ book: BaseStrategyBook

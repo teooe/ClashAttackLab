@@ -3608,3 +3608,46 @@ func baseStrategyBookSummarizesPerBaseRecommendations() {
     #expect(book.averageDestruction == 70)
     #expect(book.recommendations[0].candidateCount == 84)
 }
+
+
+@Test
+func baseStrategyLibraryPersistsAndReplacesStrategyForTheSameBase() {
+    let key = "clashAttackLab.tests.baseStrategies.\(UUID().uuidString)"
+    let library = BaseStrategyLibrary(storageKey: key)
+    defer { library.clear() }
+
+    let analysis = savedBaseRobustnessFixture(
+        name: "Archivio",
+        outcomes: [(2, 72)]
+    )
+    let entry = try! #require(analysis.entries.first)
+    let recommendation = BaseStrategyRecommendation(
+        base: entry.base,
+        evaluation: entry.evaluation,
+        candidateCount: 84
+    )
+    let first = BaseStrategyRecord(
+        savedAt: Date(timeIntervalSince1970: 10),
+        recommendation: recommendation
+    )
+    let replacement = BaseStrategyRecord(
+        savedAt: Date(timeIntervalSince1970: 20),
+        recommendation: recommendation
+    )
+
+    library.save([first])
+    library.save([replacement])
+
+    #expect(library.records.count == 1)
+    #expect(library.records.first?.id == replacement.id)
+    #expect(library.records.first?.candidateCount == 84)
+
+    let restored = BaseStrategyLibrary(storageKey: key)
+    #expect(restored.records.count == 1)
+    #expect(restored.records.first?.base.id == entry.base.id)
+
+    if let record = library.records.first {
+        library.delete(record)
+    }
+    #expect(library.records.isEmpty)
+}
