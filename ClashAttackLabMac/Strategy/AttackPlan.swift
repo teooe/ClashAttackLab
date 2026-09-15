@@ -403,6 +403,7 @@ extension AttackPlan {
             healSpells: spellDeployments.filter { $0.kind == .heal }.count,
             rageSpells: spellDeployments.filter { $0.kind == .rage }.count,
             freezeSpells: spellDeployments.filter { $0.kind == .freeze }.count,
+            lightningSpells: spellDeployments.filter { $0.kind == .lightning }.count,
             balloons: deploymentCount(for: .balloon),
             dragons: deploymentCount(for: .dragon),
             barbarianKings: deploymentCount(for: .barbarianKing),

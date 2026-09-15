@@ -66,7 +66,7 @@ nonisolated struct ArmyConfiguration: Equatable {
         wizards: 1,
         healSpells: 1,
         rageSpells: 1,
-        freezeSpells: 1,
+        freezeSpells: 0,
         lightningSpells: 1,
         balloons: 2,
         dragons: 1,
