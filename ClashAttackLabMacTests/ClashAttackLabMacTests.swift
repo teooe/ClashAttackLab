@@ -1756,7 +1756,7 @@ func planRefinerKeepsArmyAndClampsShiftedDeploymentRows() {
         navigationGrid: grid
     ).variants(for: plan)
 
-    #expect(variants.count == 21)
+    #expect(variants.count == 25)
     #expect(variants.contains { $0.id == plan.id })
     #expect(
         variants.allSatisfy {
