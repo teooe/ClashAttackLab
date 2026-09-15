@@ -68,6 +68,29 @@ struct AttackPlanRobustnessAnalysis: Identifiable {
     var threeStarCount: Int {
         entries.filter { $0.evaluation.stars == 3 }.count
     }
+
+    /// Difference between the best and worst destruction outcome.
+    var destructionSpread: Double {
+        guard
+            let minimum = entries.map(\.evaluation.destructionPercentage).min(),
+            let maximum = entries.map(\.evaluation.destructionPercentage).max()
+        else { return 0 }
+        return maximum - minimum
+    }
+
+    /// Repeatable label derived only from the curated base results.
+    var stabilityLabel: String {
+        switch destructionSpread {
+        case ..<12: return "Molto stabile"
+        case ..<28: return "Stabile"
+        case ..<45: return "Variabile"
+        default: return "Fragile"
+        }
+    }
+
+    var reliabilitySummary: String {
+        "\(stabilityLabel) · escursione \(String(format: "%.1f", destructionSpread))%"
+    }
 }
 
 

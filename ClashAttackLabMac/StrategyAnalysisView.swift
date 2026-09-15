@@ -111,7 +111,15 @@ struct StrategyAnalysisView: View {
                         title: "Triplette",
                         value: "\(analysis.threeStarCount)/\(analysis.entries.count)"
                     )
+                    summaryCard(
+                        title: "Stabilità",
+                        value: analysis.stabilityLabel
+                    )
                 }
+
+                Text("Affidabilità: \(analysis.reliabilitySummary) · \(analysis.weakestBaseSummary)")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
 
                 List(analysis.entries) { entry in
                     HStack {
