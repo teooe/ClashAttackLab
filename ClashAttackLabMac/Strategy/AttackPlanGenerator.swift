@@ -455,7 +455,7 @@ nonisolated struct LightningPlacementPlanner {
                     return partial + combatValue * remainingValue
                 }
                 let repeatedPenalty = previousPositions.reduce(0.0) { partial, previous in
-                    partial + (hypot(center.x - previous.x, center.y - previous.y) <= radius ? 1_500 : 0)
+                    partial + (hypot(center.x - previous.x, center.y - previous.y) <= radius ? 10_000 : 0)
                 }
                 let adjustedScore = score - repeatedPenalty
                 if adjustedScore > bestScore {

@@ -3922,10 +3922,17 @@ func lightningPlannerTargetsDenseDefensiveClusterAndSpreadsRepeatedCasts() throw
         GridCoordinate(column: 11, row: 7),
         GridCoordinate(column: 12, row: 7),
         GridCoordinate(column: 11, row: 8)
-    ].map { BattleEntity(kind: .cannon, position: grid.worldPosition(for: $0)) }
+    ].map {
+        BattleEntity(
+            kind: .cannon,
+            position: grid.worldPosition(for: $0),
+            hitPoints: gameData.definition(for: .cannon).maxHitPoints
+        )
+    }
     let isolated = BattleEntity(
         kind: .mortar,
-        position: grid.worldPosition(for: GridCoordinate(column: 21, row: 14))
+        position: grid.worldPosition(for: GridCoordinate(column: 21, row: 14)),
+        hitPoints: gameData.definition(for: .mortar).maxHitPoints
     )
     let planner = LightningPlacementPlanner(navigationGrid: grid, gameData: gameData)
     let first = try #require(planner.position(entities: cluster + [isolated]))
