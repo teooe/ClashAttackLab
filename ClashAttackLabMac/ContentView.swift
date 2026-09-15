@@ -761,6 +761,8 @@ struct ContentView: View {
             return "Furia"
         case .freeze:
             return "Gelo"
+        case .lightning:
+            return "Fulmine"
         }
     }
 
@@ -772,6 +774,8 @@ struct ContentView: View {
             return "R"
         case .freeze:
             return "F"
+        case .lightning:
+            return "L"
         }
     }
 
@@ -783,6 +787,8 @@ struct ContentView: View {
             return .purple
         case .freeze:
             return .cyan
+        case .lightning:
+            return .yellow
         }
     }
 

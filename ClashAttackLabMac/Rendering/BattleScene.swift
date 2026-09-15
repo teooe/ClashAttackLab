@@ -997,6 +997,8 @@ final class BattleScene: SKScene {
             return .systemPurple
         case .freeze:
             return .systemCyan
+        case .lightning:
+            return .systemYellow
         }
     }
 
@@ -1008,6 +1010,8 @@ final class BattleScene: SKScene {
             return "R"
         case .freeze:
             return "F"
+        case .lightning:
+            return "L"
         }
     }
 
