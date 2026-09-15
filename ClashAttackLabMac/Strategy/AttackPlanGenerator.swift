@@ -210,7 +210,12 @@ nonisolated struct AttackPlanGenerator {
             navigationGrid: navigationGrid,
             gameData: gameData
         )
+        let lightningPlanner = LightningPlacementPlanner(
+            navigationGrid: navigationGrid,
+            gameData: gameData
+        )
         var previousFreezePositions: [WorldPosition] = []
+        var previousLightningPositions: [WorldPosition] = []
         let spellDeployments = spellKinds.indices.map { index in
             let kind = spellKinds[index]
             let supportsFirstLane = index.isMultiple(of: 2)
@@ -235,6 +240,12 @@ nonisolated struct AttackPlanGenerator {
                     previousPositions: previousFreezePositions
                 ) ?? fallback
                 previousFreezePositions.append(position)
+            } else if kind == .lightning {
+                position = lightningPlanner.position(
+                    entities: baseEntities,
+                    previousPositions: previousLightningPositions
+                ) ?? fallback
+                previousLightningPositions.append(position)
             } else {
                 position = fallback
             }
@@ -404,5 +415,55 @@ nonisolated struct FreezePlacementPlanner {
 
     private func distance(_ first: WorldPosition, _ second: WorldPosition) -> Double {
         hypot(first.x - second.x, first.y - second.y)
+    }
+}
+
+
+/// Chooses the cell that maximizes immediate prototype damage value.
+/// Defensive DPS is weighted above passive buildings and repeated casts spread out.
+nonisolated struct LightningPlacementPlanner {
+    let navigationGrid: NavigationGrid
+    let gameData: any GameDataProviding
+
+    func position(
+        entities: [BattleEntity],
+        previousPositions: [WorldPosition] = []
+    ) -> WorldPosition? {
+        let radius = gameData.spellDefinition(for: .lightning).radius
+        let targets = entities.filter {
+            let role = gameData.definition(for: $0.kind).role
+            return $0.isAlive && (role == .defense || role == .building)
+        }
+        guard !targets.isEmpty else { return nil }
+
+        var bestPosition: WorldPosition?
+        var bestScore = -Double.infinity
+        for row in 0..<navigationGrid.rows {
+            for column in 0..<navigationGrid.columns {
+                let center = navigationGrid.worldPosition(
+                    for: GridCoordinate(column: column, row: row)
+                )
+                let score = targets.reduce(0.0) { partial, entity in
+                    guard hypot(center.x - entity.position.x, center.y - entity.position.y) <= radius else {
+                        return partial
+                    }
+                    let definition = gameData.definition(for: entity.kind)
+                    let combatValue = definition.role == .defense
+                        ? 2_000 + definition.attackDamage / max(0.1, definition.attackInterval)
+                        : 250
+                    let remainingValue = max(0.15, entity.hitPoints / definition.maxHitPoints)
+                    return partial + combatValue * remainingValue
+                }
+                let repeatedPenalty = previousPositions.reduce(0.0) { partial, previous in
+                    partial + (hypot(center.x - previous.x, center.y - previous.y) <= radius ? 1_500 : 0)
+                }
+                let adjustedScore = score - repeatedPenalty
+                if adjustedScore > bestScore {
+                    bestScore = adjustedScore
+                    bestPosition = center
+                }
+            }
+        }
+        return bestPosition
     }
 }

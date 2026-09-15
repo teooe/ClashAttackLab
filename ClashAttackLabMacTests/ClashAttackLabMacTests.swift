@@ -3871,3 +3871,73 @@ func historyEntryRetainsTimelineButOlderEntriesCanOmitIt() {
     #expect(entry.timeline?.count == 1)
     #expect(entry.timeline?.first?.kind == .deployment)
 }
+
+
+@Test
+func lightningSpellDealsImmediateAreaDamageWithoutPersistentZone() throws {
+    let grid = PrototypeBattleMap.makeNavigationGrid()
+    let gameData = PrototypeGameData()
+    let impact = grid.worldPosition(for: GridCoordinate(column: 10, row: 8))
+    let cannon = BattleEntity(kind: .cannon, position: impact)
+    let distantTownHall = BattleEntity(
+        kind: .townHall,
+        position: grid.worldPosition(for: GridCoordinate(column: 22, row: 8))
+    )
+    let plan = AttackPlan(
+        name: "Fulmine istantaneo",
+        deployments: [
+            DeploymentOrder(
+                kind: .barbarian,
+                position: grid.worldPosition(for: GridCoordinate(column: 1, row: 1)),
+                deploymentTime: 30
+            )
+        ],
+        spellDeployments: [
+            SpellDeploymentOrder(kind: .lightning, position: impact, deploymentTime: 0)
+        ]
+    )
+    let engine = SimulationEngine(
+        entities: [cannon, distantTownHall],
+        attackPlan: plan,
+        gameData: gameData,
+        navigationGrid: grid
+    )
+    engine.start()
+    engine.advance(by: 0.1)
+
+    let struck = try #require(engine.entities.first { $0.id == cannon.id })
+    let untouched = try #require(engine.entities.first { $0.id == distantTownHall.id })
+    let lightning = gameData.spellDefinition(for: .lightning)
+    #expect(struck.hitPoints == gameData.definition(for: .cannon).maxHitPoints - lightning.instantDamage)
+    #expect(untouched.hitPoints == gameData.definition(for: .townHall).maxHitPoints)
+    #expect(engine.activeSpells.isEmpty)
+    #expect(engine.deployedSpellCount == 1)
+}
+
+@Test
+func lightningPlannerTargetsDenseDefensiveClusterAndSpreadsRepeatedCasts() throws {
+    let grid = PrototypeBattleMap.makeNavigationGrid()
+    let gameData = PrototypeGameData()
+    let cluster = [
+        GridCoordinate(column: 11, row: 7),
+        GridCoordinate(column: 12, row: 7),
+        GridCoordinate(column: 11, row: 8)
+    ].map { BattleEntity(kind: .cannon, position: grid.worldPosition(for: $0)) }
+    let isolated = BattleEntity(
+        kind: .mortar,
+        position: grid.worldPosition(for: GridCoordinate(column: 21, row: 14))
+    )
+    let planner = LightningPlacementPlanner(navigationGrid: grid, gameData: gameData)
+    let first = try #require(planner.position(entities: cluster + [isolated]))
+    let radius = gameData.spellDefinition(for: .lightning).radius
+    let coveredCluster = cluster.filter {
+        hypot(first.x - $0.position.x, first.y - $0.position.y) <= radius
+    }
+    #expect(coveredCluster.count >= 2)
+
+    let second = try #require(planner.position(
+        entities: cluster + [isolated],
+        previousPositions: [first]
+    ))
+    #expect(first != second)
+}
