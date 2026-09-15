@@ -1416,3 +1416,13 @@ final class AttackLabSession: ObservableObject {
         }
     }
 }
+
+
+extension AttackLabSession {
+    var currentSpellImpactAnalysis: SpellImpactAnalysis {
+        SpellImpactAnalyzer(gameData: gameData).analyze(
+            plan: activePlan,
+            entities: baseEntities
+        )
+    }
+}

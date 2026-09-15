@@ -90,6 +90,11 @@ struct StrategyAnalysisView: View {
                 .disabled(session.isManualPlanning)
             }
 
+            let spellImpact = session.currentSpellImpactAnalysis
+            if !spellImpact.entries.isEmpty {
+                SpellImpactSummaryView(analysis: spellImpact)
+            }
+
             if let analysis = session.currentPlanAnalysis {
                 Text(analysis.plan.name)
                     .font(.headline)

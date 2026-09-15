@@ -4061,3 +4061,77 @@ func earthquakePlannerPrefersDenseWallSegments() throws {
         hypot(target.x - $0.position.x, target.y - $0.position.y) <= radius
     }.count >= 3)
 }
+
+
+@Test
+func spellImpactPreviewSeparatesUsefulAndWastedDamageBySpellRules() throws {
+    let grid = PrototypeBattleMap.makeNavigationGrid()
+    let gameData = PrototypeGameData()
+    let center = grid.worldPosition(for: GridCoordinate(column: 10, row: 8))
+    let cannon = BattleEntity(
+        kind: .cannon,
+        position: center,
+        hitPoints: 100
+    )
+    let storage = BattleEntity(
+        kind: .goldStorage,
+        position: grid.worldPosition(for: GridCoordinate(column: 11, row: 8)),
+        hitPoints: gameData.definition(for: .goldStorage).maxHitPoints
+    )
+    let wall = BattleEntity(
+        kind: .wall,
+        position: grid.worldPosition(for: GridCoordinate(column: 10, row: 9)),
+        hitPoints: gameData.definition(for: .wall).maxHitPoints
+    )
+    let plan = AttackPlan(
+        name: "Anteprima",
+        deployments: [],
+        spellDeployments: [
+            SpellDeploymentOrder(kind: .lightning, position: center, deploymentTime: 1),
+            SpellDeploymentOrder(kind: .earthquake, position: center, deploymentTime: 2)
+        ]
+    )
+    let analysis = SpellImpactAnalyzer(gameData: gameData).analyze(
+        plan: plan,
+        entities: [cannon, storage, wall]
+    )
+    #expect(analysis.entries.count == 2)
+    let lightning = try #require(analysis.entries.first { $0.kind == .lightning })
+    let earthquake = try #require(analysis.entries.first { $0.kind == .earthquake })
+    #expect(lightning.targetCount == 2)
+    #expect(lightning.wallCount == 0)
+    #expect(lightning.wastedDamage > 0)
+    #expect(earthquake.targetCount == 3)
+    #expect(earthquake.wallCount == 1)
+    #expect(analysis.totalUsefulDamage > 0)
+}
+
+@Test
+func spellImpactPreviewFlagsEmptyOffensiveCasts() throws {
+    let grid = PrototypeBattleMap.makeNavigationGrid()
+    let plan = AttackPlan(
+        name: "Lancio vuoto",
+        deployments: [],
+        spellDeployments: [
+            SpellDeploymentOrder(
+                kind: .lightning,
+                position: grid.worldPosition(for: GridCoordinate(column: 0, row: 0)),
+                deploymentTime: 0
+            )
+        ]
+    )
+    let analysis = SpellImpactAnalyzer(gameData: PrototypeGameData()).analyze(
+        plan: plan,
+        entities: [
+            BattleEntity(
+                kind: .townHall,
+                position: grid.worldPosition(for: GridCoordinate(column: 22, row: 14)),
+                hitPoints: 900
+            )
+        ]
+    )
+    let entry = try #require(analysis.entries.first)
+    #expect(entry.targetCount == 0)
+    #expect(entry.qualityLabel == "Fuori bersaglio")
+    #expect(analysis.missedCastCount == 1)
+}
