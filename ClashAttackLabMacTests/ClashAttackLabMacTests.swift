@@ -3819,7 +3819,9 @@ func simulationResultContainsCompactBattleTimeline() throws {
     )
 
     engine.start()
-    advance(engine, ticks: 1_000)
+    for _ in 0..<1_000 {
+        engine.advance(by: 1.0 / 60.0)
+    }
     let optionalResult: SimulationResult?
     if case .finished(let finished) = engine.status {
         optionalResult = finished
