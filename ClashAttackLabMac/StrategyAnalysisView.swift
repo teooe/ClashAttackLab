@@ -49,6 +49,12 @@ struct StrategyAnalysisView: View {
                 }
                 .disabled(session.isManualPlanning)
 
+                Button("Cerca resistente") {
+                    session.findMostResilientArmyAndAttack()
+                    showingScenarioAnalysis = true
+                }
+                .disabled(session.isManualPlanning)
+
                 Button("Fine") {
                     dismiss()
                 }
@@ -210,8 +216,13 @@ struct ScenarioAnalysisView: View {
                 )
                 .font(.title2.bold())
                 Spacer()
-                Button("Ricalcola") {
+                Button("Stress test") {
                     session.analyzeCurrentPlanUnderScenarios()
+                }
+                .buttonStyle(.bordered)
+                .disabled(session.isManualPlanning)
+                Button("Cerca resistente") {
+                    session.findMostResilientArmyAndAttack()
                 }
                 .buttonStyle(.borderedProminent)
                 .disabled(session.isManualPlanning)
@@ -224,7 +235,9 @@ struct ScenarioAnalysisView: View {
             .font(.callout)
             .foregroundStyle(.secondary)
 
-            if let analysis = session.scenarioAnalysis {
+            if !session.resilientPlanRankings.isEmpty {
+                resilientResults
+            } else if let analysis = session.scenarioAnalysis {
                 Text(analysis.plan.name)
                     .font(.headline)
 
@@ -285,6 +298,70 @@ struct ScenarioAnalysisView: View {
         }
         .padding(20)
         .frame(minWidth: 700, minHeight: 480)
+    }
+
+
+    private var resilientResults: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text("Piani più resistenti")
+                .font(.headline)
+            Text(
+                "Classifica per risultato nel caso peggiore; solo dopo contano media e superstiti."
+            )
+            .font(.caption)
+            .foregroundStyle(.secondary)
+
+            List(
+                Array(session.resilientPlanRankings.prefix(10).enumerated()),
+                id: \.element.id
+            ) { item in
+                let rank = item.offset + 1
+                let analysis = item.element
+                HStack(spacing: 12) {
+                    Text("#\(rank)")
+                        .font(.title3.bold())
+                        .frame(width: 30)
+                    VStack(alignment: .leading, spacing: 3) {
+                        Text(analysis.plan.name)
+                            .font(.headline)
+                        Text(
+                            String(
+                                format: "peggiore: ⭐ %d · %.1f%%",
+                                analysis.worstEntry?.evaluation.stars ?? 0,
+                                analysis.worstEntry?.evaluation.destructionPercentage ?? 0
+                            )
+                        )
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        Text(
+                            String(
+                                format: "media: ⭐ %.2f · %.1f%% · %.1f superstiti",
+                                analysis.averageStars,
+                                analysis.averageDestruction,
+                                analysis.averageSurvivors
+                            )
+                        )
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                    }
+                    Spacer()
+                    Text(
+                        analysis.isThreeStarStable
+                            ? "Tripla stabile"
+                            : "Variabile"
+                    )
+                    .font(.caption.bold())
+                    .foregroundStyle(
+                        analysis.isThreeStarStable ? .green : .orange
+                    )
+                    Button("Carica") {
+                        session.loadResilientPlan(analysis)
+                    }
+                    .buttonStyle(.borderedProminent)
+                }
+                .padding(.vertical, 4)
+            }
+        }
     }
 
     private func card(title: String, value: String) -> some View {

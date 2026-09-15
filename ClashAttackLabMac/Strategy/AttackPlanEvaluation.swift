@@ -299,3 +299,86 @@ nonisolated struct AttackPlanScenarioAnalysis {
         return "Caso peggiore: \(worstCase.evaluation.stars)★"
     }
 }
+
+
+/// One candidate evaluated under every bounded combat scenario. This is
+/// separate from cross-base robustness: here the base stays fixed.
+nonisolated struct ScenarioPlanRobustnessAnalysis: Identifiable {
+    let plan: AttackPlan
+    let entries: [ScenarioAttackEvaluation]
+
+    var id: UUID { plan.id }
+
+    var averageStars: Double {
+        guard !entries.isEmpty else { return 0 }
+        return entries.map { Double($0.evaluation.stars) }
+            .reduce(0, +) / Double(entries.count)
+    }
+
+    var averageDestruction: Double {
+        guard !entries.isEmpty else { return 0 }
+        return entries.map(\.evaluation.destructionPercentage)
+            .reduce(0, +) / Double(entries.count)
+    }
+
+    var averageSurvivors: Double {
+        guard !entries.isEmpty else { return 0 }
+        return entries.map {
+            Double($0.evaluation.result.survivingTroops)
+        }.reduce(0, +) / Double(entries.count)
+    }
+
+    var worstEntry: ScenarioAttackEvaluation? {
+        entries.min {
+            if $0.evaluation.stars != $1.evaluation.stars {
+                return $0.evaluation.stars < $1.evaluation.stars
+            }
+            return $0.evaluation.destructionPercentage <
+                $1.evaluation.destructionPercentage
+        }
+    }
+
+    var neutralEvaluation: AttackPlanEvaluation? {
+        entries.first(where: { $0.scenario == .neutral })?.evaluation
+    }
+
+    var isThreeStarStable: Bool {
+        !entries.isEmpty && entries.allSatisfy {
+            $0.evaluation.stars == 3
+        }
+    }
+}
+
+/// Orders plans primarily by their worst plausible prototype condition.
+/// It avoids choosing a fragile high-average plan over a steadier alternative.
+nonisolated enum ScenarioPlanRobustnessRanker {
+    static func rank(
+        _ analyses: [ScenarioPlanRobustnessAnalysis]
+    ) -> [ScenarioPlanRobustnessAnalysis] {
+        analyses.sorted { first, second in
+            if first.entries.isEmpty != second.entries.isEmpty {
+                return !first.entries.isEmpty
+            }
+            let firstWorst = first.worstEntry?.evaluation
+            let secondWorst = second.worstEntry?.evaluation
+            if firstWorst?.stars != secondWorst?.stars {
+                return (firstWorst?.stars ?? 0) > (secondWorst?.stars ?? 0)
+            }
+            if firstWorst?.destructionPercentage !=
+                secondWorst?.destructionPercentage {
+                return (firstWorst?.destructionPercentage ?? 0) >
+                    (secondWorst?.destructionPercentage ?? 0)
+            }
+            if first.averageStars != second.averageStars {
+                return first.averageStars > second.averageStars
+            }
+            if first.averageDestruction != second.averageDestruction {
+                return first.averageDestruction > second.averageDestruction
+            }
+            if first.averageSurvivors != second.averageSurvivors {
+                return first.averageSurvivors > second.averageSurvivors
+            }
+            return first.plan.name < second.plan.name
+        }
+    }
+}

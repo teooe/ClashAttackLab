@@ -106,6 +106,8 @@ final class AttackLabSession: ObservableObject {
         [BaseStrategyRecord] = []
     @Published private(set) var scenarioAnalysis:
         AttackPlanScenarioAnalysis?
+    @Published private(set) var resilientPlanRankings:
+        [ScenarioPlanRobustnessAnalysis] = []
     @Published private(set) var heroAbilityMessage =
         "Le abilità degli eroi sono pronte dopo il loro schieramento."
 
@@ -285,6 +287,7 @@ final class AttackLabSession: ObservableObject {
     /// This is an explainable sensitivity check, not a probability claim.
     func analyzeCurrentPlanUnderScenarios() {
         guard !isManualPlanning else { return }
+        resilientPlanRankings = []
         let plan = activePlan
         let entities = baseEntities
         let scenarios = PrototypeCombatScenario.allCases
@@ -326,6 +329,96 @@ final class AttackLabSession: ObservableObject {
                 entries: entries
             )
         }
+    }
+
+    /// Searches a bounded army/deploy set and ranks candidates by their
+    /// weakest combat scenario before considering average performance.
+    func findMostResilientArmyAndAttack() {
+        guard !isManualPlanning else { return }
+        let sourcePlan = activePlan
+        let variants = ArmyCompositionSearch.variants(
+            from: sourcePlan.armyConfiguration
+        )
+        guard !variants.isEmpty else { return }
+        let scenarios = PrototypeCombatScenario.allCases
+
+        startSearch(
+            title: "Ricerca piano resistente",
+            total: 1 + variants.count * 12
+        ) { [weak self] in
+            guard let self else { return }
+            var plans = [sourcePlan]
+
+            for variant in variants {
+                try Task.checkCancellation()
+                let guidance = self.makeGuidedCandidatePlans(
+                    for: variant.configuration,
+                    entities: self.baseEntities,
+                    baseName: self.activeBaseSnapshot.name
+                )
+                plans += guidance.plans.prefix(12).map {
+                    self.plan(
+                        $0,
+                        named: "\(variant.name) · \($0.name)",
+                        transferringHeroTimingFrom: sourcePlan
+                    )
+                }
+                await Task.yield()
+            }
+
+            self.searchTotal = plans.count * scenarios.count
+            var completed = 0
+            var analyses: [ScenarioPlanRobustnessAnalysis] = []
+
+            for plan in plans {
+                try Task.checkCancellation()
+                var entries: [ScenarioAttackEvaluation] = []
+
+                for scenario in scenarios {
+                    try Task.checkCancellation()
+                    let evaluator = AttackPlanEvaluator(
+                        baseEntities: self.baseEntities,
+                        gameData: ScenarioAdjustedGameData(
+                            base: self.gameData,
+                            scenario: scenario
+                        ),
+                        navigationGrid: self.navigationGrid
+                    )
+                    let results = try await evaluator.evaluateAsync([plan])
+                    try Task.checkCancellation()
+                    if let evaluation = results.first {
+                        entries.append(
+                            ScenarioAttackEvaluation(
+                                scenario: scenario,
+                                evaluation: evaluation
+                            )
+                        )
+                    }
+                    completed += 1
+                    self.searchCompleted = completed
+                }
+
+                analyses.append(
+                    ScenarioPlanRobustnessAnalysis(
+                        plan: plan,
+                        entries: entries
+                    )
+                )
+                await Task.yield()
+            }
+
+            self.resilientPlanRankings = ScenarioPlanRobustnessRanker.rank(
+                analyses
+            )
+        }
+    }
+
+    func loadResilientPlan(_ analysis: ScenarioPlanRobustnessAnalysis) {
+        guard let evaluation = analysis.neutralEvaluation ??
+            analysis.entries.first?.evaluation else {
+            return
+        }
+        applyEvaluationSelection(evaluation)
     }
 
     func analyzeCurrentBase() {
@@ -860,6 +953,7 @@ final class AttackLabSession: ObservableObject {
         selectedPlanID = plan.id
         evaluations = []
         scenarioAnalysis = nil
+        resilientPlanRankings = []
         lastSimulationResult = nil
         scenarioAnalysis = nil
         scene.loadAttackPlan(plan)

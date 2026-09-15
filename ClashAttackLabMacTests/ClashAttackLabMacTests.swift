@@ -3718,3 +3718,66 @@ func scenarioAnalysisReportsWorstCaseAndStability() {
     #expect(!analysis.isThreeStarStable)
     #expect(analysis.stabilityLabel == "Caso peggiore: 1★")
 }
+
+
+private func scenarioRobustnessFixture(
+    name: String,
+    outcomes: [(Int, Double)]
+) -> ScenarioPlanRobustnessAnalysis {
+    let fixture = savedBaseRobustnessFixture(
+        name: name,
+        outcomes: outcomes
+    )
+    let scenarios = PrototypeCombatScenario.allCases
+    let entries = fixture.entries.enumerated().map { index, entry in
+        ScenarioAttackEvaluation(
+            scenario: scenarios[index],
+            evaluation: entry.evaluation
+        )
+    }
+    return ScenarioPlanRobustnessAnalysis(
+        plan: fixture.plan,
+        entries: entries
+    )
+}
+
+@Test
+func resilientPlanRankingPrefersTheStrongestWorstScenario() {
+    let fragile = scenarioRobustnessFixture(
+        name: "Fragile",
+        outcomes: [(3, 100), (3, 100), (1, 40)]
+    )
+    let resilient = scenarioRobustnessFixture(
+        name: "Resistente",
+        outcomes: [(2, 70), (2, 70), (2, 70)]
+    )
+
+    let ranked = ScenarioPlanRobustnessRanker.rank(
+        [fragile, resilient]
+    )
+
+    #expect(ranked.first?.plan.id == resilient.plan.id)
+    #expect(fragile.worstEntry?.scenario == .defenseFavored)
+    #expect(!fragile.isThreeStarStable)
+}
+
+@Test
+func resilientPlanRankingUsesWorstDestructionBeforeAverage() {
+    let first = scenarioRobustnessFixture(
+        name: "Primo",
+        outcomes: [(2, 95), (2, 90), (2, 50)]
+    )
+    let second = scenarioRobustnessFixture(
+        name: "Secondo",
+        outcomes: [(2, 90), (2, 85), (2, 60)]
+    )
+    let empty = ScenarioPlanRobustnessAnalysis(
+        plan: AttackPlan(name: "Vuoto", deployments: []),
+        entries: []
+    )
+
+    let ranked = ScenarioPlanRobustnessRanker.rank([empty, first, second])
+
+    #expect(ranked.map(\.plan.name) == ["Secondo", "Primo", "Vuoto"])
+    #expect(second.neutralEvaluation?.stars == 2)
+}
