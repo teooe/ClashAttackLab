@@ -114,6 +114,37 @@ nonisolated enum RobustnessObjective: String, CaseIterable, Identifiable {
     }
 }
 
+/// Human-readable reason for the difference between two ranked plans.
+nonisolated enum StrategyComparisonExplanation {
+    static func text(
+        winner: AttackPlanRobustnessAnalysis,
+        runnerUp: AttackPlanRobustnessAnalysis,
+        objective: RobustnessObjective
+    ) -> String {
+        if objective == .weakestBase {
+            let winnerWorst = winner.weakestEntry?.evaluation.destructionPercentage ?? 0
+            let runnerWorst = runnerUp.weakestEntry?.evaluation.destructionPercentage ?? 0
+            let gap = winnerWorst - runnerWorst
+            if abs(gap) >= 0.05 {
+                return "Scelto per il caso peggiore: +\(String(format: "%.1f", gap))% sulla base più difficile."
+            }
+        }
+        let starsGap = winner.averageStars - runnerUp.averageStars
+        if abs(starsGap) >= 0.01 {
+            return "Scelto per +\(String(format: "%.2f", starsGap)) stelle medie rispetto al secondo."
+        }
+        let destructionGap = winner.averageDestruction - runnerUp.averageDestruction
+        if abs(destructionGap) >= 0.05 {
+            return "Scelto per +\(String(format: "%.1f", destructionGap))% di distruzione media."
+        }
+        let stabilityGap = runnerUp.destructionSpread - winner.destructionSpread
+        if abs(stabilityGap) >= 0.05 {
+            return "Risultato simile, ma più stabile: escursione ridotta di \(String(format: "%.1f", stabilityGap)) punti."
+        }
+        return "Risultato quasi equivalente: la scelta segue i criteri deterministici di superstiti e durata."
+    }
+}
+
 /// Deterministic ordering used when comparing saved strategies across bases.
 enum AttackPlanRobustnessRanker {
     static func rank(

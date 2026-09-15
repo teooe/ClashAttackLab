@@ -27,6 +27,19 @@ struct StrategyRankingView: View {
                 .font(.callout)
                 .foregroundStyle(.secondary)
 
+            if let winner = session.robustnessRankings.first,
+               let runnerUp = session.robustnessRankings.dropFirst().first {
+                Text(
+                    StrategyComparisonExplanation.text(
+                        winner: winner,
+                        runnerUp: runnerUp,
+                        objective: session.robustnessObjective
+                    )
+                )
+                .font(.caption)
+                .foregroundStyle(.secondary)
+            }
+
             if session.robustnessRankings.isEmpty {
                 ContentUnavailableView(
                     "Nessun piano da classificare",
@@ -63,6 +76,9 @@ struct StrategyRankingView: View {
                             )
                             .font(.caption)
                             .foregroundStyle(.secondary)
+                            Text(analysis.reliabilitySummary)
+                                .font(.caption2)
+                                .foregroundStyle(.secondary)
                         }
 
                         Spacer()
