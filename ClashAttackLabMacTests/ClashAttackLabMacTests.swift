@@ -3482,7 +3482,7 @@ private func savedBaseRobustnessFixture(
     let plan = AttackPlan(name: name, deployments: [])
     let entries = outcomes.enumerated().map { index, outcome in
         let base = BaseSnapshot(
-            name: "Base (index + 1)",
+            name: "Base \(index + 1)",
             objects: [
                 BaseObjectSnapshot(
                     kind: .townHall,
