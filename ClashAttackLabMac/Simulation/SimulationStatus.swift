@@ -31,6 +31,36 @@ nonisolated enum SimulationFinishReason: Hashable {
     }
 }
 
+nonisolated enum BattleTimelineEventKind: String, Codable {
+    case deployment
+    case spellCast
+    case heroAbility
+    case structureDestroyed
+    case troopDefeated
+    case siegePayloadReleased
+    case battleFinished
+}
+
+/// Compact, ordered event stream for explaining one deterministic battle.
+nonisolated struct BattleTimelineEvent: Identifiable, Codable {
+    let id: UUID
+    let timestamp: TimeInterval
+    let kind: BattleTimelineEventKind
+    let message: String
+
+    init(
+        id: UUID = UUID(),
+        timestamp: TimeInterval,
+        kind: BattleTimelineEventKind,
+        message: String
+    ) {
+        self.id = id
+        self.timestamp = timestamp
+        self.kind = kind
+        self.message = message
+    }
+}
+
 nonisolated struct BattleSummaryMetrics {
     let damageToBase: Double
     let hitPointsLostByArmy: Double
@@ -51,6 +81,35 @@ nonisolated struct SimulationResult {
     let defenseAttackCount: Int
     let score: BaseScoreSnapshot
     let metrics: BattleSummaryMetrics
+    let timeline: [BattleTimelineEvent]
+
+    init(
+        winner: BattleWinner,
+        elapsedTime: TimeInterval,
+        timeExpired: Bool,
+        finishReason: SimulationFinishReason,
+        deployedTroops: Int,
+        survivingTroops: Int,
+        survivingDefenses: Int,
+        troopAttackCount: Int,
+        defenseAttackCount: Int,
+        score: BaseScoreSnapshot,
+        metrics: BattleSummaryMetrics,
+        timeline: [BattleTimelineEvent] = []
+    ) {
+        self.winner = winner
+        self.elapsedTime = elapsedTime
+        self.timeExpired = timeExpired
+        self.finishReason = finishReason
+        self.deployedTroops = deployedTroops
+        self.survivingTroops = survivingTroops
+        self.survivingDefenses = survivingDefenses
+        self.troopAttackCount = troopAttackCount
+        self.defenseAttackCount = defenseAttackCount
+        self.score = score
+        self.metrics = metrics
+        self.timeline = timeline
+    }
 }
 
 nonisolated enum SimulationStatus {

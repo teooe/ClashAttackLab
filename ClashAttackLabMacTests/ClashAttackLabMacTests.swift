@@ -3781,3 +3781,91 @@ func resilientPlanRankingUsesWorstDestructionBeforeAverage() {
     #expect(ranked.map(\.plan.name) == ["Secondo", "Primo", "Vuoto"])
     #expect(second.neutralEvaluation?.stars == 2)
 }
+
+
+@Test
+func simulationResultContainsCompactBattleTimeline() throws {
+    let grid = PrototypeBattleMap.makeNavigationGrid()
+    let start = grid.worldPosition(
+        for: GridCoordinate(column: 5, row: 8)
+    )
+    let townHall = BattleEntity(
+        kind: .townHall,
+        position: grid.worldPosition(
+            for: GridCoordinate(column: 6, row: 8)
+        )
+    )
+    let engine = SimulationEngine(
+        entities: [townHall],
+        attackPlan: AttackPlan(
+            name: "Timeline",
+            deployments: [
+                DeploymentOrder(
+                    kind: .barbarian,
+                    position: start,
+                    deploymentTime: 0
+                )
+            ],
+            spellDeployments: [
+                SpellDeploymentOrder(
+                    kind: .rage,
+                    position: start,
+                    deploymentTime: 0
+                )
+            ]
+        ),
+        gameData: PrototypeGameData(),
+        navigationGrid: grid
+    )
+
+    engine.start()
+    advance(engine, ticks: 1_000)
+    let optionalResult: SimulationResult?
+    if case .finished(let finished) = engine.status {
+        optionalResult = finished
+    } else {
+        optionalResult = nil
+    }
+    let result = try #require(optionalResult)
+
+    #expect(result.timeline.contains { $0.kind == .deployment })
+    #expect(result.timeline.contains { $0.kind == .spellCast })
+    #expect(result.timeline.contains { $0.kind == .structureDestroyed })
+    #expect(result.timeline.last?.kind == .battleFinished)
+    #expect(result.timeline.count <= 160)
+}
+
+@Test
+func historyEntryRetainsTimelineButOlderEntriesCanOmitIt() {
+    let plan = AttackPlan(name: "Storico", deployments: [])
+    let result = SimulationResult(
+        winner: .defenses,
+        elapsedTime: 20,
+        timeExpired: true,
+        finishReason: .timeExpired,
+        deployedTroops: 1,
+        survivingTroops: 0,
+        survivingDefenses: 1,
+        troopAttackCount: 1,
+        defenseAttackCount: 1,
+        score: .zero,
+        metrics: BattleSummaryMetrics(
+            damageToBase: 0,
+            hitPointsLostByArmy: 100,
+            troopsLost: 1,
+            destroyedWalls: 0,
+            spellsCast: 0
+        ),
+        timeline: [
+            BattleTimelineEvent(
+                timestamp: 0,
+                kind: .deployment,
+                message: "Barbaro schierato"
+            )
+        ]
+    )
+    let entry = AttackHistoryEntry(plan: plan, result: result)
+
+    #expect(entry.timeline?.count == 1)
+    #expect(entry.timeline?.first?.kind == .deployment)
+}

@@ -29,6 +29,7 @@ final class SimulationEngine {
     private(set) var status: SimulationStatus = .ready
     private(set) var elapsedTime: TimeInterval = 0
     private(set) var score: BaseScoreSnapshot = .zero
+    private(set) var timeline: [BattleTimelineEvent] = []
 
     var remainingTime: TimeInterval {
         max(0, timeLimit - elapsedTime)
@@ -200,6 +201,7 @@ final class SimulationEngine {
             attackPlan.orderedSpellDeployments
         releasedSiegeMachineIDs = []
         releasedPayloadTroopCount = 0
+        timeline = []
         score = scoringSystem.calculate(
             entities: entities,
             gameData: gameData
@@ -356,6 +358,10 @@ final class SimulationEngine {
                 )
             )
             pendingDeployments.removeFirst()
+            recordEvent(
+                .deployment,
+                "\(definition.displayName) schierato"
+            )
         }
     }
 
@@ -374,6 +380,10 @@ final class SimulationEngine {
                 )
             )
             pendingSpellDeployments.removeFirst()
+            recordEvent(
+                .spellCast,
+                "\(definition.displayName) lanciata"
+            )
         }
     }
 
@@ -464,6 +474,10 @@ final class SimulationEngine {
 
         let maximum = definition(for: entities[index].kind).maxHitPoints
         entities[index].heroAbilityUsed = true
+        recordEvent(
+            .heroAbility,
+            "\(definition(for: entities[index].kind).heroAbility?.displayName ?? "Abilità") attivata"
+        )
         entities[index].heroAbilityRemaining = ability.duration
         entities[index].hitPoints = min(
             maximum,
@@ -1023,7 +1037,21 @@ final class SimulationEngine {
             )
 
             let entityID = entities[index].id
-            let payload = definition(for: entities[index].kind).siegePayload
+            let entityDefinition = definition(for: entities[index].kind)
+            if wasAlive, !entities[index].isAlive {
+                let eventKind: BattleTimelineEventKind =
+                    entityDefinition.role == .troop
+                        ? .troopDefeated
+                        : .structureDestroyed
+                let suffix = entityDefinition.role == .troop
+                    ? "eliminato"
+                    : "distrutto"
+                recordEvent(
+                    eventKind,
+                    "\(entityDefinition.displayName) \(suffix)"
+                )
+            }
+            let payload = entityDefinition.siegePayload
             if
                 wasAlive,
                 !entities[index].isAlive,
@@ -1045,6 +1073,10 @@ final class SimulationEngine {
         at position: WorldPosition,
         sourceID: UUID
     ) {
+        recordEvent(
+            .siegePayloadReleased,
+            "Assedio distrutto: rilasciate \(payload.count) truppe"
+        )
         for (offset, kind) in payload.enumerated() {
             let angle = Double(offset) *
                 (2 * Double.pi / Double(max(payload.count, 1)))
@@ -1234,6 +1266,22 @@ final class SimulationEngine {
         }
     }
 
+    private func recordEvent(
+        _ kind: BattleTimelineEventKind,
+        _ message: String
+    ) {
+        // Keeps history useful without allowing long simulations to grow
+        // unbounded in memory or persistent storage.
+        guard timeline.count < 160 else { return }
+        timeline.append(
+            BattleTimelineEvent(
+                timestamp: elapsedTime,
+                kind: kind,
+                message: message
+            )
+        )
+    }
+
     private func finish(reason: SimulationFinishReason) {
         guard case .running = status else {
             return
@@ -1255,6 +1303,11 @@ final class SimulationEngine {
                 ? .attackers
                 : .defenses
 
+        recordEvent(
+            .battleFinished,
+            "Battaglia conclusa: \(reason.displayName)"
+        )
+
         status = .finished(
             SimulationResult(
                 winner: winner,
@@ -1267,7 +1320,8 @@ final class SimulationEngine {
                 troopAttackCount: attackCounts[.troop, default: 0],
                 defenseAttackCount: attackCounts[.defense, default: 0],
                 score: score,
-                metrics: metrics
+                metrics: metrics,
+                timeline: timeline
             )
         )
     }

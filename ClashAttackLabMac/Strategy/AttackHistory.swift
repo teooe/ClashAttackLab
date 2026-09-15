@@ -22,6 +22,8 @@ struct AttackHistoryEntry: Identifiable, Codable {
     let damageToBase: Double
     let spellsCast: Int
     let destroyedWalls: Int
+    /// Optional so history created before event timelines stays readable.
+    let timeline: [BattleTimelineEvent]?
 
     init(
         id: UUID = UUID(),
@@ -48,6 +50,7 @@ struct AttackHistoryEntry: Identifiable, Codable {
         self.damageToBase = result.metrics.damageToBase
         self.spellsCast = result.metrics.spellsCast
         self.destroyedWalls = result.metrics.destroyedWalls
+        self.timeline = result.timeline
     }
 }
 
