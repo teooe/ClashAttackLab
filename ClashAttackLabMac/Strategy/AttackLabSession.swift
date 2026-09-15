@@ -13,6 +13,9 @@ final class AttackLabSession: ObservableObject {
         generatedPlanRankings = AttackPlanRobustnessRanker.rank(
             generatedPlanRankings, objective: objective
         )
+        savedBasePlanRankings = SavedBasePlanRanker.rank(
+            savedBasePlanRankings, objective: objective
+        )
         if let report = refinementReport {
             refinementReport = AttackPlanRefinementReport(
                 sourcePlan: report.sourcePlan,
@@ -96,6 +99,8 @@ final class AttackLabSession: ObservableObject {
     @Published private(set) var armyEntryAdvice: ArmyEntryAdvice?
     @Published private(set) var savedBases: [BaseSnapshot] = []
     @Published private(set) var savedBasePlanAnalysis: SavedBasePlanAnalysis?
+    @Published private(set) var savedBasePlanRankings:
+        [SavedBasePlanRobustnessAnalysis] = []
     @Published private(set) var heroAbilityMessage =
         "Le abilità degli eroi sono pronte dopo il loro schieramento."
 
@@ -330,6 +335,141 @@ final class AttackLabSession: ObservableObject {
     }
 
     /// Tests the current plan on the active base and every saved custom base.
+    /// Tests generated army/deploy candidates against the active base and all
+    /// compatible bases saved locally. No remote data leaves the Mac.
+    func findReliableArmyAndAttackAcrossSavedBases() {
+        guard !isManualPlanning else { return }
+        let sourcePlan = activePlan
+        let bases = comparableSavedBases()
+        guard !bases.isEmpty else { return }
+        let variants = ArmyCompositionSearch.variants(
+            from: sourcePlan.armyConfiguration
+        )
+        guard !variants.isEmpty else { return }
+
+        startSearch(
+            title: "Ricerca affidabile su basi locali",
+            total: 1 + variants.count * 24
+        ) { [weak self] in
+            guard let self else { return }
+            var plans = [sourcePlan]
+            for variant in variants {
+                try Task.checkCancellation()
+                let guidance = self.makeGuidedCandidatePlans(
+                    for: variant.configuration,
+                    entities: self.baseEntities,
+                    baseName: self.activeBaseSnapshot.name
+                )
+                plans += guidance.plans.map {
+                    self.plan(
+                        $0,
+                        named: "\(variant.name) · \($0.name)",
+                        transferringHeroTimingFrom: sourcePlan
+                    )
+                }
+                await Task.yield()
+            }
+            self.searchTotal = plans.count * bases.count
+            let analyses = try await self.analyze(
+                plans: plans, across: bases
+            )
+            try Task.checkCancellation()
+            self.savedBasePlanRankings = SavedBasePlanRanker.rank(
+                analyses, objective: self.robustnessObjective
+            )
+            if let winner = self.savedBasePlanRankings.first {
+                self.applyReliableSavedBasePlan(winner)
+            }
+        }
+    }
+
+    func loadReliableSavedBasePlan(
+        _ analysis: SavedBasePlanRobustnessAnalysis
+    ) {
+        guard let evaluation = analysis.entries.first(
+            where: { $0.base.id == activeBaseSnapshot.id }
+        )?.evaluation ?? analysis.entries.first?.evaluation else {
+            return
+        }
+        applyEvaluationSelection(evaluation)
+    }
+
+    private func applyReliableSavedBasePlan(
+        _ analysis: SavedBasePlanRobustnessAnalysis
+    ) {
+        loadReliableSavedBasePlan(analysis)
+    }
+
+    private func comparableSavedBases() -> [BaseSnapshot] {
+        var seen = Set<UUID>()
+        return ([activeBaseSnapshot] + savedBases).filter {
+            seen.insert($0.id).inserted && $0.isValid(on: navigationGrid)
+        }
+    }
+
+    private func analyze(
+        plans: [AttackPlan],
+        across bases: [BaseSnapshot]
+    ) async throws -> [SavedBasePlanRobustnessAnalysis] {
+        var analyses: [SavedBasePlanRobustnessAnalysis] = []
+        for plan in plans {
+            try Task.checkCancellation()
+            var entries: [CustomBaseAttackEvaluation] = []
+            for base in bases {
+                try Task.checkCancellation()
+                let evaluator = AttackPlanEvaluator(
+                    baseEntities: base.makeEntities(navigationGrid: navigationGrid),
+                    gameData: gameData, navigationGrid: navigationGrid
+                )
+                let results = try await evaluator.evaluateAsync([plan])
+                try Task.checkCancellation()
+                guard let evaluation = results.first else {
+                    throw AttackPlanEvaluator.EvaluationError.incompleteSimulation
+                }
+                entries.append(
+                    CustomBaseAttackEvaluation(base: base, evaluation: evaluation)
+                )
+                searchCompleted += 1
+            }
+            analyses.append(
+                SavedBasePlanRobustnessAnalysis(plan: plan, entries: entries)
+            )
+            await Task.yield()
+        }
+        return analyses
+    }
+
+    private func plan(
+        _ source: AttackPlan,
+        named name: String,
+        transferringHeroTimingFrom original: AttackPlan
+    ) -> AttackPlan {
+        AttackPlan(
+            name: name,
+            deployments: source.deployments,
+            spellDeployments: source.spellDeployments,
+            heroAbilityOrders: source.deployments.compactMap { deployment in
+                guard let originalDeployment = original.deployments.first(
+                    where: { $0.kind == deployment.kind }
+                ), let command = original.heroAbilityOrders.first(
+                    where: { $0.entityID == originalDeployment.entityID }
+                ) else { return nil }
+                return HeroAbilityOrder(
+                    entityID: deployment.entityID,
+                    activationTime: min(
+                        59,
+                        max(
+                            deployment.deploymentTime,
+                            deployment.deploymentTime +
+                                command.activationTime -
+                                originalDeployment.deploymentTime
+                        )
+                    )
+                )
+            }
+        )
+    }
+
     func analyzeCurrentPlanAcrossSavedBases() {
         guard !isManualPlanning else { return }
         let plan = activePlan

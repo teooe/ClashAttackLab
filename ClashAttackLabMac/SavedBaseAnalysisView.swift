@@ -16,9 +16,17 @@ struct SavedBaseAnalysisView: View {
 
                 Spacer()
 
-                Button("Ricalcola") {
-                    session.analyzeCurrentPlanAcrossSavedBases()
+                Menu {
+                    Button("Analizza piano attuale") {
+                        session.analyzeCurrentPlanAcrossSavedBases()
+                    }
+                    Button("Trova piano affidabile") {
+                        session.findReliableArmyAndAttackAcrossSavedBases()
+                    }
+                } label: {
+                    Label("Ricerca", systemImage: "wand.and.stars")
                 }
+                .disabled(session.isManualPlanning)
 
                 Button("Fine") {
                     dismiss()
@@ -26,12 +34,16 @@ struct SavedBaseAnalysisView: View {
             }
 
             Text(
-                "Confronta il piano attuale con la base aperta e con tutte le basi salvate sul Mac."
+                "Analizza il piano attuale oppure cerca composizione e deploy più affidabili sulla base aperta e sulle basi salvate localmente."
             )
             .font(.callout)
             .foregroundStyle(.secondary)
 
-            if let analysis = session.savedBasePlanAnalysis {
+            RobustnessObjectivePicker(session: session)
+
+            if !session.savedBasePlanRankings.isEmpty {
+                reliablePlanResults
+            } else if let analysis = session.savedBasePlanAnalysis {
                 HStack(spacing: 10) {
                     summaryCard(
                         title: "Basi",
@@ -100,6 +112,55 @@ struct SavedBaseAnalysisView: View {
         .onAppear {
             if session.savedBasePlanAnalysis == nil {
                 session.analyzeCurrentPlanAcrossSavedBases()
+            }
+        }
+    }
+
+
+    private var reliablePlanResults: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text("Piani affidabili sulle basi locali")
+                .font(.headline)
+            Text(session.robustnessObjective.explanation)
+                .font(.caption)
+                .foregroundStyle(.secondary)
+
+            List(
+                Array(session.savedBasePlanRankings.prefix(10).enumerated()),
+                id: \.element.id
+            ) { item in
+                let rank = item.offset + 1
+                let analysis = item.element
+                HStack(spacing: 12) {
+                    Text("#\(rank)")
+                        .font(.title3.bold())
+                        .frame(width: 32)
+                    VStack(alignment: .leading, spacing: 3) {
+                        Text(analysis.plan.name)
+                            .font(.headline)
+                        Text(
+                            String(
+                                format: "⭐ %.2f · %.1f%% · %.1f superstiti · %d/%d triple",
+                                analysis.averageStars,
+                                analysis.averageDestruction,
+                                analysis.averageSurvivors,
+                                analysis.threeStarCount,
+                                analysis.entries.count
+                            )
+                        )
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        Text("Base peggiore: \(analysis.weakestBaseSummary)")
+                            .font(.caption2)
+                            .foregroundStyle(.secondary)
+                    }
+                    Spacer()
+                    Button("Carica") {
+                        session.loadReliableSavedBasePlan(analysis)
+                    }
+                    .buttonStyle(.borderedProminent)
+                }
+                .padding(.vertical, 4)
             }
         }
     }

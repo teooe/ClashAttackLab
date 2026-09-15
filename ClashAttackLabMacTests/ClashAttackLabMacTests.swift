@@ -3473,3 +3473,103 @@ func armyCompositionSearchCanBeCancelledWithoutChangingTheSelectedArmy() async {
     #expect(session.selectedPlanID == originalID)
     #expect(session.evaluations.isEmpty)
 }
+
+
+private func savedBaseRobustnessFixture(
+    name: String,
+    outcomes: [(Int, Double)]
+) -> SavedBasePlanRobustnessAnalysis {
+    let plan = AttackPlan(name: name, deployments: [])
+    let entries = outcomes.enumerated().map { index, outcome in
+        let base = BaseSnapshot(
+            name: "Base (index + 1)",
+            objects: [
+                BaseObjectSnapshot(
+                    kind: .townHall,
+                    column: 20,
+                    row: 8
+                )
+            ]
+        )
+        let result = SimulationResult(
+            winner: .defenses,
+            elapsedTime: 30,
+            timeExpired: true,
+            finishReason: .timeExpired,
+            deployedTroops: 4,
+            survivingTroops: 2,
+            survivingDefenses: 1,
+            troopAttackCount: 2,
+            defenseAttackCount: 2,
+            score: BaseScoreSnapshot(
+                destructionPercentage: outcome.1,
+                stars: outcome.0,
+                townHallDestroyed: outcome.0 >= 2,
+                destroyedBuildings: 0,
+                totalBuildings: 1
+            ),
+            metrics: BattleSummaryMetrics(
+                damageToBase: outcome.1,
+                hitPointsLostByArmy: 0,
+                troopsLost: 2,
+                destroyedWalls: 0,
+                spellsCast: 0
+            )
+        )
+        return CustomBaseAttackEvaluation(
+            base: base,
+            evaluation: AttackPlanEvaluation(plan: plan, result: result)
+        )
+    }
+    return SavedBasePlanRobustnessAnalysis(plan: plan, entries: entries)
+}
+
+@Test
+func savedBaseReliabilityRankingCanPreferConsistency() {
+    let uneven = savedBaseRobustnessFixture(
+        name: "Potente ma instabile",
+        outcomes: [(3, 100), (3, 100), (1, 50)]
+    )
+    let consistent = savedBaseRobustnessFixture(
+        name: "Affidabile",
+        outcomes: [(2, 70), (2, 70), (2, 70)]
+    )
+
+    #expect(
+        SavedBasePlanRanker.rank(
+            [uneven, consistent],
+            objective: .average
+        ).first?.plan.id == uneven.plan.id
+    )
+    #expect(
+        SavedBasePlanRanker.rank(
+            [uneven, consistent],
+            objective: .weakestBase
+        ).first?.plan.id == consistent.plan.id
+    )
+    #expect(uneven.weakestEntry?.base.name == "Base 3")
+    #expect(uneven.weakestBaseSummary.contains("1★"))
+}
+
+@Test
+func savedBaseReliabilityRankingHandlesEmptyAnalyses() {
+    let empty = SavedBasePlanRobustnessAnalysis(
+        plan: AttackPlan(name: "Vuoto", deployments: []),
+        entries: []
+    )
+    let first = savedBaseRobustnessFixture(
+        name: "Primo",
+        outcomes: [(2, 60), (2, 55)]
+    )
+    let second = savedBaseRobustnessFixture(
+        name: "Secondo",
+        outcomes: [(2, 60), (2, 65)]
+    )
+
+    let ranked = SavedBasePlanRanker.rank(
+        [empty, first, second],
+        objective: .weakestBase
+    )
+    #expect(ranked.map(\.plan.name) == ["Secondo", "Primo", "Vuoto"])
+    #expect(empty.weakestEntry == nil)
+}
