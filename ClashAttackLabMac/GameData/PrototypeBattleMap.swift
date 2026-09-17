@@ -135,7 +135,7 @@ nonisolated enum PrototypeBattleMap {
         case .doubleCore:
             return [
                 (.cannon, GridCoordinate(column: 15, row: 5)),
-                (.cannon, GridCoordinate(column: 15, row: 11)),
+                (.cannon, GridCoordinate(column: 15, row: 12)),
                 (.archerTower, GridCoordinate(column: 20, row: 3)),
                 (.archerTower, GridCoordinate(column: 20, row: 13)),
                 (.mortar, GridCoordinate(column: 18, row: 8)),
