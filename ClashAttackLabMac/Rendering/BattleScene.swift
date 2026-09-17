@@ -1053,7 +1053,7 @@ final class BattleScene: SKScene {
             return .systemBrown
         case .stoneSlammer:
             return .systemCyan
-        case .cannon, .archerTower, .mortar, .wizardTower, .infernoTower, .bombTower, .hiddenTesla, .giantBomb, .airDefense,
+        case .cannon, .archerTower, .mortar, .wizardTower, .infernoTower, .bombTower, .hiddenTesla, .giantBomb, .airSweeper, .airDefense,
              .townHall, .goldStorage, .wall:
             return .systemCyan
         }
@@ -1099,6 +1099,8 @@ final class BattleScene: SKScene {
             return "TO"
         case .giantBomb:
             return "BG"
+        case .airSweeper:
+            return "SP"
         case .airDefense:
             return "AD"
         case .townHall:
@@ -1248,6 +1250,13 @@ final class BattleScene: SKScene {
                 radius: 24,
                 color: .systemRed,
                 text: "BG"
+            )
+
+        case .airSweeper:
+            return makeLabeledRectangle(
+                size: CGSize(width: 62, height: 62),
+                color: .systemMint,
+                text: "SP"
             )
 
         case .airDefense:

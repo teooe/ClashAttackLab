@@ -324,7 +324,7 @@ nonisolated struct AttackPlanGenerator {
             offset = 0
         case .stoneSlammer:
             offset = direction * 2
-        case .cannon, .archerTower, .mortar, .wizardTower, .infernoTower, .bombTower, .hiddenTesla, .giantBomb, .airDefense,
+        case .cannon, .archerTower, .mortar, .wizardTower, .infernoTower, .bombTower, .hiddenTesla, .giantBomb, .airSweeper, .airDefense,
              .townHall, .goldStorage, .wall:
             offset = 0
         }
@@ -350,7 +350,7 @@ nonisolated struct AttackPlanGenerator {
             return 2
         case .stoneSlammer:
             return 0
-        case .cannon, .archerTower, .mortar, .wizardTower, .infernoTower, .bombTower, .hiddenTesla, .giantBomb, .airDefense,
+        case .cannon, .archerTower, .mortar, .wizardTower, .infernoTower, .bombTower, .hiddenTesla, .giantBomb, .airSweeper, .airDefense,
              .townHall, .goldStorage, .wall:
             return 1
         }

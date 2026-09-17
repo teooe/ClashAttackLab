@@ -4737,3 +4737,169 @@ func trapsAreExcludedFromObjectivesAndScenarioDataKeepsSpecialMechanics() {
         #expect(layoutSnapshot.validationReport(on: grid).isBuildable)
     }
 }
+
+
+@Test
+func airSweeperDefinesNonDamagingAirOnlyControl() {
+    let definition = PrototypeGameData().definition(for: .airSweeper)
+
+    #expect(definition.role == .defense)
+    #expect(definition.attackDamage == 0)
+    #expect(definition.pushbackDistance > 0)
+    #expect(definition.attackTargetLayer == .air)
+    #expect(definition.projectileKind == nil)
+}
+
+@Test
+func airSweeperPushesBalloonAwayAndForcesPathRecalculation() throws {
+    let grid = PrototypeBattleMap.makeNavigationGrid()
+    let start = grid.worldPosition(
+        for: GridCoordinate(column: 8, row: 8)
+    )
+    let sweeper = BattleEntity(
+        kind: .airSweeper,
+        position: grid.worldPosition(
+            for: GridCoordinate(column: 10, row: 8)
+        )
+    )
+    let townHall = BattleEntity(
+        kind: .townHall,
+        position: grid.worldPosition(
+            for: GridCoordinate(column: 18, row: 8)
+        )
+    )
+    let deployment = DeploymentOrder(
+        kind: .balloon,
+        position: start,
+        deploymentTime: 0
+    )
+    let engine = SimulationEngine(
+        entities: [sweeper, townHall],
+        attackPlan: AttackPlan(
+            name: "Air Sweeper control",
+            deployments: [deployment]
+        ),
+        gameData: PrototypeGameData(),
+        navigationGrid: grid
+    )
+
+    engine.start()
+    engine.advance(by: 1.0 / 60.0)
+
+    let balloon = try #require(
+        engine.entities.first { $0.id == deployment.entityID }
+    )
+    let activeSweeper = try #require(
+        engine.entities.first { $0.kind == .airSweeper }
+    )
+    #expect(balloon.position.x < start.x)
+    #expect(activeSweeper.currentTargetID == deployment.entityID)
+    #expect(engine.movementPath(for: balloon.id).isEmpty)
+}
+
+@Test
+func airSweeperIgnoresGroundTroopsAndClampsAirUnitsInsideArena() throws {
+    let grid = PrototypeBattleMap.makeNavigationGrid()
+    let groundStart = grid.worldPosition(
+        for: GridCoordinate(column: 8, row: 8)
+    )
+    let groundOrder = DeploymentOrder(
+        kind: .barbarian,
+        position: groundStart,
+        deploymentTime: 0
+    )
+    let groundEngine = SimulationEngine(
+        entities: [
+            BattleEntity(
+                kind: .airSweeper,
+                position: grid.worldPosition(
+                    for: GridCoordinate(column: 10, row: 8)
+                )
+            ),
+            BattleEntity(
+                kind: .townHall,
+                position: grid.worldPosition(
+                    for: GridCoordinate(column: 18, row: 8)
+                )
+            )
+        ],
+        attackPlan: AttackPlan(
+            name: "Ground ignores sweeper",
+            deployments: [groundOrder]
+        ),
+        gameData: PrototypeGameData(),
+        navigationGrid: grid
+    )
+    groundEngine.start()
+    groundEngine.advance(by: 1.0 / 60.0)
+
+    let barbarian = try #require(
+        groundEngine.entities.first { $0.id == groundOrder.entityID }
+    )
+    let groundSweeper = try #require(
+        groundEngine.entities.first { $0.kind == .airSweeper }
+    )
+    #expect(barbarian.position.x >= groundStart.x)
+    #expect(groundSweeper.currentTargetID == nil)
+
+    let edgeStart = grid.worldPosition(
+        for: GridCoordinate(column: 0, row: 8)
+    )
+    let airOrder = DeploymentOrder(
+        kind: .balloon,
+        position: edgeStart,
+        deploymentTime: 0
+    )
+    let edgeEngine = SimulationEngine(
+        entities: [
+            BattleEntity(
+                kind: .airSweeper,
+                position: grid.worldPosition(
+                    for: GridCoordinate(column: 2, row: 8)
+                )
+            ),
+            BattleEntity(
+                kind: .townHall,
+                position: grid.worldPosition(
+                    for: GridCoordinate(column: 18, row: 8)
+                )
+            )
+        ],
+        attackPlan: AttackPlan(
+            name: "Arena edge clamp",
+            deployments: [airOrder]
+        ),
+        gameData: PrototypeGameData(),
+        navigationGrid: grid
+    )
+    edgeEngine.start()
+    edgeEngine.advance(by: 1.0 / 60.0)
+
+    let edgeBalloon = try #require(
+        edgeEngine.entities.first { $0.id == airOrder.entityID }
+    )
+    #expect(edgeBalloon.position.x >= grid.origin.x)
+}
+
+@Test
+func airSweeperIsAvailableInValidBasesAndRobustnessScenarios() {
+    let grid = PrototypeBattleMap.makeNavigationGrid()
+    let gameData = PrototypeGameData()
+    let adjusted = ScenarioAdjustedGameData(
+        base: gameData,
+        scenario: .defenseFavored
+    )
+    #expect(
+        adjusted.definition(for: .airSweeper).pushbackDistance ==
+            gameData.definition(for: .airSweeper).pushbackDistance
+    )
+
+    for layout in PrototypeBaseLayout.allCases {
+        let snapshot = BaseSnapshot.make(
+            from: layout,
+            navigationGrid: grid
+        )
+        #expect(snapshot.objects.filter { $0.kind == .airSweeper }.count == 1)
+        #expect(snapshot.validationReport(on: grid).isBuildable)
+    }
+}

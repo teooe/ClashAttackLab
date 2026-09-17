@@ -245,6 +245,7 @@ nonisolated struct ScenarioAdjustedGameData: GameDataProviding {
             destructionTargetLayer: definition.destructionTargetLayer,
             startsHidden: definition.startsHidden,
             activationRange: definition.activationRange,
+            pushbackDistance: definition.pushbackDistance,
             movementDomain: definition.movementDomain,
             attackTargetLayer: definition.attackTargetLayer,
             targetingProfile: definition.targetingProfile,

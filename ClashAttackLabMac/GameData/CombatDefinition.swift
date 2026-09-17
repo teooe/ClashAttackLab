@@ -97,6 +97,9 @@ nonisolated struct CombatDefinition {
     let startsHidden: Bool
     let activationRange: Double
 
+    /// Non-damaging displacement applied on every successful attack.
+    let pushbackDistance: Double
+
     /// Ground troops navigate with A*. Air troops fly directly over walls.
     let movementDomain: MovementDomain
 
@@ -133,6 +136,7 @@ nonisolated struct CombatDefinition {
         destructionTargetLayer: AttackTargetLayer = .ground,
         startsHidden: Bool = false,
         activationRange: Double = 0,
+        pushbackDistance: Double = 0,
         movementDomain: MovementDomain = .ground,
         attackTargetLayer: AttackTargetLayer = .both,
         targetingProfile: TargetingProfile?,
@@ -161,6 +165,7 @@ nonisolated struct CombatDefinition {
         self.destructionTargetLayer = destructionTargetLayer
         self.startsHidden = startsHidden
         self.activationRange = activationRange
+        self.pushbackDistance = pushbackDistance
         self.movementDomain = movementDomain
         self.attackTargetLayer = attackTargetLayer
         self.targetingProfile = targetingProfile

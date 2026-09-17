@@ -26,6 +26,7 @@ nonisolated enum BattleEntityKind: Hashable, Codable {
     case bombTower
     case hiddenTesla
     case giantBomb
+    case airSweeper
     case airDefense
     case townHall
     case goldStorage

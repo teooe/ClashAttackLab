@@ -503,6 +503,26 @@ nonisolated struct PrototypeGameData: GameDataProviding {
                 targetingProfile: nil
             )
 
+        case .airSweeper:
+            return CombatDefinition(
+                displayName: "Spazzaria",
+                role: .defense,
+                maxHitPoints: 640,
+                movementSpeed: 0,
+                attackDamage: 0,
+                minimumAttackRange: 0,
+                attackRange: 330,
+                attackInterval: 1.9,
+                canMove: false,
+                projectileKind: nil,
+                projectileSpeed: 0,
+                splashRadius: 0,
+                selfDestructsOnAttack: false,
+                pushbackDistance: 105,
+                attackTargetLayer: .air,
+                targetingProfile: nil
+            )
+
         case .airDefense:
             return CombatDefinition(
                 displayName: "Difesa aerea",

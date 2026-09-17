@@ -985,7 +985,7 @@ final class SimulationEngine {
             attacker.isAlive,
             target.isAlive,
             attacker.attackCooldown <= 0,
-            attackDamage > 0
+            attackDamage > 0 || attackerDefinition.pushbackDistance > 0
         else {
             return
         }
@@ -1021,6 +1021,15 @@ final class SimulationEngine {
             pendingDamage[target.id, default: 0] += attackDamage
         }
 
+        if attackerDefinition.pushbackDistance > 0 {
+            applyPushback(
+                to: targetIndex,
+                awayFrom: attacker.position,
+                distance: attackerDefinition.pushbackDistance
+            )
+            movementPaths[entities[targetIndex].id] = []
+        }
+
         if attackerDefinition.selfDestructsOnAttack {
             pendingDamage[attacker.id, default: 0] += attacker.hitPoints
         }
@@ -1032,6 +1041,43 @@ final class SimulationEngine {
         entities[attackerIndex].consecutiveAttacksOnTarget =
             repeatedAttackIndex + 1
         attackCounts[attackerDefinition.role, default: 0] += 1
+    }
+
+    private func applyPushback(
+        to entityIndex: Int,
+        awayFrom source: WorldPosition,
+        distance pushbackDistance: Double
+    ) {
+        guard
+            entities.indices.contains(entityIndex),
+            pushbackDistance > 0
+        else {
+            return
+        }
+
+        let current = entities[entityIndex].position
+        let deltaX = current.x - source.x
+        let deltaY = current.y - source.y
+        let separation = hypot(deltaX, deltaY)
+        let directionX = separation > 0 ? deltaX / separation : -1
+        let directionY = separation > 0 ? deltaY / separation : 0
+        let minimumX = navigationGrid.origin.x
+        let minimumY = navigationGrid.origin.y
+        let maximumX = minimumX +
+            Double(navigationGrid.columns - 1) * navigationGrid.cellSize
+        let maximumY = minimumY +
+            Double(navigationGrid.rows - 1) * navigationGrid.cellSize
+
+        entities[entityIndex].position = WorldPosition(
+            x: min(
+                maximumX,
+                max(minimumX, current.x + directionX * pushbackDistance)
+            ),
+            y: min(
+                maximumY,
+                max(minimumY, current.y + directionY * pushbackDistance)
+            )
+        )
     }
 
     private func resetDamageRamp(for entityIndex: Int) {
