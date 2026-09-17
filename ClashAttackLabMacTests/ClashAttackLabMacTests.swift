@@ -4135,3 +4135,43 @@ func spellImpactPreviewFlagsEmptyOffensiveCasts() throws {
     #expect(entry.qualityLabel == "Fuori bersaglio")
     #expect(analysis.missedCastCount == 1)
 }
+
+
+@Test
+func offensiveSpellOptimizerMovesOnlyCastsThatGainUsefulDamage() throws {
+    let grid = PrototypeBattleMap.makeNavigationGrid()
+    let gameData = PrototypeGameData()
+    let miss = grid.worldPosition(for: GridCoordinate(column: 0, row: 0))
+    let defensePosition = grid.worldPosition(for: GridCoordinate(column: 15, row: 8))
+    let cannon = BattleEntity(
+        kind: .cannon,
+        position: defensePosition,
+        hitPoints: gameData.definition(for: .cannon).maxHitPoints
+    )
+    let plan = AttackPlan(
+        name: "Da correggere",
+        deployments: [
+            DeploymentOrder(
+                kind: .giant,
+                position: grid.worldPosition(for: GridCoordinate(column: 1, row: 8)),
+                deploymentTime: 0
+            )
+        ],
+        spellDeployments: [
+            SpellDeploymentOrder(kind: .lightning, position: miss, deploymentTime: 4),
+            SpellDeploymentOrder(kind: .rage, position: miss, deploymentTime: 6)
+        ]
+    )
+    let result = OffensiveSpellPlanOptimizer(
+        navigationGrid: grid,
+        gameData: gameData
+    ).optimize(plan: plan, entities: [cannon])
+
+    #expect(result.movedCastCount == 1)
+    #expect(result.usefulDamageGain > 0)
+    #expect(result.optimizedPlan.armyConfiguration == plan.armyConfiguration)
+    #expect(result.optimizedPlan.deployments.map(\.entityID) == plan.deployments.map(\.entityID))
+    #expect(result.optimizedPlan.spellDeployments.map(\.id) == plan.spellDeployments.map(\.id))
+    #expect(result.optimizedPlan.spellDeployments.map(\.deploymentTime) == [4, 6])
+    #expect(result.optimizedPlan.spellDeployments[1].position == miss)
+}

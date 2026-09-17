@@ -110,6 +110,8 @@ final class AttackLabSession: ObservableObject {
         [ScenarioPlanRobustnessAnalysis] = []
     @Published private(set) var heroAbilityMessage =
         "Le abilità degli eroi sono pronte dopo il loro schieramento."
+    @Published private(set) var lastSpellOptimization:
+        SpellPlanOptimizationResult?
 
     let scene: BattleScene
 
@@ -1424,5 +1426,20 @@ extension AttackLabSession {
             plan: activePlan,
             entities: baseEntities
         )
+    }
+}
+
+
+extension AttackLabSession {
+    func optimizeCurrentPlanSpells() {
+        cancelSearch()
+        guard !isManualPlanning else { return }
+        let result = OffensiveSpellPlanOptimizer(
+            navigationGrid: navigationGrid,
+            gameData: gameData
+        ).optimize(plan: activePlan, entities: baseEntities)
+        lastSpellOptimization = result
+        guard result.movedCastCount > 0 else { return }
+        loadSavedPlan(result.optimizedPlan)
     }
 }

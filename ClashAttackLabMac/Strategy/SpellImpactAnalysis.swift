@@ -107,3 +107,121 @@ nonisolated struct SpellImpactAnalyzer {
         return SpellImpactAnalysis(entries: entries)
     }
 }
+
+
+nonisolated struct SpellPlanOptimizationResult {
+    let originalPlan: AttackPlan
+    let optimizedPlan: AttackPlan
+    let movedSpellIDs: Set<UUID>
+    let before: SpellImpactAnalysis
+    let after: SpellImpactAnalysis
+
+    var movedCastCount: Int { movedSpellIDs.count }
+    var usefulDamageGain: Double {
+        after.totalUsefulDamage - before.totalUsefulDamage
+    }
+}
+
+/// Repositions only instant-damage spells and accepts strictly better casts.
+nonisolated struct OffensiveSpellPlanOptimizer {
+    let navigationGrid: NavigationGrid
+    let gameData: any GameDataProviding
+
+    func optimize(
+        plan: AttackPlan,
+        entities: [BattleEntity]
+    ) -> SpellPlanOptimizationResult {
+        let analyzer = SpellImpactAnalyzer(gameData: gameData)
+        let before = analyzer.analyze(plan: plan, entities: entities)
+        let lightningPlanner = LightningPlacementPlanner(
+            navigationGrid: navigationGrid,
+            gameData: gameData
+        )
+        let earthquakePlanner = EarthquakePlacementPlanner(
+            navigationGrid: navigationGrid,
+            gameData: gameData
+        )
+        var lightningPositions: [WorldPosition] = []
+        var earthquakePositions: [WorldPosition] = []
+        var moved: Set<UUID> = []
+
+        let spells = plan.spellDeployments.map { order -> SpellDeploymentOrder in
+            let proposed: WorldPosition?
+            switch order.kind {
+            case .lightning:
+                proposed = lightningPlanner.position(
+                    entities: entities,
+                    previousPositions: lightningPositions
+                )
+            case .earthquake:
+                proposed = earthquakePlanner.position(
+                    entities: entities,
+                    previousPositions: earthquakePositions
+                )
+            case .heal, .rage, .freeze:
+                proposed = nil
+            }
+
+            guard let proposed else { return order }
+            let candidate = SpellDeploymentOrder(
+                id: order.id,
+                kind: order.kind,
+                position: proposed,
+                deploymentTime: order.deploymentTime
+            )
+            let currentImpact = impact(
+                of: order,
+                analyzer: analyzer,
+                entities: entities
+            )
+            let candidateImpact = impact(
+                of: candidate,
+                analyzer: analyzer,
+                entities: entities
+            )
+            let improves = candidateImpact.usefulDamage >
+                currentImpact.usefulDamage + 0.001
+
+            let selected = improves ? candidate : order
+            if improves { moved.insert(order.id) }
+            switch order.kind {
+            case .lightning:
+                lightningPositions.append(selected.position)
+            case .earthquake:
+                earthquakePositions.append(selected.position)
+            case .heal, .rage, .freeze:
+                break
+            }
+            return selected
+        }
+
+        let optimized = AttackPlan(
+            name: moved.isEmpty ? plan.name : "\(plan.name) · magie ottimizzate",
+            deployments: plan.deployments,
+            spellDeployments: spells,
+            heroAbilityOrders: plan.heroAbilityOrders
+        )
+        return SpellPlanOptimizationResult(
+            originalPlan: plan,
+            optimizedPlan: optimized,
+            movedSpellIDs: moved,
+            before: before,
+            after: analyzer.analyze(plan: optimized, entities: entities)
+        )
+    }
+
+    private func impact(
+        of order: SpellDeploymentOrder,
+        analyzer: SpellImpactAnalyzer,
+        entities: [BattleEntity]
+    ) -> SpellImpactEntry {
+        analyzer.analyze(
+            plan: AttackPlan(
+                name: "Valutazione lancio",
+                deployments: [],
+                spellDeployments: [order]
+            ),
+            entities: entities
+        ).entries[0]
+    }
+}

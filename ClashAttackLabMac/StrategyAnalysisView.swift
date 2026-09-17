@@ -92,7 +92,29 @@ struct StrategyAnalysisView: View {
 
             let spellImpact = session.currentSpellImpactAnalysis
             if !spellImpact.entries.isEmpty {
-                SpellImpactSummaryView(analysis: spellImpact)
+                VStack(alignment: .leading, spacing: 8) {
+                    SpellImpactSummaryView(analysis: spellImpact)
+                    HStack {
+                        Button("Ottimizza incantesimi") {
+                            session.optimizeCurrentPlanSpells()
+                        }
+                        .buttonStyle(.borderedProminent)
+                        .disabled(session.isManualPlanning)
+                        if let result = session.lastSpellOptimization {
+                            Text(
+                                result.movedCastCount == 0
+                                    ? "Posizioni già ottimali per questa base."
+                                    : String(
+                                        format: "%d lanci spostati · +%.0f danni utili",
+                                        result.movedCastCount,
+                                        result.usefulDamageGain
+                                    )
+                            )
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                        }
+                    }
+                }
             }
 
             if let analysis = session.currentPlanAnalysis {
