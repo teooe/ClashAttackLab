@@ -4205,6 +4205,6 @@ func everyPrototypeLayoutIncludesAPlaceableWizardTower() {
             navigationGrid: grid
         )
         #expect(snapshot.objects.filter { $0.kind == .wizardTower }.count == 1)
-        #expect(snapshot.validationReport(on: grid).canSimulate)
+        #expect(snapshot.validationReport(on: grid).isBuildable)
     }
 }
