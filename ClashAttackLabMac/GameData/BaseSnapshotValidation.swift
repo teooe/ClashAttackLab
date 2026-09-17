@@ -96,6 +96,7 @@ nonisolated struct BaseSnapshotValidationReport {
             .mortar,
             .wizardTower,
             .infernoTower,
+            .bombTower,
             .airDefense
         ]
         let defenseCount = snapshot.objects.filter {

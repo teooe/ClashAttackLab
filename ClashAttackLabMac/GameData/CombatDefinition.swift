@@ -87,6 +87,11 @@ nonisolated struct CombatDefinition {
     /// A one-element array keeps ordinary attacks constant.
     let damageRampMultipliers: [Double]
 
+    /// Optional damage emitted when this entity is destroyed.
+    let destructionDamage: Double
+    let destructionRadius: Double
+    let destructionTargetLayer: AttackTargetLayer
+
     /// Ground troops navigate with A*. Air troops fly directly over walls.
     let movementDomain: MovementDomain
 
@@ -118,6 +123,9 @@ nonisolated struct CombatDefinition {
         splashRadius: Double,
         selfDestructsOnAttack: Bool,
         damageRampMultipliers: [Double] = [1],
+        destructionDamage: Double = 0,
+        destructionRadius: Double = 0,
+        destructionTargetLayer: AttackTargetLayer = .ground,
         movementDomain: MovementDomain = .ground,
         attackTargetLayer: AttackTargetLayer = .both,
         targetingProfile: TargetingProfile?,
@@ -141,6 +149,9 @@ nonisolated struct CombatDefinition {
         self.damageRampMultipliers = damageRampMultipliers.isEmpty
             ? [1]
             : damageRampMultipliers
+        self.destructionDamage = destructionDamage
+        self.destructionRadius = destructionRadius
+        self.destructionTargetLayer = destructionTargetLayer
         self.movementDomain = movementDomain
         self.attackTargetLayer = attackTargetLayer
         self.targetingProfile = targetingProfile

@@ -23,6 +23,7 @@ nonisolated enum BattleEntityKind: Hashable, Codable {
     case mortar
     case wizardTower
     case infernoTower
+    case bombTower
     case airDefense
     case townHall
     case goldStorage

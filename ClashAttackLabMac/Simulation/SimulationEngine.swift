@@ -1057,19 +1057,40 @@ final class SimulationEngine {
     }
 
     private func apply(_ pendingDamage: [UUID: Double]) {
-        var payloadsToRelease: [(UUID, WorldPosition, [BattleEntityKind])] = []
+        var damageQueue = pendingDamage.filter { $0.value > 0 }
+        var payloadsToRelease: [
+            (UUID, WorldPosition, [BattleEntityKind])
+        ] = []
+        var resolvedDestructionEffects: Set<UUID> = []
 
-        for index in entities.indices {
-            let wasAlive = entities[index].isAlive
-            let damage = pendingDamage[entities[index].id, default: 0]
-            entities[index].hitPoints = max(
-                0,
-                entities[index].hitPoints - damage
-            )
+        while !damageQueue.isEmpty {
+            let damageWave = damageQueue
+            damageQueue.removeAll(keepingCapacity: true)
+            var destructionEffects: [
+                (WorldPosition, Double, Double, AttackTargetLayer)
+            ] = []
 
-            let entityID = entities[index].id
-            let entityDefinition = definition(for: entities[index].kind)
-            if wasAlive, !entities[index].isAlive {
+            for index in entities.indices {
+                let damage = damageWave[
+                    entities[index].id,
+                    default: 0
+                ]
+                guard damage > 0, entities[index].isAlive else {
+                    continue
+                }
+
+                entities[index].hitPoints = max(
+                    0,
+                    entities[index].hitPoints - damage
+                )
+                guard !entities[index].isAlive else {
+                    continue
+                }
+
+                let entityID = entities[index].id
+                let entityDefinition = definition(
+                    for: entities[index].kind
+                )
                 let eventKind: BattleTimelineEventKind =
                     entityDefinition.role == .troop
                         ? .troopDefeated
@@ -1081,21 +1102,70 @@ final class SimulationEngine {
                     eventKind,
                     "\(entityDefinition.displayName) \(suffix)"
                 )
+
+                let payload = entityDefinition.siegePayload
+                if
+                    !payload.isEmpty,
+                    !releasedSiegeMachineIDs.contains(entityID)
+                {
+                    releasedSiegeMachineIDs.insert(entityID)
+                    payloadsToRelease.append((
+                        entityID,
+                        entities[index].position,
+                        payload
+                    ))
+                }
+
+                if
+                    entityDefinition.destructionDamage > 0,
+                    entityDefinition.destructionRadius > 0,
+                    !resolvedDestructionEffects.contains(entityID)
+                {
+                    resolvedDestructionEffects.insert(entityID)
+                    destructionEffects.append((
+                        entities[index].position,
+                        entityDefinition.destructionDamage,
+                        entityDefinition.destructionRadius,
+                        entityDefinition.destructionTargetLayer
+                    ))
+                }
             }
-            let payload = entityDefinition.siegePayload
-            if
-                wasAlive,
-                !entities[index].isAlive,
-                !payload.isEmpty,
-                !releasedSiegeMachineIDs.contains(entityID)
-            {
-                releasedSiegeMachineIDs.insert(entityID)
-                payloadsToRelease.append((entityID, entities[index].position, payload))
+
+            for (center, damage, radius, targetLayer) in destructionEffects {
+                queueDestructionDamage(
+                    centeredAt: center,
+                    damage: damage,
+                    radius: radius,
+                    targetLayer: targetLayer,
+                    pendingDamage: &damageQueue
+                )
             }
         }
 
         for (sourceID, position, payload) in payloadsToRelease {
             releaseSiegePayload(payload, at: position, sourceID: sourceID)
+        }
+    }
+
+    private func queueDestructionDamage(
+        centeredAt center: WorldPosition,
+        damage: Double,
+        radius: Double,
+        targetLayer: AttackTargetLayer,
+        pendingDamage: inout [UUID: Double]
+    ) {
+        for index in livingIndices(with: .troop) {
+            let troopDefinition = definition(for: entities[index].kind)
+            guard
+                targetLayer.accepts(troopDefinition.movementDomain),
+                distance(
+                    from: entities[index].position,
+                    to: center
+                ) <= radius
+            else {
+                continue
+            }
+            pendingDamage[entities[index].id, default: 0] += damage
         }
     }
 

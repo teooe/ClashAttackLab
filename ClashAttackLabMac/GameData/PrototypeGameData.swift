@@ -436,6 +436,28 @@ nonisolated struct PrototypeGameData: GameDataProviding {
                 targetingProfile: nil
             )
 
+        case .bombTower:
+            return CombatDefinition(
+                displayName: "Torre Bombardiera",
+                role: .defense,
+                maxHitPoints: 620,
+                movementSpeed: 0,
+                attackDamage: 72,
+                minimumAttackRange: 0,
+                attackRange: 265,
+                attackInterval: 1.55,
+                canMove: false,
+                projectileKind: .bomb,
+                projectileSpeed: 500,
+                splashRadius: 88,
+                selfDestructsOnAttack: false,
+                destructionDamage: 190,
+                destructionRadius: 115,
+                destructionTargetLayer: .ground,
+                attackTargetLayer: .ground,
+                targetingProfile: nil
+            )
+
         case .airDefense:
             return CombatDefinition(
                 displayName: "Difesa aerea",

@@ -4291,3 +4291,105 @@ func everyPrototypeLayoutIncludesAValidInfernoTower() {
         #expect(snapshot.validationReport(on: grid).isBuildable)
     }
 }
+
+
+@Test
+func bombTowerCombinesGroundSplashAndDestructionExplosion() {
+    let definition = PrototypeGameData().definition(for: .bombTower)
+
+    #expect(definition.role == .defense)
+    #expect(definition.attackTargetLayer == .ground)
+    #expect(definition.splashRadius > 0)
+    #expect(definition.destructionDamage > 0)
+    #expect(definition.destructionRadius > 0)
+    #expect(definition.destructionTargetLayer == .ground)
+    #expect(definition.projectileKind == .bomb)
+}
+
+@Test
+func bombTowerDestructionDamagesGroundButNotAirTroops() throws {
+    let grid = PrototypeBattleMap.makeNavigationGrid()
+    let center = grid.worldPosition(
+        for: GridCoordinate(column: 10, row: 8)
+    )
+    let gameData = PrototypeGameData()
+    let plan = AttackPlan(
+        name: "Bomb Tower destruction",
+        deployments: [
+            DeploymentOrder(
+                kind: .barbarian,
+                position: center,
+                deploymentTime: 0
+            ),
+            DeploymentOrder(
+                kind: .balloon,
+                position: center,
+                deploymentTime: 0
+            )
+        ],
+        spellDeployments: [
+            SpellDeploymentOrder(
+                kind: .lightning,
+                position: center,
+                deploymentTime: 0
+            ),
+            SpellDeploymentOrder(
+                kind: .lightning,
+                position: center,
+                deploymentTime: 0
+            )
+        ]
+    )
+    let engine = SimulationEngine(
+        entities: [
+            BattleEntity(kind: .bombTower, position: center),
+            BattleEntity(
+                kind: .townHall,
+                position: grid.worldPosition(
+                    for: GridCoordinate(column: 18, row: 8)
+                )
+            )
+        ],
+        attackPlan: plan,
+        gameData: gameData,
+        navigationGrid: grid
+    )
+
+    engine.start()
+    engine.advance(by: 1.0 / 60.0)
+
+    let bombTower = try #require(
+        engine.entities.first { $0.kind == .bombTower }
+    )
+    let barbarian = try #require(
+        engine.entities.first { $0.kind == .barbarian }
+    )
+    let balloon = try #require(
+        engine.entities.first { $0.kind == .balloon }
+    )
+
+    #expect(!bombTower.isAlive)
+    #expect(
+        barbarian.hitPoints ==
+            gameData.definition(for: .barbarian).maxHitPoints -
+            gameData.definition(for: .bombTower).destructionDamage
+    )
+    #expect(
+        balloon.hitPoints ==
+            gameData.definition(for: .balloon).maxHitPoints
+    )
+}
+
+@Test
+func everyPrototypeLayoutIncludesAValidBombTower() {
+    let grid = PrototypeBattleMap.makeNavigationGrid()
+
+    for layout in PrototypeBaseLayout.allCases {
+        let snapshot = BaseSnapshot.make(
+            from: layout,
+            navigationGrid: grid
+        )
+        #expect(snapshot.objects.filter { $0.kind == .bombTower }.count == 1)
+        #expect(snapshot.validationReport(on: grid).isBuildable)
+    }
+}
