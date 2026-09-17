@@ -21,6 +21,7 @@ nonisolated enum BattleEntityKind: Hashable, Codable {
     case cannon
     case archerTower
     case mortar
+    case wizardTower
     case airDefense
     case townHall
     case goldStorage

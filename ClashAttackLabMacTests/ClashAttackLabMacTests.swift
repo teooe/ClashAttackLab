@@ -4175,3 +4175,35 @@ func offensiveSpellOptimizerMovesOnlyCastsThatGainUsefulDamage() throws {
     #expect(result.optimizedPlan.spellDeployments.map(\.deploymentTime) == [4, 6])
     #expect(result.optimizedPlan.spellDeployments[1].position == miss)
 }
+
+
+@Test
+func wizardTowerCombinesDualLayerTargetingAndSplashDamage() {
+    let definition = PrototypeGameData().definition(for: .wizardTower)
+
+    #expect(definition.role == .defense)
+    #expect(definition.attackTargetLayer == .both)
+    #expect(definition.splashRadius > 0)
+    #expect(definition.projectileKind != nil)
+    #expect(definition.attackDamage > 0)
+    #expect(definition.canMove == false)
+}
+
+@Test
+func everyPrototypeLayoutIncludesAPlaceableWizardTower() {
+    let gameData = PrototypeGameData()
+
+    for layout in PrototypeBaseLayout.allCases {
+        let entities = PrototypeBattleMap.makeInitialEntities(
+            layout: layout,
+            gameData: gameData
+        )
+        #expect(entities.filter { $0.kind == .wizardTower }.count == 1)
+
+        let snapshot = BaseSnapshot.prototype(layout: layout)
+        #expect(snapshot.objects.filter { $0.kind == .wizardTower }.count == 1)
+        #expect(snapshot.validationReport(
+            on: PrototypeBattleMap.makeNavigationGrid()
+        ).canSimulate)
+    }
+}

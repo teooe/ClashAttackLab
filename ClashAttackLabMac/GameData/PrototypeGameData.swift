@@ -397,6 +397,25 @@ nonisolated struct PrototypeGameData: GameDataProviding {
                 targetingProfile: nil
             )
 
+        case .wizardTower:
+            return CombatDefinition(
+                displayName: "Torre dello Stregone",
+                role: .defense,
+                maxHitPoints: 600,
+                movementSpeed: 0,
+                attackDamage: 68,
+                minimumAttackRange: 0,
+                attackRange: 280,
+                attackInterval: 1.4,
+                canMove: false,
+                projectileKind: .airBolt,
+                projectileSpeed: 620,
+                splashRadius: 78,
+                selfDestructsOnAttack: false,
+                attackTargetLayer: .both,
+                targetingProfile: nil
+            )
+
         case .airDefense:
             return CombatDefinition(
                 displayName: "Difesa aerea",

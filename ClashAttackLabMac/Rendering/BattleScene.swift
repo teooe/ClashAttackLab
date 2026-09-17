@@ -1045,7 +1045,7 @@ final class BattleScene: SKScene {
             return .systemBrown
         case .stoneSlammer:
             return .systemCyan
-        case .cannon, .archerTower, .mortar, .airDefense,
+        case .cannon, .archerTower, .mortar, .wizardTower, .airDefense,
              .townHall, .goldStorage, .wall:
             return .systemCyan
         }
@@ -1081,6 +1081,8 @@ final class BattleScene: SKScene {
             return "TA"
         case .mortar:
             return "MO"
+        case .wizardTower:
+            return "TZ"
         case .airDefense:
             return "AD"
         case .townHall:
@@ -1195,6 +1197,13 @@ final class BattleScene: SKScene {
                     alpha: 1
                 ),
                 text: "MO"
+            )
+
+        case .wizardTower:
+            return makeLabeledCircle(
+                radius: 35,
+                color: .systemPink,
+                text: "TZ"
             )
 
         case .airDefense:

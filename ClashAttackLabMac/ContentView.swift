@@ -687,7 +687,7 @@ struct ContentView: View {
             return "Ariete da guerra"
         case .stoneSlammer:
             return "Schiantapietre"
-        case .cannon, .archerTower, .mortar, .airDefense,
+        case .cannon, .archerTower, .mortar, .wizardTower, .airDefense,
              .townHall, .goldStorage, .wall:
             return "Edificio"
         }
@@ -717,7 +717,7 @@ struct ContentView: View {
             return "AR"
         case .stoneSlammer:
             return "SP"
-        case .cannon, .archerTower, .mortar, .airDefense,
+        case .cannon, .archerTower, .mortar, .wizardTower, .airDefense,
              .townHall, .goldStorage, .wall:
             return "?"
         }
@@ -747,7 +747,7 @@ struct ContentView: View {
             return .brown
         case .stoneSlammer:
             return .cyan
-        case .cannon, .archerTower, .mortar, .airDefense,
+        case .cannon, .archerTower, .mortar, .wizardTower, .airDefense,
              .townHall, .goldStorage, .wall:
             return .gray
         }
