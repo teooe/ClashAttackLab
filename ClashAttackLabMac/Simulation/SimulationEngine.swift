@@ -184,6 +184,8 @@ final class SimulationEngine {
             resetEntity.attackCooldown = 0
             resetEntity.heroAbilityRemaining = 0
             resetEntity.heroAbilityUsed = false
+            resetEntity.lastAttackedTargetID = nil
+            resetEntity.consecutiveAttacksOnTarget = 0
             resetEntity.currentTargetID = nil
             resetEntity.blockingWallID = nil
             return resetEntity
@@ -518,6 +520,7 @@ final class SimulationEngine {
     ) {
         guard !isDefenseDisabled(entities[defenseIndex].id) else {
             entities[defenseIndex].currentTargetID = nil
+            resetDamageRamp(for: defenseIndex)
             return
         }
 
@@ -531,6 +534,7 @@ final class SimulationEngine {
         )
 
         guard let targetIndex else {
+            resetDamageRamp(for: defenseIndex)
             return
         }
 
@@ -882,8 +886,15 @@ final class SimulationEngine {
         let wallMultiplier = targetDefinition.role == .wall
             ? attackerDefinition.damageMultiplierAgainstWalls
             : 1
+        let repeatedAttackIndex = attacker.lastAttackedTargetID == target.id
+            ? attacker.consecutiveAttacksOnTarget
+            : 0
+        let rampMultiplier = attackerDefinition.damageRampMultiplier(
+            forConsecutiveAttack: repeatedAttackIndex
+        )
         let attackDamage =
             attackerDefinition.attackDamage *
+            rampMultiplier *
             modifiers.damage *
             wallMultiplier
 
@@ -934,7 +945,18 @@ final class SimulationEngine {
         entities[attackerIndex].attackCooldown =
             attackerDefinition.attackInterval /
             modifiers.attackSpeed
+        entities[attackerIndex].lastAttackedTargetID = target.id
+        entities[attackerIndex].consecutiveAttacksOnTarget =
+            repeatedAttackIndex + 1
         attackCounts[attackerDefinition.role, default: 0] += 1
+    }
+
+    private func resetDamageRamp(for entityIndex: Int) {
+        guard entities.indices.contains(entityIndex) else {
+            return
+        }
+        entities[entityIndex].lastAttackedTargetID = nil
+        entities[entityIndex].consecutiveAttacksOnTarget = 0
     }
 
     private func advanceProjectiles(

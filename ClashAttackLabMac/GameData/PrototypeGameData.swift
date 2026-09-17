@@ -416,6 +416,26 @@ nonisolated struct PrototypeGameData: GameDataProviding {
                 targetingProfile: nil
             )
 
+        case .infernoTower:
+            return CombatDefinition(
+                displayName: "Torre Infernale",
+                role: .defense,
+                maxHitPoints: 780,
+                movementSpeed: 0,
+                attackDamage: 18,
+                minimumAttackRange: 0,
+                attackRange: 350,
+                attackInterval: 0.5,
+                canMove: false,
+                projectileKind: .fireball,
+                projectileSpeed: 900,
+                splashRadius: 0,
+                selfDestructsOnAttack: false,
+                damageRampMultipliers: [1, 1.4, 2.2, 3.2],
+                attackTargetLayer: .both,
+                targetingProfile: nil
+            )
+
         case .airDefense:
             return CombatDefinition(
                 displayName: "Difesa aerea",

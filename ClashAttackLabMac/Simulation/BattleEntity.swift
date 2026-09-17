@@ -22,6 +22,7 @@ nonisolated enum BattleEntityKind: Hashable, Codable {
     case archerTower
     case mortar
     case wizardTower
+    case infernoTower
     case airDefense
     case townHall
     case goldStorage
@@ -37,6 +38,10 @@ nonisolated struct BattleEntity: Identifiable {
     var heroAbilityRemaining: TimeInterval
     var heroAbilityUsed: Bool
 
+    /// Tracks repeated hits on one target for ramping attacks.
+    var lastAttackedTargetID: UUID?
+    var consecutiveAttacksOnTarget: Int
+
     /// Main building selected through target-selection rules.
     var currentTargetID: UUID?
 
@@ -51,6 +56,8 @@ nonisolated struct BattleEntity: Identifiable {
         attackCooldown: TimeInterval = 0,
         heroAbilityRemaining: TimeInterval = 0,
         heroAbilityUsed: Bool = false,
+        lastAttackedTargetID: UUID? = nil,
+        consecutiveAttacksOnTarget: Int = 0,
         currentTargetID: UUID? = nil,
         blockingWallID: UUID? = nil
     ) {
@@ -61,6 +68,8 @@ nonisolated struct BattleEntity: Identifiable {
         self.attackCooldown = attackCooldown
         self.heroAbilityRemaining = heroAbilityRemaining
         self.heroAbilityUsed = heroAbilityUsed
+        self.lastAttackedTargetID = lastAttackedTargetID
+        self.consecutiveAttacksOnTarget = consecutiveAttacksOnTarget
         self.currentTargetID = currentTargetID
         self.blockingWallID = blockingWallID
     }

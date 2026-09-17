@@ -4208,3 +4208,86 @@ func everyPrototypeLayoutIncludesAPlaceableWizardTower() {
         #expect(snapshot.validationReport(on: grid).isBuildable)
     }
 }
+
+
+@Test
+func infernoTowerUsesPrototypeSingleTargetDamageRamp() {
+    let definition = PrototypeGameData().definition(for: .infernoTower)
+
+    #expect(definition.role == .defense)
+    #expect(definition.attackTargetLayer == .both)
+    #expect(definition.splashRadius == 0)
+    #expect(definition.damageRampMultipliers == [1, 1.4, 2.2, 3.2])
+    #expect(definition.damageRampMultiplier(forConsecutiveAttack: 0) == 1)
+    #expect(definition.damageRampMultiplier(forConsecutiveAttack: 2) == 2.2)
+    #expect(definition.damageRampMultiplier(forConsecutiveAttack: 99) == 3.2)
+}
+
+@Test
+func infernoTowerBuildsAndResetsItsTargetStreak() throws {
+    let grid = PrototypeBattleMap.makeNavigationGrid()
+    let infernoPosition = grid.worldPosition(
+        for: GridCoordinate(column: 10, row: 8)
+    )
+    let troopPosition = grid.worldPosition(
+        for: GridCoordinate(column: 9, row: 8)
+    )
+    let inferno = BattleEntity(
+        kind: .infernoTower,
+        position: infernoPosition
+    )
+    let townHall = BattleEntity(
+        kind: .townHall,
+        position: grid.worldPosition(
+            for: GridCoordinate(column: 14, row: 8)
+        )
+    )
+    let plan = AttackPlan(
+        name: "Inferno streak",
+        deployments: [
+            DeploymentOrder(
+                kind: .giant,
+                position: troopPosition,
+                deploymentTime: 0
+            )
+        ]
+    )
+    let engine = SimulationEngine(
+        entities: [inferno, townHall],
+        attackPlan: plan,
+        gameData: PrototypeGameData(),
+        navigationGrid: grid
+    )
+
+    engine.start()
+    for _ in 0..<120 {
+        engine.advance(by: 1.0 / 60.0)
+    }
+
+    let activeInferno = try #require(
+        engine.entities.first { $0.kind == .infernoTower }
+    )
+    #expect(activeInferno.lastAttackedTargetID != nil)
+    #expect(activeInferno.consecutiveAttacksOnTarget >= 2)
+
+    engine.reset()
+    let resetInferno = try #require(
+        engine.entities.first { $0.kind == .infernoTower }
+    )
+    #expect(resetInferno.lastAttackedTargetID == nil)
+    #expect(resetInferno.consecutiveAttacksOnTarget == 0)
+}
+
+@Test
+func everyPrototypeLayoutIncludesAValidInfernoTower() {
+    let grid = PrototypeBattleMap.makeNavigationGrid()
+
+    for layout in PrototypeBaseLayout.allCases {
+        let snapshot = BaseSnapshot.make(
+            from: layout,
+            navigationGrid: grid
+        )
+        #expect(snapshot.objects.filter { $0.kind == .infernoTower }.count == 1)
+        #expect(snapshot.validationReport(on: grid).isBuildable)
+    }
+}

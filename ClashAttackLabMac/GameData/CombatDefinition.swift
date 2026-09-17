@@ -83,6 +83,10 @@ nonisolated struct CombatDefinition {
     let splashRadius: Double
     let selfDestructsOnAttack: Bool
 
+    /// Multipliers applied to repeated attacks against the same target.
+    /// A one-element array keeps ordinary attacks constant.
+    let damageRampMultipliers: [Double]
+
     /// Ground troops navigate with A*. Air troops fly directly over walls.
     let movementDomain: MovementDomain
 
@@ -113,6 +117,7 @@ nonisolated struct CombatDefinition {
         projectileSpeed: Double,
         splashRadius: Double,
         selfDestructsOnAttack: Bool,
+        damageRampMultipliers: [Double] = [1],
         movementDomain: MovementDomain = .ground,
         attackTargetLayer: AttackTargetLayer = .both,
         targetingProfile: TargetingProfile?,
@@ -133,11 +138,23 @@ nonisolated struct CombatDefinition {
         self.projectileSpeed = projectileSpeed
         self.splashRadius = splashRadius
         self.selfDestructsOnAttack = selfDestructsOnAttack
+        self.damageRampMultipliers = damageRampMultipliers.isEmpty
+            ? [1]
+            : damageRampMultipliers
         self.movementDomain = movementDomain
         self.attackTargetLayer = attackTargetLayer
         self.targetingProfile = targetingProfile
         self.heroAbility = heroAbility
         self.siegePayload = siegePayload
+    }
+
+    func damageRampMultiplier(
+        forConsecutiveAttack attackIndex: Int
+    ) -> Double {
+        damageRampMultipliers[min(
+            max(attackIndex, 0),
+            damageRampMultipliers.count - 1
+        )]
     }
 
     var countsForDestruction: Bool {
