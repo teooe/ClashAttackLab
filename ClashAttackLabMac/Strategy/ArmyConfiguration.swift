@@ -178,7 +178,7 @@ nonisolated struct ArmyConfiguration: Equatable {
             return wallWreckers
         case .stoneSlammer:
             return stoneSlammers
-        case .cannon, .archerTower, .mortar, .wizardTower, .infernoTower, .bombTower, .hiddenTesla, .airDefense,
+        case .cannon, .archerTower, .mortar, .wizardTower, .infernoTower, .bombTower, .hiddenTesla, .giantBomb, .airDefense,
              .townHall, .goldStorage, .wall:
             return 0
         }

@@ -220,7 +220,7 @@ nonisolated struct ScenarioAdjustedGameData: GameDataProviding {
         switch definition.role {
         case .troop:
             multiplier = scenario.troopMultiplier
-        case .defense, .building, .wall:
+        case .defense, .building, .wall, .trap:
             multiplier = scenario.baseMultiplier
         }
 
@@ -239,6 +239,12 @@ nonisolated struct ScenarioAdjustedGameData: GameDataProviding {
             projectileSpeed: definition.projectileSpeed,
             splashRadius: definition.splashRadius,
             selfDestructsOnAttack: definition.selfDestructsOnAttack,
+            damageRampMultipliers: definition.damageRampMultipliers,
+            destructionDamage: definition.destructionDamage,
+            destructionRadius: definition.destructionRadius,
+            destructionTargetLayer: definition.destructionTargetLayer,
+            startsHidden: definition.startsHidden,
+            activationRange: definition.activationRange,
             movementDomain: definition.movementDomain,
             attackTargetLayer: definition.attackTargetLayer,
             targetingProfile: definition.targetingProfile,

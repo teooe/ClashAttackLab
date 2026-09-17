@@ -293,6 +293,7 @@ final class SimulationEngine {
         )
         apply(pendingDamage)
         pendingDamage.removeAll(keepingCapacity: true)
+        triggerHiddenTraps()
         clearInvalidTargets()
 
         score = scoringSystem.calculate(
@@ -520,6 +521,37 @@ final class SimulationEngine {
             var updated = spell
             updated.remainingDuration -= deltaTime
             return updated.remainingDuration > 0 ? updated : nil
+        }
+    }
+
+    private func triggerHiddenTraps() {
+        let trapIndices = livingIndices(with: .trap)
+        guard !trapIndices.isEmpty else {
+            return
+        }
+
+        for trapIndex in trapIndices where entities[trapIndex].isAlive {
+            let trap = entities[trapIndex]
+            let trapDefinition = definition(for: trap.kind)
+            let shouldTrigger = livingIndices(with: .troop).contains {
+                troopIndex in
+                let troopDefinition = definition(
+                    for: entities[troopIndex].kind
+                )
+                return trapDefinition.destructionTargetLayer.accepts(
+                    troopDefinition.movementDomain
+                ) && distance(
+                    from: entities[troopIndex].position,
+                    to: trap.position
+                ) <= trapDefinition.activationRange
+            }
+
+            guard shouldTrigger else {
+                continue
+            }
+
+            entities[trapIndex].isRevealed = true
+            apply([trap.id: trap.hitPoints])
         }
     }
 

@@ -736,7 +736,7 @@ final class BattleScene: SKScene {
         return deltaX * deltaX + deltaY * deltaY
     }
 
-    private func showWallBreakerExplosions(
+    private func showDestructionExplosions(
         for entities: [BattleEntity]
     ) {
         let livingIDs = Set(
@@ -747,14 +747,20 @@ final class BattleScene: SKScene {
         for entity in entities
         where
             newlyDefeatedIDs.contains(entity.id) &&
-            entity.kind == .wallBreaker
+            (entity.kind == .wallBreaker || entity.kind == .giantBomb)
         {
-            let explosion = SKShapeNode(circleOfRadius: 30)
+            let definition = simulation.definition(for: entity.kind)
+            let radius = entity.kind == .giantBomb
+                ? definition.destructionRadius
+                : 30
+            let explosion = SKShapeNode(circleOfRadius: radius)
             explosion.position = CGPoint(
                 x: entity.position.x,
                 y: entity.position.y
             )
-            explosion.fillColor = .systemYellow.withAlphaComponent(0.5)
+            explosion.fillColor = entity.kind == .giantBomb
+                ? .systemRed.withAlphaComponent(0.42)
+                : .systemYellow.withAlphaComponent(0.5)
             explosion.strokeColor = .systemOrange
             explosion.lineWidth = 5
             explosion.glowWidth = 10
@@ -782,7 +788,7 @@ final class BattleScene: SKScene {
         reconcileActiveSpellVisuals()
         updateDeploymentMarkers()
         updateSpellMarkers()
-        showWallBreakerExplosions(for: simulation.entities)
+        showDestructionExplosions(for: simulation.entities)
 
         let displayPositions = separatedDisplayPositions(
             for: simulation.entities
@@ -1047,7 +1053,7 @@ final class BattleScene: SKScene {
             return .systemBrown
         case .stoneSlammer:
             return .systemCyan
-        case .cannon, .archerTower, .mortar, .wizardTower, .infernoTower, .bombTower, .hiddenTesla, .airDefense,
+        case .cannon, .archerTower, .mortar, .wizardTower, .infernoTower, .bombTower, .hiddenTesla, .giantBomb, .airDefense,
              .townHall, .goldStorage, .wall:
             return .systemCyan
         }
@@ -1091,6 +1097,8 @@ final class BattleScene: SKScene {
             return "TB"
         case .hiddenTesla:
             return "TO"
+        case .giantBomb:
+            return "BG"
         case .airDefense:
             return "AD"
         case .townHall:
@@ -1233,6 +1241,13 @@ final class BattleScene: SKScene {
                 size: CGSize(width: 58, height: 72),
                 color: .systemCyan,
                 text: "TO"
+            )
+
+        case .giantBomb:
+            return makeLabeledCircle(
+                radius: 24,
+                color: .systemRed,
+                text: "BG"
             )
 
         case .airDefense:

@@ -479,6 +479,30 @@ nonisolated struct PrototypeGameData: GameDataProviding {
                 targetingProfile: nil
             )
 
+        case .giantBomb:
+            return CombatDefinition(
+                displayName: "Bomba Gigante",
+                role: .trap,
+                maxHitPoints: 1,
+                movementSpeed: 0,
+                attackDamage: 0,
+                minimumAttackRange: 0,
+                attackRange: 0,
+                attackInterval: 0,
+                canMove: false,
+                projectileKind: nil,
+                projectileSpeed: 0,
+                splashRadius: 0,
+                selfDestructsOnAttack: false,
+                destructionDamage: 310,
+                destructionRadius: 130,
+                destructionTargetLayer: .ground,
+                startsHidden: true,
+                activationRange: 92,
+                attackTargetLayer: .ground,
+                targetingProfile: nil
+            )
+
         case .airDefense:
             return CombatDefinition(
                 displayName: "Difesa aerea",

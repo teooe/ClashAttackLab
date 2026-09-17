@@ -89,7 +89,7 @@ nonisolated struct SpellImpactAnalyzer {
                 case .defense: defenseCount += 1
                 case .building: buildingCount += 1
                 case .wall: wallCount += 1
-                case .troop: break
+                case .troop, .trap: break
                 }
             }
 

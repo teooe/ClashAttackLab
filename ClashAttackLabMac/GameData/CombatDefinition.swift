@@ -5,6 +5,7 @@ nonisolated enum BattleEntityRole: Hashable {
     case defense
     case building
     case wall
+    case trap
 }
 
 nonisolated enum MovementDomain: Hashable {

@@ -4543,3 +4543,197 @@ func lastHiddenTeslaRevealsAndAllPrototypeBasesRemainValid() throws {
         #expect(snapshot.validationReport(on: grid).isBuildable)
     }
 }
+
+
+@Test
+func giantBombIsAHiddenNonScoringGroundTrap() {
+    let definition = PrototypeGameData().definition(for: .giantBomb)
+
+    #expect(definition.role == .trap)
+    #expect(definition.startsHidden)
+    #expect(definition.activationRange > 0)
+    #expect(definition.destructionDamage > 0)
+    #expect(definition.destructionRadius > 0)
+    #expect(definition.destructionTargetLayer == .ground)
+    #expect(!definition.countsForDestruction)
+}
+
+@Test
+func giantBombTriggersOnceForGroundTroopsAndIgnoresAir() throws {
+    let grid = PrototypeBattleMap.makeNavigationGrid()
+    let center = grid.worldPosition(
+        for: GridCoordinate(column: 10, row: 8)
+    )
+    let gameData = PrototypeGameData()
+    let barbarianOrder = DeploymentOrder(
+        kind: .barbarian,
+        position: center,
+        deploymentTime: 0
+    )
+    let balloonOrder = DeploymentOrder(
+        kind: .balloon,
+        position: center,
+        deploymentTime: 0
+    )
+    let engine = SimulationEngine(
+        entities: [
+            BattleEntity(kind: .giantBomb, position: center),
+            BattleEntity(
+                kind: .townHall,
+                position: grid.worldPosition(
+                    for: GridCoordinate(column: 18, row: 8)
+                )
+            )
+        ],
+        attackPlan: AttackPlan(
+            name: "Giant Bomb trigger",
+            deployments: [barbarianOrder, balloonOrder]
+        ),
+        gameData: gameData,
+        navigationGrid: grid
+    )
+
+    engine.start()
+    engine.advance(by: 1.0 / 60.0)
+
+    let trap = try #require(
+        engine.entities.first { $0.kind == .giantBomb }
+    )
+    let barbarian = try #require(
+        engine.entities.first { $0.id == barbarianOrder.entityID }
+    )
+    let balloon = try #require(
+        engine.entities.first { $0.id == balloonOrder.entityID }
+    )
+    let barbarianHealthAfterTrigger = barbarian.hitPoints
+
+    #expect(trap.isRevealed)
+    #expect(!trap.isAlive)
+    #expect(
+        barbarianHealthAfterTrigger ==
+            gameData.definition(for: .barbarian).maxHitPoints -
+            gameData.definition(for: .giantBomb).destructionDamage
+    )
+    #expect(
+        balloon.hitPoints ==
+            gameData.definition(for: .balloon).maxHitPoints
+    )
+
+    engine.advance(by: 1.0 / 60.0)
+    let barbarianAfterSecondTick = try #require(
+        engine.entities.first { $0.id == barbarianOrder.entityID }
+    )
+    #expect(barbarianAfterSecondTick.hitPoints == barbarianHealthAfterTrigger)
+}
+
+@Test
+func giantBombStaysHiddenWhenOnlyAirTroopsEnterItsRadius() throws {
+    let grid = PrototypeBattleMap.makeNavigationGrid()
+    let center = grid.worldPosition(
+        for: GridCoordinate(column: 10, row: 8)
+    )
+    let balloonOrder = DeploymentOrder(
+        kind: .balloon,
+        position: center,
+        deploymentTime: 0
+    )
+    let engine = SimulationEngine(
+        entities: [
+            BattleEntity(kind: .giantBomb, position: center),
+            BattleEntity(
+                kind: .townHall,
+                position: grid.worldPosition(
+                    for: GridCoordinate(column: 18, row: 8)
+                )
+            )
+        ],
+        attackPlan: AttackPlan(
+            name: "Air ignores ground trap",
+            deployments: [balloonOrder]
+        ),
+        gameData: PrototypeGameData(),
+        navigationGrid: grid
+    )
+
+    engine.start()
+    engine.advance(by: 1.0 / 60.0)
+
+    let trap = try #require(
+        engine.entities.first { $0.kind == .giantBomb }
+    )
+    #expect(trap.isAlive)
+    #expect(!trap.isRevealed)
+}
+
+@Test
+func trapsAreExcludedFromObjectivesAndScenarioDataKeepsSpecialMechanics() {
+    let grid = PrototypeBattleMap.makeNavigationGrid()
+    let gameData = PrototypeGameData()
+    let scoring = BaseScoringSystem()
+    let entities = [
+        BattleEntity(
+            kind: .townHall,
+            position: grid.worldPosition(
+                for: GridCoordinate(column: 18, row: 8)
+            )
+        ),
+        BattleEntity(
+            kind: .giantBomb,
+            position: grid.worldPosition(
+                for: GridCoordinate(column: 10, row: 8)
+            )
+        )
+    ]
+    let score = scoring.calculate(
+        entities: entities,
+        gameData: gameData
+    )
+    #expect(score.totalBuildings == 1)
+
+    let snapshot = BaseSnapshot(
+        name: "Trap accounting",
+        objects: [
+            BaseObjectSnapshot(
+                kind: .townHall,
+                column: 18,
+                row: 8
+            ),
+            BaseObjectSnapshot(
+                kind: .giantBomb,
+                column: 10,
+                row: 8
+            )
+        ]
+    )
+    #expect(snapshot.objectiveCount == 1)
+
+    let adjusted = ScenarioAdjustedGameData(
+        base: gameData,
+        scenario: .defenseFavored
+    )
+    let adjustedTrap = adjusted.definition(for: .giantBomb)
+    let adjustedInferno = adjusted.definition(for: .infernoTower)
+    let adjustedTesla = adjusted.definition(for: .hiddenTesla)
+    #expect(
+        adjustedTrap.destructionDamage ==
+            gameData.definition(for: .giantBomb).destructionDamage
+    )
+    #expect(
+        adjustedInferno.damageRampMultipliers ==
+            gameData.definition(for: .infernoTower).damageRampMultipliers
+    )
+    #expect(adjustedTesla.startsHidden)
+    #expect(
+        adjustedTesla.activationRange ==
+            gameData.definition(for: .hiddenTesla).activationRange
+    )
+
+    for layout in PrototypeBaseLayout.allCases {
+        let layoutSnapshot = BaseSnapshot.make(
+            from: layout,
+            navigationGrid: grid
+        )
+        #expect(layoutSnapshot.objects.filter { $0.kind == .giantBomb }.count == 1)
+        #expect(layoutSnapshot.validationReport(on: grid).isBuildable)
+    }
+}
