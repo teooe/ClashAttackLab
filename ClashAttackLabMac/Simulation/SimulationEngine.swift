@@ -186,6 +186,9 @@ final class SimulationEngine {
             resetEntity.heroAbilityUsed = false
             resetEntity.lastAttackedTargetID = nil
             resetEntity.consecutiveAttacksOnTarget = 0
+            resetEntity.isRevealed = !gameData.definition(
+                for: entity.kind
+            ).startsHidden
             resetEntity.currentTargetID = nil
             resetEntity.blockingWallID = nil
             return resetEntity
@@ -298,7 +301,14 @@ final class SimulationEngine {
         )
 
         let troopIndices = livingIndices(with: .troop)
-        let defenseIndices = livingIndices(with: .defense)
+        revealHiddenDefenses(near: troopIndices)
+
+        let allDefenseIndices = livingIndices(with: .defense)
+        let defenseIndices = allDefenseIndices.filter {
+            let entity = entities[$0]
+            let entityDefinition = definition(for: entity.kind)
+            return !entityDefinition.startsHidden || entity.isRevealed
+        }
         let buildingIndices = livingIndices(with: .building)
         let wallIndices = livingIndices(with: .wall)
         let objectiveIndices = defenseIndices + buildingIndices
@@ -513,11 +523,52 @@ final class SimulationEngine {
         }
     }
 
+    private func revealHiddenDefenses(near troopIndices: [Int]) {
+        let hiddenDefenseIndices = livingIndices(with: .defense).filter {
+            let entity = entities[$0]
+            return definition(for: entity.kind).startsHidden &&
+                !entity.isRevealed
+        }
+        guard !hiddenDefenseIndices.isEmpty else {
+            return
+        }
+
+        let hasVisibleObjective =
+            livingIndices(with: .building).isEmpty == false ||
+            livingIndices(with: .defense).contains { index in
+                let entity = entities[index]
+                let entityDefinition = definition(for: entity.kind)
+                return !entityDefinition.startsHidden ||
+                    entity.isRevealed
+            }
+
+        for defenseIndex in hiddenDefenseIndices {
+            let hiddenDefense = entities[defenseIndex]
+            let activationRange = definition(
+                for: hiddenDefense.kind
+            ).activationRange
+            let troopIsNear = troopIndices.contains { troopIndex in
+                distance(
+                    from: entities[troopIndex].position,
+                    to: hiddenDefense.position
+                ) <= activationRange
+            }
+
+            if troopIsNear || !hasVisibleObjective {
+                entities[defenseIndex].isRevealed = true
+            }
+        }
+    }
+
     private func actDefense(
         at defenseIndex: Int,
         possibleTargets: [Int],
         pendingDamage: inout [UUID: Double]
     ) {
+        guard entities[defenseIndex].isRevealed else {
+            return
+        }
+
         guard !isDefenseDisabled(entities[defenseIndex].id) else {
             entities[defenseIndex].currentTargetID = nil
             resetDamageRamp(for: defenseIndex)

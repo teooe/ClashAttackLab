@@ -45,6 +45,7 @@ struct BaseEditorView: View {
             .wizardTower,
             .infernoTower,
             .bombTower,
+            .hiddenTesla,
             .airDefense,
             .townHall,
             .goldStorage
@@ -290,6 +291,8 @@ struct BaseEditorView: View {
             return "Torre Infernale"
         case .bombTower:
             return "Torre Bombardiera"
+        case .hiddenTesla:
+            return "Tesla Occulta"
         case .airDefense:
             return "Difesa aerea"
         case .townHall:
@@ -317,6 +320,8 @@ struct BaseEditorView: View {
             return "I"
         case .bombTower:
             return "B"
+        case .hiddenTesla:
+            return "T"
         case .airDefense:
             return "A"
         case .townHall:
@@ -344,6 +349,8 @@ struct BaseEditorView: View {
             return "flame.fill"
         case .bombTower:
             return "burst.fill"
+        case .hiddenTesla:
+            return "bolt.fill"
         case .airDefense:
             return "wind"
         case .townHall:
@@ -371,6 +378,8 @@ struct BaseEditorView: View {
             return .red
         case .bombTower:
             return .orange
+        case .hiddenTesla:
+            return .cyan
         case .airDefense:
             return .indigo
         case .townHall:

@@ -806,9 +806,11 @@ final class BattleScene: SKScene {
                 y: displayPosition.y
             )
             let isFrozen = simulation.isDefenseDisabled(entity.id)
-            visual.root.alpha = entity.isAlive
-                ? (isFrozen ? 0.62 : 1)
-                : 0.08
+            let isHiddenDefense = definition.startsHidden &&
+                !entity.isRevealed
+            visual.root.alpha = isHiddenDefense
+                ? 0
+                : (entity.isAlive ? (isFrozen ? 0.62 : 1) : 0.08)
             visual.root.setScale(
                 entity.heroAbilityIsActive ? 1.12 : 1
             )
@@ -1045,7 +1047,7 @@ final class BattleScene: SKScene {
             return .systemBrown
         case .stoneSlammer:
             return .systemCyan
-        case .cannon, .archerTower, .mortar, .wizardTower, .infernoTower, .bombTower, .airDefense,
+        case .cannon, .archerTower, .mortar, .wizardTower, .infernoTower, .bombTower, .hiddenTesla, .airDefense,
              .townHall, .goldStorage, .wall:
             return .systemCyan
         }
@@ -1087,6 +1089,8 @@ final class BattleScene: SKScene {
             return "TI"
         case .bombTower:
             return "TB"
+        case .hiddenTesla:
+            return "TO"
         case .airDefense:
             return "AD"
         case .townHall:
@@ -1222,6 +1226,13 @@ final class BattleScene: SKScene {
                 radius: 36,
                 color: .systemOrange,
                 text: "TB"
+            )
+
+        case .hiddenTesla:
+            return makeLabeledRectangle(
+                size: CGSize(width: 58, height: 72),
+                color: .systemCyan,
+                text: "TO"
             )
 
         case .airDefense:

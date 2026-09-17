@@ -24,6 +24,7 @@ nonisolated enum BattleEntityKind: Hashable, Codable {
     case wizardTower
     case infernoTower
     case bombTower
+    case hiddenTesla
     case airDefense
     case townHall
     case goldStorage
@@ -43,6 +44,9 @@ nonisolated struct BattleEntity: Identifiable {
     var lastAttackedTargetID: UUID?
     var consecutiveAttacksOnTarget: Int
 
+    /// Hidden defenses cannot attack or be targeted before activation.
+    var isRevealed: Bool
+
     /// Main building selected through target-selection rules.
     var currentTargetID: UUID?
 
@@ -59,6 +63,7 @@ nonisolated struct BattleEntity: Identifiable {
         heroAbilityUsed: Bool = false,
         lastAttackedTargetID: UUID? = nil,
         consecutiveAttacksOnTarget: Int = 0,
+        isRevealed: Bool = true,
         currentTargetID: UUID? = nil,
         blockingWallID: UUID? = nil
     ) {
@@ -71,6 +76,7 @@ nonisolated struct BattleEntity: Identifiable {
         self.heroAbilityUsed = heroAbilityUsed
         self.lastAttackedTargetID = lastAttackedTargetID
         self.consecutiveAttacksOnTarget = consecutiveAttacksOnTarget
+        self.isRevealed = isRevealed
         self.currentTargetID = currentTargetID
         self.blockingWallID = blockingWallID
     }

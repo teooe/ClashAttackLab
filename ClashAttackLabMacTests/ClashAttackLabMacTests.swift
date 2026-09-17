@@ -4393,3 +4393,153 @@ func everyPrototypeLayoutIncludesAValidBombTower() {
         #expect(snapshot.validationReport(on: grid).isBuildable)
     }
 }
+
+
+@Test
+func hiddenTeslaDefinitionDeclaresItsActivationRules() {
+    let definition = PrototypeGameData().definition(for: .hiddenTesla)
+
+    #expect(definition.role == .defense)
+    #expect(definition.startsHidden)
+    #expect(definition.activationRange > 0)
+    #expect(definition.attackTargetLayer == .both)
+    #expect(definition.attackDamage > 0)
+}
+
+@Test
+func hiddenTeslaCannotActOrBeTargetedBeforeProximityReveal() throws {
+    let grid = PrototypeBattleMap.makeNavigationGrid()
+    let tesla = BattleEntity(
+        kind: .hiddenTesla,
+        position: grid.worldPosition(
+            for: GridCoordinate(column: 10, row: 8)
+        )
+    )
+    let townHall = BattleEntity(
+        kind: .townHall,
+        position: grid.worldPosition(
+            for: GridCoordinate(column: 20, row: 8)
+        )
+    )
+    let deployment = DeploymentOrder(
+        kind: .giant,
+        position: grid.worldPosition(
+            for: GridCoordinate(column: 1, row: 8)
+        ),
+        deploymentTime: 0
+    )
+    let engine = SimulationEngine(
+        entities: [tesla, townHall],
+        attackPlan: AttackPlan(
+            name: "Tesla hidden",
+            deployments: [deployment]
+        ),
+        gameData: PrototypeGameData(),
+        navigationGrid: grid
+    )
+
+    engine.start()
+    engine.advance(by: 1.0 / 60.0)
+
+    let hiddenTesla = try #require(
+        engine.entities.first { $0.kind == .hiddenTesla }
+    )
+    let giant = try #require(
+        engine.entities.first { $0.id == deployment.entityID }
+    )
+    #expect(!hiddenTesla.isRevealed)
+    #expect(hiddenTesla.currentTargetID == nil)
+    #expect(giant.currentTargetID == townHall.id)
+}
+
+@Test
+func hiddenTeslaRevealsAndAcquiresTroopsInsideActivationRange() throws {
+    let grid = PrototypeBattleMap.makeNavigationGrid()
+    let tesla = BattleEntity(
+        kind: .hiddenTesla,
+        position: grid.worldPosition(
+            for: GridCoordinate(column: 10, row: 8)
+        )
+    )
+    let townHall = BattleEntity(
+        kind: .townHall,
+        position: grid.worldPosition(
+            for: GridCoordinate(column: 18, row: 8)
+        )
+    )
+    let deployment = DeploymentOrder(
+        kind: .giant,
+        position: grid.worldPosition(
+            for: GridCoordinate(column: 8, row: 8)
+        ),
+        deploymentTime: 0
+    )
+    let engine = SimulationEngine(
+        entities: [tesla, townHall],
+        attackPlan: AttackPlan(
+            name: "Tesla proximity",
+            deployments: [deployment]
+        ),
+        gameData: PrototypeGameData(),
+        navigationGrid: grid
+    )
+
+    engine.start()
+    engine.advance(by: 1.0 / 60.0)
+
+    let revealedTesla = try #require(
+        engine.entities.first { $0.kind == .hiddenTesla }
+    )
+    #expect(revealedTesla.isRevealed)
+    #expect(revealedTesla.currentTargetID == deployment.entityID)
+
+    engine.reset()
+    let resetTesla = try #require(
+        engine.entities.first { $0.kind == .hiddenTesla }
+    )
+    #expect(!resetTesla.isRevealed)
+}
+
+@Test
+func lastHiddenTeslaRevealsAndAllPrototypeBasesRemainValid() throws {
+    let grid = PrototypeBattleMap.makeNavigationGrid()
+    let tesla = BattleEntity(
+        kind: .hiddenTesla,
+        position: grid.worldPosition(
+            for: GridCoordinate(column: 15, row: 8)
+        )
+    )
+    let deployment = DeploymentOrder(
+        kind: .giant,
+        position: grid.worldPosition(
+            for: GridCoordinate(column: 1, row: 8)
+        ),
+        deploymentTime: 0
+    )
+    let engine = SimulationEngine(
+        entities: [tesla],
+        attackPlan: AttackPlan(
+            name: "Last hidden objective",
+            deployments: [deployment]
+        ),
+        gameData: PrototypeGameData(),
+        navigationGrid: grid
+    )
+
+    engine.start()
+    engine.advance(by: 1.0 / 60.0)
+
+    let revealedTesla = try #require(
+        engine.entities.first { $0.kind == .hiddenTesla }
+    )
+    #expect(revealedTesla.isRevealed)
+
+    for layout in PrototypeBaseLayout.allCases {
+        let snapshot = BaseSnapshot.make(
+            from: layout,
+            navigationGrid: grid
+        )
+        #expect(snapshot.objects.filter { $0.kind == .hiddenTesla }.count == 1)
+        #expect(snapshot.validationReport(on: grid).isBuildable)
+    }
+}

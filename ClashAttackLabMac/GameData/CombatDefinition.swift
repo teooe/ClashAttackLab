@@ -92,6 +92,10 @@ nonisolated struct CombatDefinition {
     let destructionRadius: Double
     let destructionTargetLayer: AttackTargetLayer
 
+    /// Hidden defenses become targetable inside this radius.
+    let startsHidden: Bool
+    let activationRange: Double
+
     /// Ground troops navigate with A*. Air troops fly directly over walls.
     let movementDomain: MovementDomain
 
@@ -126,6 +130,8 @@ nonisolated struct CombatDefinition {
         destructionDamage: Double = 0,
         destructionRadius: Double = 0,
         destructionTargetLayer: AttackTargetLayer = .ground,
+        startsHidden: Bool = false,
+        activationRange: Double = 0,
         movementDomain: MovementDomain = .ground,
         attackTargetLayer: AttackTargetLayer = .both,
         targetingProfile: TargetingProfile?,
@@ -152,6 +158,8 @@ nonisolated struct CombatDefinition {
         self.destructionDamage = destructionDamage
         self.destructionRadius = destructionRadius
         self.destructionTargetLayer = destructionTargetLayer
+        self.startsHidden = startsHidden
+        self.activationRange = activationRange
         self.movementDomain = movementDomain
         self.attackTargetLayer = attackTargetLayer
         self.targetingProfile = targetingProfile

@@ -458,6 +458,27 @@ nonisolated struct PrototypeGameData: GameDataProviding {
                 targetingProfile: nil
             )
 
+        case .hiddenTesla:
+            return CombatDefinition(
+                displayName: "Tesla Occulta",
+                role: .defense,
+                maxHitPoints: 590,
+                movementSpeed: 0,
+                attackDamage: 46,
+                minimumAttackRange: 0,
+                attackRange: 300,
+                attackInterval: 0.72,
+                canMove: false,
+                projectileKind: .airBolt,
+                projectileSpeed: 820,
+                splashRadius: 0,
+                selfDestructsOnAttack: false,
+                startsHidden: true,
+                activationRange: 155,
+                attackTargetLayer: .both,
+                targetingProfile: nil
+            )
+
         case .airDefense:
             return CombatDefinition(
                 displayName: "Difesa aerea",
