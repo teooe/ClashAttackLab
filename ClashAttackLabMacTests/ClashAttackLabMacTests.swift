@@ -4191,19 +4191,20 @@ func wizardTowerCombinesDualLayerTargetingAndSplashDamage() {
 
 @Test
 func everyPrototypeLayoutIncludesAPlaceableWizardTower() {
-    let gameData = PrototypeGameData()
+    let grid = PrototypeBattleMap.makeNavigationGrid()
 
     for layout in PrototypeBaseLayout.allCases {
-        let entities = PrototypeBattleMap.makeInitialEntities(
-            layout: layout,
-            gameData: gameData
+        let entities = PrototypeBattleMap.makeBaseEntities(
+            navigationGrid: grid,
+            layout: layout
         )
         #expect(entities.filter { $0.kind == .wizardTower }.count == 1)
 
-        let snapshot = BaseSnapshot.prototype(layout: layout)
+        let snapshot = BaseSnapshot.make(
+            from: layout,
+            navigationGrid: grid
+        )
         #expect(snapshot.objects.filter { $0.kind == .wizardTower }.count == 1)
-        #expect(snapshot.validationReport(
-            on: PrototypeBattleMap.makeNavigationGrid()
-        ).canSimulate)
+        #expect(snapshot.validationReport(on: grid).canSimulate)
     }
 }
