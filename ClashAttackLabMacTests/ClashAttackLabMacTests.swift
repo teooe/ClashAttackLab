@@ -4794,7 +4794,7 @@ func airSweeperPushesBalloonAwayAndForcesPathRecalculation() throws {
     )
     #expect(balloon.position.x < start.x)
     #expect(activeSweeper.currentTargetID == deployment.entityID)
-    #expect(engine.movementPath(for: balloon.id).isEmpty)
+    #expect(!engine.movementPath(for: balloon.id).isEmpty)
 }
 
 @Test
