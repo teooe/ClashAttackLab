@@ -26,11 +26,21 @@ nonisolated enum BattleEntityKind: Hashable, Codable {
     case bombTower
     case hiddenTesla
     case giantBomb
+    case airBomb
     case airSweeper
     case airDefense
     case townHall
     case goldStorage
     case wall
+
+    var isTrap: Bool {
+        switch self {
+        case .giantBomb, .airBomb:
+            return true
+        default:
+            return false
+        }
+    }
 }
 
 nonisolated struct BattleEntity: Identifiable {

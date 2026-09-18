@@ -503,6 +503,30 @@ nonisolated struct PrototypeGameData: GameDataProviding {
                 targetingProfile: nil
             )
 
+        case .airBomb:
+            return CombatDefinition(
+                displayName: "Bomba aerea",
+                role: .trap,
+                maxHitPoints: 1,
+                movementSpeed: 0,
+                attackDamage: 0,
+                minimumAttackRange: 0,
+                attackRange: 0,
+                attackInterval: 0,
+                canMove: false,
+                projectileKind: nil,
+                projectileSpeed: 0,
+                splashRadius: 0,
+                selfDestructsOnAttack: false,
+                destructionDamage: 235,
+                destructionRadius: 120,
+                destructionTargetLayer: .air,
+                startsHidden: true,
+                activationRange: 105,
+                attackTargetLayer: .air,
+                targetingProfile: nil
+            )
+
         case .airSweeper:
             return CombatDefinition(
                 displayName: "Spazzaria",

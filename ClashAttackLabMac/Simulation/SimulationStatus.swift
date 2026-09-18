@@ -35,6 +35,7 @@ nonisolated enum BattleTimelineEventKind: String, Codable {
     case deployment
     case spellCast
     case heroAbility
+    case trapTriggered
     case structureDestroyed
     case troopDefeated
     case siegePayloadReleased

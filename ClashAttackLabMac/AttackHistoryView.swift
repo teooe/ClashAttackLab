@@ -211,6 +211,7 @@ struct BattleTimelineView: View {
         case .deployment: return "arrow.right.circle.fill"
         case .spellCast: return "sparkles"
         case .heroAbility: return "bolt.circle.fill"
+        case .trapTriggered: return "burst.fill"
         case .structureDestroyed: return "building.2.crop.circle"
         case .troopDefeated: return "xmark.circle.fill"
         case .siegePayloadReleased: return "shippingbox.fill"
@@ -223,6 +224,7 @@ struct BattleTimelineView: View {
         case .deployment: return .cyan
         case .spellCast: return .purple
         case .heroAbility: return .yellow
+        case .trapTriggered: return .pink
         case .structureDestroyed: return .orange
         case .troopDefeated: return .red
         case .siegePayloadReleased: return .brown

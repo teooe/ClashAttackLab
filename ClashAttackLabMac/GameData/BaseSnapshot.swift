@@ -93,7 +93,7 @@ nonisolated struct BaseSnapshot: Identifiable, Codable, Equatable {
 
     var objectiveCount: Int {
         objects.filter {
-            $0.kind != .wall && $0.kind != .giantBomb
+            $0.kind != .wall && !$0.kind.isTrap
         }.count
     }
 

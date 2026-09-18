@@ -747,10 +747,10 @@ final class BattleScene: SKScene {
         for entity in entities
         where
             newlyDefeatedIDs.contains(entity.id) &&
-            (entity.kind == .wallBreaker || entity.kind == .giantBomb)
+            (entity.kind == .wallBreaker || entity.kind.isTrap)
         {
             let definition = simulation.definition(for: entity.kind)
-            let radius = entity.kind == .giantBomb
+            let radius = entity.kind.isTrap
                 ? definition.destructionRadius
                 : 30
             let explosion = SKShapeNode(circleOfRadius: radius)
@@ -758,10 +758,17 @@ final class BattleScene: SKScene {
                 x: entity.position.x,
                 y: entity.position.y
             )
-            explosion.fillColor = entity.kind == .giantBomb
-                ? .systemRed.withAlphaComponent(0.42)
-                : .systemYellow.withAlphaComponent(0.5)
-            explosion.strokeColor = .systemOrange
+            switch entity.kind {
+            case .giantBomb:
+                explosion.fillColor = .systemRed.withAlphaComponent(0.42)
+                explosion.strokeColor = .systemOrange
+            case .airBomb:
+                explosion.fillColor = .systemCyan.withAlphaComponent(0.38)
+                explosion.strokeColor = .systemBlue
+            default:
+                explosion.fillColor = .systemYellow.withAlphaComponent(0.5)
+                explosion.strokeColor = .systemOrange
+            }
             explosion.lineWidth = 5
             explosion.glowWidth = 10
             explosion.zPosition = 35
@@ -1053,7 +1060,7 @@ final class BattleScene: SKScene {
             return .systemBrown
         case .stoneSlammer:
             return .systemCyan
-        case .cannon, .archerTower, .mortar, .wizardTower, .infernoTower, .bombTower, .hiddenTesla, .giantBomb, .airSweeper, .airDefense,
+        case .cannon, .archerTower, .mortar, .wizardTower, .infernoTower, .bombTower, .hiddenTesla, .giantBomb, .airBomb, .airSweeper, .airDefense,
              .townHall, .goldStorage, .wall:
             return .systemCyan
         }
@@ -1099,6 +1106,8 @@ final class BattleScene: SKScene {
             return "TO"
         case .giantBomb:
             return "BG"
+        case .airBomb:
+            return "BA"
         case .airSweeper:
             return "SP"
         case .airDefense:
@@ -1250,6 +1259,13 @@ final class BattleScene: SKScene {
                 radius: 24,
                 color: .systemRed,
                 text: "BG"
+            )
+
+        case .airBomb:
+            return makeLabeledCircle(
+                radius: 22,
+                color: .systemCyan,
+                text: "BA"
             )
 
         case .airSweeper:

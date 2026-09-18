@@ -1220,13 +1220,19 @@ final class SimulationEngine {
                 let entityDefinition = definition(
                     for: entities[index].kind
                 )
-                let eventKind: BattleTimelineEventKind =
-                    entityDefinition.role == .troop
-                        ? .troopDefeated
-                        : .structureDestroyed
-                let suffix = entityDefinition.role == .troop
-                    ? "eliminato"
-                    : "distrutto"
+                let eventKind: BattleTimelineEventKind
+                let suffix: String
+                switch entityDefinition.role {
+                case .troop:
+                    eventKind = .troopDefeated
+                    suffix = "eliminato"
+                case .trap:
+                    eventKind = .trapTriggered
+                    suffix = "attivata"
+                case .defense, .building, .wall:
+                    eventKind = .structureDestroyed
+                    suffix = "distrutto"
+                }
                 recordEvent(
                     eventKind,
                     "\(entityDefinition.displayName) \(suffix)"
