@@ -29,25 +29,28 @@ nonisolated struct AttackPlanGenerator {
     private let entryAdvice: ArmyEntryAdvice?
     private let baseEntities: [BattleEntity]
     private let gameData: any GameDataProviding
+    private let armyRules: ArmyCapacityRules
 
     init(
         navigationGrid: NavigationGrid,
         armyConfiguration: ArmyConfiguration = .prototypeDefault,
         entryAdvice: ArmyEntryAdvice? = nil,
         baseEntities: [BattleEntity] = [],
-        gameData: any GameDataProviding = PrototypeGameData()
+        gameData: any GameDataProviding = PrototypeGameData(),
+        armyRules: ArmyCapacityRules = .prototype
     ) {
         self.navigationGrid = navigationGrid
         self.armyConfiguration = armyConfiguration
         self.entryAdvice = entryAdvice
         self.baseEntities = baseEntities
         self.gameData = gameData
+        self.armyRules = armyRules
     }
 
     func generate() -> [AttackPlan] {
         precondition(
-            armyConfiguration.isValid,
-            armyConfiguration.validationMessage ??
+            armyConfiguration.isValid(under: armyRules),
+            armyConfiguration.validationMessage(under: armyRules) ??
                 "Configurazione esercito non valida."
         )
 
@@ -81,26 +84,26 @@ nonisolated struct AttackPlanGenerator {
         var result = [
             Formation(
                 name: "Alta",
-                firstRow: 4,
-                secondRow: 5,
+                firstRow: navigationGrid.scaledRow(fromPrototype: 4),
+                secondRow: navigationGrid.scaledRow(fromPrototype: 5),
                 usesEntryAdvice: false
             ),
             Formation(
                 name: "Centro",
-                firstRow: 8,
-                secondRow: 9,
+                firstRow: navigationGrid.scaledRow(fromPrototype: 8),
+                secondRow: navigationGrid.scaledRow(fromPrototype: 9),
                 usesEntryAdvice: false
             ),
             Formation(
                 name: "Bassa",
-                firstRow: 12,
-                secondRow: 11,
+                firstRow: navigationGrid.scaledRow(fromPrototype: 12),
+                secondRow: navigationGrid.scaledRow(fromPrototype: 11),
                 usesEntryAdvice: false
             ),
             Formation(
                 name: "Divisa",
-                firstRow: 4,
-                secondRow: 12,
+                firstRow: navigationGrid.scaledRow(fromPrototype: 4),
+                secondRow: navigationGrid.scaledRow(fromPrototype: 12),
                 usesEntryAdvice: false
             )
         ]
@@ -109,8 +112,8 @@ nonisolated struct AttackPlanGenerator {
             result.append(
                 Formation(
                     name: "Guidata",
-                    firstRow: 8,
-                    secondRow: 8,
+                    firstRow: navigationGrid.scaledRow(fromPrototype: 8),
+                    secondRow: navigationGrid.scaledRow(fromPrototype: 8),
                     usesEntryAdvice: true
                 )
             )
@@ -195,9 +198,11 @@ nonisolated struct AttackPlanGenerator {
                         row: row
                     )
                 ),
-                deploymentTime:
+                deploymentTime: min(
+                    59,
                     Double(wave) * tempo.waveGap +
-                    Double(slot) * tempo.withinWaveDelay
+                        Double(slot) * tempo.withinWaveDelay
+                )
             )
         }
         let lastTroopTime =
@@ -265,8 +270,10 @@ nonisolated struct AttackPlanGenerator {
                 id: spellIDs[index],
                 kind: kind,
                 position: position,
-                deploymentTime:
+                deploymentTime: min(
+                    59,
                     firstSpellTime + Double(index) * 2.2
+                )
             )
         }
 
@@ -278,6 +285,10 @@ nonisolated struct AttackPlanGenerator {
     }
 
     private func spellColumn(for kind: BattleSpellKind) -> Int {
+        navigationGrid.scaledColumn(fromPrototype: prototypeSpellColumn(for: kind))
+    }
+
+    private func prototypeSpellColumn(for kind: BattleSpellKind) -> Int {
         switch kind {
         case .heal:
             return 13

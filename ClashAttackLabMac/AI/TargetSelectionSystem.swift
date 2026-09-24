@@ -69,7 +69,16 @@ struct TargetSelectionSystem {
             )
         }
 
-        let reachableTargets = eligibleIndices.compactMap { index in
+        let routedIndices = navigationGrid.isLarge
+            ? nearestIndices(
+                eligibleIndices,
+                to: troop.position,
+                entities: entities,
+                limit: Self.largeGridCandidateLimit
+            )
+            : eligibleIndices
+
+        let reachableTargets = routedIndices.compactMap { index in
             pathfinder.findPath(
                 from: troop.position,
                 to: entities[index].position,
@@ -102,6 +111,36 @@ struct TargetSelectionSystem {
             targetIndex: best.targetIndex,
             replacementPath: best.pathfinding.waypoints
         )
+    }
+
+    /// On large grids only the nearest buildings are compared by route,
+    /// which mirrors how troops pick nearby targets and bounds A* work.
+    static let largeGridCandidateLimit = 6
+
+    private func nearestIndices(
+        _ indices: [Int],
+        to position: WorldPosition,
+        entities: [BattleEntity],
+        limit: Int
+    ) -> [Int] {
+        guard indices.count > limit else {
+            return indices
+        }
+        return Array(indices.sorted { first, second in
+            let firstDistance = directDistance(
+                from: position,
+                to: entities[first].position
+            )
+            let secondDistance = directDistance(
+                from: position,
+                to: entities[second].position
+            )
+            if firstDistance == secondDistance {
+                return entities[first].id.uuidString <
+                    entities[second].id.uuidString
+            }
+            return firstDistance < secondDistance
+        }.prefix(limit))
     }
 
     private func directFlightDecision(

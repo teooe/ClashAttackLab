@@ -91,6 +91,56 @@ def compact(values):
     return {key: value for key, value in values.items() if value is not None}
 
 
+MAX_TOWN_HALL = 18
+
+
+def footprint(size):
+    """'3x3' -> 3 tiles per side."""
+    if not size:
+        return None
+    return int(size.split("x")[0])
+
+
+def counts_by_town_hall(data):
+    """Buildings allowed at Town Hall 1...MAX_TOWN_HALL, index = TH - 1."""
+    available = data.get("availablePerTownHall")
+    if not available:
+        return None
+    counts = {entry["townHallLevel"]: entry["count"] for entry in available}
+    return [counts.get(level, 0) for level in range(1, MAX_TOWN_HALL + 1)]
+
+
+def highest_level_value(levels, town_hall, key):
+    unlocked = [
+        level[key] for level in levels
+        if level.get("townHallRequired", 1) <= town_hall and key in level
+    ]
+    return max(unlocked) if unlocked else 0
+
+
+def army_capacity(root):
+    """Troop and spell housing available at each Town Hall."""
+    camp = load(root, "army-buildings/army-camp.json")
+    spell_factory = load(root, "army-buildings/spell-factory.json")
+    dark_factory = load(root, "army-buildings/dark-spell-factory.json")
+    camp_counts = counts_by_town_hall(camp)
+    troops, spells = [], []
+    for town_hall in range(1, MAX_TOWN_HALL + 1):
+        troops.append(
+            camp_counts[town_hall - 1] *
+            highest_level_value(camp["levels"], town_hall, "housingSpace")
+        )
+        spells.append(
+            highest_level_value(
+                spell_factory["levels"], town_hall, "spellStorageCapacity"
+            ) +
+            highest_level_value(
+                dark_factory["levels"], town_hall, "spellStorageCapacity"
+            )
+        )
+    return {"troopCapacity": troops, "spellCapacity": spells}
+
+
 def unit_entry(key, data, hero_halls):
     normal_mode = data.get("modes", {}).get("normal", {})
     entry = compact({
@@ -105,6 +155,9 @@ def unit_entry(key, data, hero_halls):
             "triggerRadius", normal_mode.get("triggerRange")
         ),
         "damageRadius": data.get("damageRadius"),
+        "size": footprint(data.get("size")),
+        "housingSpace": data.get("housingSpace"),
+        "countByTownHall": counts_by_town_hall(data),
     })
 
     levels = []
@@ -183,7 +236,11 @@ def spell_entry(key, data):
             values["buildingDamagePercent"] = level["buildingDamagePercent"]
         levels.append(compact(values))
 
-    return {"name": data["name"], "levels": levels}
+    return {
+        "name": data["name"],
+        "housingSpace": data.get("housingSpace"),
+        "levels": levels,
+    }
 
 
 def download_package(directory):
@@ -219,6 +276,7 @@ def build(root):
             key: spell_entry(key, load(root, path))
             for key, path in SPELLS.items()
         },
+        "army": army_capacity(root),
     }
 
 

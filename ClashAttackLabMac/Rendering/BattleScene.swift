@@ -33,6 +33,17 @@ final class BattleScene: SKScene {
 
     var simulationSpeed: Double = 1
 
+    /// Scenes larger than the prototype are shrunk to fit the view, so
+    /// interface text and strokes grow by the same factor to stay legible.
+    private var uiScale: CGFloat {
+        max(1, size.height / 760)
+    }
+
+    /// Troops are drawn smaller on the real map, where one tile is tiny.
+    private var troopBodyScale: CGFloat {
+        navigationGrid.isLarge ? 0.55 : 1
+    }
+
     init(
         size: CGSize,
         simulation: SimulationEngine,
@@ -291,45 +302,45 @@ final class BattleScene: SKScene {
     }
 
     private func configureLabels() {
-        statusLabel.fontSize = 17
+        statusLabel.fontSize = 17 * uiScale
         statusLabel.fontColor = .white
         statusLabel.horizontalAlignmentMode = .left
-        statusLabel.position = CGPoint(x: 65, y: size.height - 30)
+        statusLabel.position = CGPoint(x: 65, y: size.height - 30 * uiScale)
         statusLabel.zPosition = 40
         addChild(statusLabel)
 
-        spellStatusLabel.fontSize = 13
+        spellStatusLabel.fontSize = 13 * uiScale
         spellStatusLabel.fontColor = .white.withAlphaComponent(0.78)
         spellStatusLabel.horizontalAlignmentMode = .left
         spellStatusLabel.position = CGPoint(
             x: 65,
-            y: size.height - 53
+            y: size.height - 53 * uiScale
         )
         spellStatusLabel.zPosition = 40
         addChild(spellStatusLabel)
 
-        scoreLabel.fontSize = 20
+        scoreLabel.fontSize = 20 * uiScale
         scoreLabel.fontColor = .systemYellow
         scoreLabel.horizontalAlignmentMode = .right
         scoreLabel.position = CGPoint(
             x: size.width - 65,
-            y: size.height - 30
+            y: size.height - 30 * uiScale
         )
         scoreLabel.zPosition = 40
         addChild(scoreLabel)
 
-        resultLabel.fontSize = 18
+        resultLabel.fontSize = 18 * uiScale
         resultLabel.fontColor = .white
-        resultLabel.position = CGPoint(x: size.width / 2, y: 65)
+        resultLabel.position = CGPoint(x: size.width / 2, y: 65 * uiScale)
         resultLabel.zPosition = 40
         resultLabel.isHidden = true
         addChild(resultLabel)
 
-        resultDetailLabel.fontSize = 13
+        resultDetailLabel.fontSize = 13 * uiScale
         resultDetailLabel.fontColor = .white.withAlphaComponent(0.82)
         resultDetailLabel.position = CGPoint(
             x: size.width / 2,
-            y: 39
+            y: 39 * uiScale
         )
         resultDetailLabel.zPosition = 40
         resultDetailLabel.isHidden = true
@@ -565,12 +576,27 @@ final class BattleScene: SKScene {
         let definition = simulation.definition(for: entity.kind)
         let root = SKNode()
         let body = makeBody(for: entity.kind)
+        let footprint = CGFloat(definition.footprintSize)
+        let isWall = definition.role == .wall
+        if footprint > 0 {
+            // Fit the drawn body inside the real footprint.
+            body.setScale(footprint * 0.9 / (isWall ? 36 : 80))
+        } else if definition.role == .troop {
+            body.setScale(troopBodyScale)
+        }
         root.addChild(body)
         addRangeRings(for: definition, to: root)
 
-        let isWall = definition.role == .wall
-        let healthWidth = isWall ? 34.0 : 88.0
-        let healthY = isWall ? -25.0 : -52.0
+        let healthWidth: Double
+        let healthY: Double
+        if footprint > 0 {
+            healthWidth = Double(footprint) * 0.8
+            healthY = -Double(footprint) / 2 + 6
+        } else {
+            let scale = definition.role == .troop ? Double(troopBodyScale) : 1
+            healthWidth = (isWall ? 34.0 : 88.0) * scale
+            healthY = (isWall ? -25.0 : -52.0) * scale
+        }
 
         let healthBackground = SKSpriteNode(
             color: .black.withAlphaComponent(0.58),
@@ -598,7 +624,7 @@ final class BattleScene: SKScene {
         healthLabel.verticalAlignmentMode = .center
         healthLabel.position = CGPoint(x: 0, y: -69)
         healthLabel.zPosition = 12
-        healthLabel.isHidden = isWall
+        healthLabel.isHidden = isWall || navigationGrid.isLarge
         root.addChild(healthLabel)
 
         let targetLine = SKShapeNode()
@@ -610,7 +636,7 @@ final class BattleScene: SKScene {
         } else {
             targetLine.strokeColor = .systemRed
         }
-        targetLine.lineWidth = 2
+        targetLine.lineWidth = 2 * uiScale
         targetLine.alpha = 0.48
         targetLine.zPosition = 5
         addChild(targetLine)

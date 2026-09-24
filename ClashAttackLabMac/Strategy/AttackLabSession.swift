@@ -115,7 +115,7 @@ final class AttackLabSession: ObservableObject {
     @Published private(set) var gameDataSource: GameDataSource = .prototype
     @Published private(set) var gameDataError: String?
 
-    let scene: BattleScene
+    @Published private(set) var scene: BattleScene
 
     var candidatePlanCount: Int {
         candidatePlans.count
@@ -199,8 +199,9 @@ final class AttackLabSession: ObservableObject {
         }
     }
 
+    private var arena: BattleArena
     private var gameData: any GameDataProviding
-    private let navigationGrid: NavigationGrid
+    private var navigationGrid: NavigationGrid
     private var baseEntities: [BattleEntity]
     private var candidatePlans: [AttackPlan]
     private var evaluator: AttackPlanEvaluator
@@ -211,14 +212,12 @@ final class AttackLabSession: ObservableObject {
     private let baseStrategyLibrary = BaseStrategyLibrary()
 
     init() {
-        let gameData = PrototypeGameData()
-        let navigationGrid = PrototypeBattleMap.makeNavigationGrid()
+        let arena = BattleArena.prototype
+        let gameData = arena.gameData
+        let navigationGrid = arena.navigationGrid
         let layout = PrototypeBaseLayout.fortress
-        let baseEntities = PrototypeBattleMap.makeBaseEntities(
-            navigationGrid: navigationGrid,
-            layout: layout
-        )
-        let configuration = ArmyConfiguration.prototypeDefault
+        let baseEntities = arena.makeBaseEntities(layout: layout)
+        let configuration = arena.defaultArmy
         let initialEntryAdvice = ArmyEntryAdvisor(
             navigationGrid: navigationGrid,
             gameData: gameData
@@ -232,16 +231,15 @@ final class AttackLabSession: ObservableObject {
             armyConfiguration: configuration,
             entryAdvice: initialEntryAdvice,
             baseEntities: baseEntities,
-            gameData: gameData
+            gameData: gameData,
+            armyRules: arena.armyRules
         ).generate()
         let initialPlan = candidatePlans[0]
 
         self.armyConfiguration = configuration
         self.baseLayout = layout
-        self.activeBaseSnapshot = BaseSnapshot.make(
-            from: layout,
-            navigationGrid: navigationGrid
-        )
+        self.activeBaseSnapshot = arena.makeBaseSnapshot(layout: layout)
+        self.arena = arena
         self.gameData = gameData
         self.navigationGrid = navigationGrid
         self.baseEntities = baseEntities
@@ -253,18 +251,10 @@ final class AttackLabSession: ObservableObject {
             navigationGrid: navigationGrid
         )
 
-        let simulation = SimulationEngine(
+        self.scene = Self.makeScene(
+            arena: arena,
             entities: baseEntities,
-            attackPlan: initialPlan,
-            gameData: gameData,
-            navigationGrid: navigationGrid
-        )
-
-        self.scene = BattleScene(
-            size: CGSize(width: 1_100, height: 760),
-            simulation: simulation,
-            navigationGrid: navigationGrid,
-            attackPlan: initialPlan
+            plan: initialPlan
         )
         self.selectedPlanID = initialPlan.id
         self.savedPlans = planLibrary.plans
@@ -272,7 +262,29 @@ final class AttackLabSession: ObservableObject {
         self.savedBases = baseLibrary.bases
         self.savedBaseStrategies = baseStrategyLibrary.records
         self.armyEntryAdvice = initialEntryAdvice
-        self.scene.simulationFinishedHandler = { [weak self] result in
+        installSimulationFinishedHandler()
+    }
+
+    private static func makeScene(
+        arena: BattleArena,
+        entities: [BattleEntity],
+        plan: AttackPlan
+    ) -> BattleScene {
+        BattleScene(
+            size: arena.sceneSize,
+            simulation: SimulationEngine(
+                entities: entities,
+                attackPlan: plan,
+                gameData: arena.gameData,
+                navigationGrid: arena.navigationGrid
+            ),
+            navigationGrid: arena.navigationGrid,
+            attackPlan: plan
+        )
+    }
+
+    private func installSimulationFinishedHandler() {
+        scene.simulationFinishedHandler = { [weak self] result in
             guard let self else { return }
             self.lastSimulationResult = result
             self.historyStore.record(
@@ -285,6 +297,19 @@ final class AttackLabSession: ObservableObject {
             )
             self.attackHistory = self.historyStore.entries
         }
+    }
+
+    /// True while battles use the real map, statistics and army limits.
+    var isRealArena: Bool {
+        arena.isReal
+    }
+
+    var armyRules: ArmyCapacityRules {
+        arena.armyRules
+    }
+
+    var defaultArmy: ArmyConfiguration {
+        arena.defaultArmy
     }
 
     /// Stress-tests the current plan under three bounded prototype conditions.
@@ -341,7 +366,8 @@ final class AttackLabSession: ObservableObject {
         guard !isManualPlanning else { return }
         let sourcePlan = activePlan
         let variants = ArmyCompositionSearch.variants(
-            from: sourcePlan.armyConfiguration
+            from: sourcePlan.armyConfiguration,
+            rules: arena.armyRules
         )
         guard !variants.isEmpty else { return }
         let scenarios = PrototypeCombatScenario.allCases
@@ -494,7 +520,8 @@ final class AttackLabSession: ObservableObject {
         let bases = comparableSavedBases()
         guard !bases.isEmpty else { return }
         let variants = ArmyCompositionSearch.variants(
-            from: sourcePlan.armyConfiguration
+            from: sourcePlan.armyConfiguration,
+            rules: arena.armyRules
         )
         guard !variants.isEmpty else { return }
 
@@ -542,7 +569,8 @@ final class AttackLabSession: ObservableObject {
         let sourcePlan = activePlan
         let bases = comparableSavedBases()
         let variants = ArmyCompositionSearch.variants(
-            from: sourcePlan.armyConfiguration
+            from: sourcePlan.armyConfiguration,
+            rules: arena.armyRules
         )
         guard !bases.isEmpty, !variants.isEmpty else { return }
 
@@ -663,6 +691,8 @@ final class AttackLabSession: ObservableObject {
     }
 
     private func comparableSavedBases() -> [BaseSnapshot] {
+        // Saved bases are drawn on the prototype grid.
+        guard !arena.isReal else { return [] }
         var seen = Set<UUID>()
         return ([activeBaseSnapshot] + savedBases).filter {
             seen.insert($0.id).inserted && $0.isValid(on: navigationGrid)
@@ -733,7 +763,7 @@ final class AttackLabSession: ObservableObject {
     }
 
     func analyzeCurrentPlanAcrossSavedBases() {
-        guard !isManualPlanning else { return }
+        guard !isManualPlanning, !arena.isReal else { return }
         let plan = activePlan
         var seen = Set<UUID>()
         let bases = ([activeBaseSnapshot] + savedBases).filter {
@@ -844,7 +874,8 @@ final class AttackLabSession: ObservableObject {
             armyConfiguration: configuration,
             entryAdvice: advice,
             baseEntities: entities,
-            gameData: gameData
+            gameData: gameData,
+            armyRules: arena.armyRules
         ).generate()
 
         return (plans, advice)
@@ -856,9 +887,7 @@ final class AttackLabSession: ObservableObject {
         var entries: [BaseAttackEvaluation] = []
         for layout in PrototypeBaseLayout.allCases {
             try Task.checkCancellation()
-            let entities = PrototypeBattleMap.makeBaseEntities(
-                navigationGrid: navigationGrid, layout: layout
-            )
+            let entities = arena.makeBaseEntities(layout: layout)
             let evaluator = AttackPlanEvaluator(
                 baseEntities: entities, gameData: gameData,
                 navigationGrid: navigationGrid
@@ -905,7 +934,10 @@ final class AttackLabSession: ObservableObject {
             return
         }
 
-        if let snapshot = entry.baseSnapshot {
+        if arena.isReal {
+            guard let layout = entry.baseLayout else { return }
+            applyBaseLayout(layout)
+        } else if let snapshot = entry.baseSnapshot {
             applyImportedBase(snapshot)
         } else if let layout = entry.baseLayout {
             applyBaseLayout(layout)
@@ -950,7 +982,8 @@ final class AttackLabSession: ObservableObject {
     func loadSavedPlan(_ plan: AttackPlan) {
         cancelSearch()
         guard !isManualPlanning else { return }
-        if plan.armyConfiguration.isValid && plan.armyConfiguration != armyConfiguration {
+        if plan.armyConfiguration.isValid(under: arena.armyRules) &&
+            plan.armyConfiguration != armyConfiguration {
             applyArmyConfiguration(plan.armyConfiguration)
         }
         activePlan = plan
@@ -1033,7 +1066,10 @@ final class AttackLabSession: ObservableObject {
         guard !isManualPlanning else { return }
         let sourcePlan = activePlan
         let sourceArmy = sourcePlan.armyConfiguration
-        let variants = ArmyCompositionSearch.variants(from: sourceArmy)
+        let variants = ArmyCompositionSearch.variants(
+            from: sourceArmy,
+            rules: arena.armyRules
+        )
         guard !variants.isEmpty else { return }
         let evaluator = self.evaluator
         startSearch(
@@ -1086,7 +1122,8 @@ final class AttackLabSession: ObservableObject {
 
     private func applyEvaluationSelection(_ evaluation: AttackPlanEvaluation) {
         let configuration = evaluation.plan.armyConfiguration
-        if configuration.isValid && configuration != armyConfiguration {
+        if configuration.isValid(under: arena.armyRules) &&
+            configuration != armyConfiguration {
             let guidance = makeGuidedCandidatePlans(
                 for: configuration, entities: baseEntities,
                 baseName: activeBaseSnapshot.name
@@ -1107,7 +1144,7 @@ final class AttackLabSession: ObservableObject {
         _ configuration: ArmyConfiguration
     ) {
         cancelSearch()
-        guard configuration.isValid else {
+        guard configuration.isValid(under: arena.armyRules) else {
             return
         }
 
@@ -1133,16 +1170,17 @@ final class AttackLabSession: ObservableObject {
         scene.loadAttackPlan(firstPlan)
     }
 
-    /// Switches between prototype tuning and real per-level statistics,
-    /// then rebuilds every analysis that depends on them.
+    /// Switches between the prototype lab and a real battle at a Town Hall
+    /// (real map, statistics and army limits), then rebuilds the base,
+    /// plans, analyses and battle scene.
     func applyGameDataSource(_ source: GameDataSource) {
         guard source != gameDataSource, !isManualPlanning else {
             return
         }
 
-        let newGameData: any GameDataProviding
+        let newArena: BattleArena
         do {
-            newGameData = try source.makeGameData()
+            newArena = try BattleArena.make(for: source)
         } catch {
             gameDataError =
                 "Dati reali non disponibili: \(error.localizedDescription)"
@@ -1150,24 +1188,39 @@ final class AttackLabSession: ObservableObject {
         }
 
         cancelSearch()
-        gameData = newGameData
+        let keepsArmy = newArena.isReal == arena.isReal &&
+            armyConfiguration.isValid(under: newArena.armyRules)
+        let configuration = keepsArmy
+            ? armyConfiguration
+            : newArena.defaultArmy
+        let entities = newArena.makeBaseEntities(layout: baseLayout)
+
+        arena = newArena
+        gameData = newArena.gameData
+        navigationGrid = newArena.navigationGrid
         gameDataSource = source
         gameDataError = nil
+        armyConfiguration = configuration
+        baseEntities = entities
+        activeBaseSnapshot = newArena.makeBaseSnapshot(layout: baseLayout)
         evaluator = AttackPlanEvaluator(
-            baseEntities: baseEntities,
+            baseEntities: entities,
             gameData: gameData,
             navigationGrid: navigationGrid
         )
 
         let guidance = makeGuidedCandidatePlans(
-            for: armyConfiguration,
-            entities: baseEntities,
+            for: configuration,
+            entities: entities,
             baseName: activeBaseSnapshot.name
         )
         armyEntryAdvice = guidance.advice
-        if !guidance.plans.isEmpty {
-            candidatePlans = guidance.plans
+        candidatePlans = guidance.plans
+        if let firstPlan = guidance.plans.first {
+            activePlan = firstPlan
+            selectedPlanID = firstPlan.id
         }
+        resetManualDraft()
 
         evaluations = []
         comparisonEvaluations = []
@@ -1183,19 +1236,18 @@ final class AttackLabSession: ObservableObject {
         scenarioAnalysis = nil
         resilientPlanRankings = []
         lastSpellOptimization = nil
-        scene.loadScenario(
-            entities: baseEntities,
-            attackPlan: activePlan,
-            gameData: gameData
+
+        scene = Self.makeScene(
+            arena: newArena,
+            entities: entities,
+            plan: activePlan
         )
+        installSimulationFinishedHandler()
     }
 
     func applyBaseLayout(_ layout: PrototypeBaseLayout) {
         cancelSearch()
-        let entities = PrototypeBattleMap.makeBaseEntities(
-            navigationGrid: navigationGrid,
-            layout: layout
-        )
+        let entities = arena.makeBaseEntities(layout: layout)
 
         let guidance = makeGuidedCandidatePlans(
             for: armyConfiguration,
@@ -1208,10 +1260,7 @@ final class AttackLabSession: ObservableObject {
 
         finishManualMode(restoreActivePlan: false)
         baseLayout = layout
-        activeBaseSnapshot = BaseSnapshot.make(
-            from: layout,
-            navigationGrid: navigationGrid
-        )
+        activeBaseSnapshot = arena.makeBaseSnapshot(layout: layout)
         baseEntities = entities
         evaluator = AttackPlanEvaluator(
             baseEntities: entities,
@@ -1236,7 +1285,11 @@ final class AttackLabSession: ObservableObject {
     /// Loads a validated JSON base as a live simulation scenario.
     func applyImportedBase(_ snapshot: BaseSnapshot) {
         cancelSearch()
-        guard !isManualPlanning, snapshot.isValid(on: navigationGrid) else {
+        guard
+            !isManualPlanning,
+            !arena.isReal,
+            snapshot.isValid(on: navigationGrid)
+        else {
             return
         }
 

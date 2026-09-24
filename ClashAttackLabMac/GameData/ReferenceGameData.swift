@@ -11,6 +11,7 @@ nonisolated struct ReferenceGameCatalog: Decodable {
     let source: ReferenceGameSource
     let units: [String: ReferenceUnit]
     let spells: [String: ReferenceSpell]
+    let army: ReferenceArmyCapacity?
 
     static let resourceName = "ReferenceGameData"
 
@@ -57,7 +58,30 @@ nonisolated struct ReferenceUnit: Decodable {
     let splashRadius: Double?
     let triggerRadius: Double?
     let damageRadius: Double?
+
+    /// Footprint side in tiles; nil for troops.
+    let size: Int?
+
+    /// Army camp space used by one troop.
+    let housingSpace: Int?
+
+    /// Buildings allowed at Town Hall 1…18 (index = Town Hall − 1).
+    let countByTownHall: [Int]?
+
     let levels: [ReferenceUnitLevel]
+
+    /// Number of copies a base may hold at the given Town Hall.
+    func count(atTownHall townHall: Int) -> Int {
+        guard let counts = countByTownHall, !counts.isEmpty else {
+            return 0
+        }
+        return counts[min(max(townHall, 1), counts.count) - 1]
+    }
+
+    /// Town Hall that unlocks the first level.
+    var unlockTownHall: Int {
+        levels.first?.townHall ?? 1
+    }
 
     /// Highest level unlocked at the given Town Hall, or the first level
     /// when the unit is not unlocked yet.
@@ -87,7 +111,12 @@ nonisolated struct ReferenceUnitLevel: Decodable {
 
 nonisolated struct ReferenceSpell: Decodable {
     let name: String
+    let housingSpace: Int?
     let levels: [ReferenceSpellLevel]
+
+    var unlockTownHall: Int {
+        levels.first?.townHall ?? 1
+    }
 
     func level(forTownHall townHall: Int) -> ReferenceSpellLevel? {
         levels.last(where: { $0.townHall <= townHall }) ?? levels.first
@@ -95,6 +124,27 @@ nonisolated struct ReferenceSpell: Decodable {
 
     func level(numbered number: Int) -> ReferenceSpellLevel? {
         levels.first(where: { $0.level == number })
+    }
+}
+
+/// Army camp and spell factory space per Town Hall (index = Town Hall − 1).
+nonisolated struct ReferenceArmyCapacity: Decodable {
+    let troopCapacity: [Int]
+    let spellCapacity: [Int]
+
+    func troops(atTownHall townHall: Int) -> Int {
+        value(in: troopCapacity, townHall: townHall)
+    }
+
+    func spells(atTownHall townHall: Int) -> Int {
+        value(in: spellCapacity, townHall: townHall)
+    }
+
+    private func value(in values: [Int], townHall: Int) -> Int {
+        guard !values.isEmpty else {
+            return 0
+        }
+        return values[min(max(townHall, 1), values.count) - 1]
     }
 }
 
@@ -162,11 +212,11 @@ nonisolated struct ReferenceGameData: GameDataProviding {
     /// In-game movement speed 8 equals one tile per second.
     static let movementSpeedPerTileSecond = 8.0
 
-    /// Game ranges are measured from the target's edge, while the engine
-    /// measures centre to centre on one-cell buildings. Half a cell for
-    /// the target plus half a cell for the troop keeps melee troops able
-    /// to reach buildings and walls from the neighbouring cell.
-    static let troopContactPadding = 1.0
+    /// Reach in tiles for siege machines, whose range is not exported.
+    static let siegeMachineRange = 1.0
+
+    /// Real battles last three minutes.
+    static let realBattleDuration: TimeInterval = 180
 
     /// Mortar blind spot in tiles; not part of the exported catalog.
     static let mortarMinimumRange = 4.0
@@ -192,6 +242,10 @@ nonisolated struct ReferenceGameData: GameDataProviding {
         self.profile = profile
         self.fallback = fallback
         self.tileSize = tileSize
+    }
+
+    var battleDuration: TimeInterval {
+        Self.realBattleDuration
     }
 
     func level(for kind: BattleEntityKind) -> Int? {
@@ -234,9 +288,8 @@ nonisolated struct ReferenceGameData: GameDataProviding {
 
         switch base.role {
         case .troop:
-            if let range = unit.range {
-                attackRange = (range + Self.troopContactPadding) * tileSize
-            }
+            // Troop reach is measured from the target's footprint edge.
+            attackRange = (unit.range ?? Self.siegeMachineRange) * tileSize
             if kind == .wallBreaker {
                 wallMultiplier = Self.wallBreakerWallMultiplier
             }
@@ -327,7 +380,11 @@ nonisolated struct ReferenceGameData: GameDataProviding {
             attackTargetLayer: base.attackTargetLayer,
             targetingProfile: base.targetingProfile,
             heroAbility: heroAbility,
-            siegePayload: base.siegePayload
+            siegePayload: base.siegePayload,
+            // Traps trigger from their centre and never block or get hit.
+            footprintSize: base.role == .trap
+                ? 0
+                : Double(unit.size ?? 0) * tileSize
         )
     }
 
@@ -444,7 +501,7 @@ nonisolated enum GameDataSource: Hashable, Identifiable {
         case .prototype:
             return "Prototipo"
         case .reference(let townHall):
-            return "Reali · Municipio \(townHall)"
+            return "Reale · Municipio \(townHall)"
         }
     }
 

@@ -26,29 +26,45 @@ struct ContentView: View {
                         .lineLimit(1)
                         .minimumScaleFactor(0.8)
 
-                    Picker("Dati di gioco", selection: Binding(
-                        get: { session.gameDataSource },
-                        set: { session.applyGameDataSource($0) }
-                    )) {
-                        Text(GameDataSource.prototype.title)
-                            .tag(GameDataSource.prototype)
-                        ForEach(
-                            GameDataSource.referenceTownHalls,
-                            id: \.self
-                        ) { townHall in
-                            Text(
-                                GameDataSource.reference(townHall: townHall).title
-                            )
-                            .tag(GameDataSource.reference(townHall: townHall))
+                    HStack(spacing: 12) {
+                        Picker("Modalità", selection: Binding(
+                            get: { session.gameDataSource },
+                            set: { session.applyGameDataSource($0) }
+                        )) {
+                            Text(GameDataSource.prototype.title)
+                                .tag(GameDataSource.prototype)
+                            ForEach(
+                                GameDataSource.referenceTownHalls,
+                                id: \.self
+                            ) { townHall in
+                                Text(
+                                    GameDataSource.reference(townHall: townHall).title
+                                )
+                                .tag(GameDataSource.reference(townHall: townHall))
+                            }
+                        }
+                        .pickerStyle(.menu)
+                        .fixedSize()
+                        .disabled(session.isManualPlanning)
+                        .help(
+                            session.gameDataError ??
+                                "Prototipo: arena di prova. Reale: mappa 44×44, statistiche, esercito e battaglia di 3 minuti del Municipio scelto."
+                        )
+
+                        if session.isRealArena {
+                            Picker("Base", selection: Binding(
+                                get: { session.baseLayout },
+                                set: { session.applyBaseLayout($0) }
+                            )) {
+                                ForEach(PrototypeBaseLayout.allCases) { layout in
+                                    Text(layout.displayName).tag(layout)
+                                }
+                            }
+                            .pickerStyle(.menu)
+                            .fixedSize()
+                            .disabled(session.isManualPlanning)
                         }
                     }
-                    .pickerStyle(.menu)
-                    .fixedSize()
-                    .disabled(session.isManualPlanning)
-                    .help(
-                        session.gameDataError ??
-                            "Valori di combattimento: prototipo o statistiche reali al livello massimo del Municipio scelto."
-                    )
                 }
 
                 Spacer()
@@ -77,6 +93,12 @@ struct ContentView: View {
                 } label: {
                     Label("Base", systemImage: "square.grid.3x3.fill")
                 }
+                .disabled(session.isRealArena)
+                .help(
+                    session.isRealArena
+                        ? "In modalità reale scegli la base sotto il titolo."
+                        : "Scegli o modifica la base del prototipo."
+                )
 
                 Button {
                     showingSavedBaseLibrary = true
@@ -86,6 +108,7 @@ struct ContentView: View {
                         systemImage: "square.stack.3d.up"
                     )
                 }
+                .disabled(session.isRealArena)
 
                 Button {
                     showingPlanLibrary = true
@@ -352,11 +375,14 @@ struct ContentView: View {
             }
 
             SpriteView(scene: session.scene)
+                .id(ObjectIdentifier(session.scene))
                 .frame(minWidth: 840, minHeight: 600)
         }
         .sheet(isPresented: $showingArmyBuilder) {
             ArmyEditorView(
-                configuration: session.armyConfiguration
+                configuration: session.armyConfiguration,
+                rules: session.armyRules,
+                defaultArmy: session.defaultArmy
             ) { configuration in
                 session.applyArmyConfiguration(configuration)
             }

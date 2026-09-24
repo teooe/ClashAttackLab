@@ -67,6 +67,27 @@ nonisolated struct BaseSnapshot: Identifiable, Codable, Equatable {
         return BaseSnapshot(name: layout.displayName, objects: objects)
     }
 
+    /// Records generated entities by the cell under their centre.
+    static func make(
+        named name: String,
+        entities: [BattleEntity],
+        navigationGrid: NavigationGrid
+    ) -> BaseSnapshot {
+        BaseSnapshot(
+            name: name,
+            objects: entities.compactMap { entity in
+                navigationGrid.coordinate(for: entity.position).map {
+                    BaseObjectSnapshot(
+                        id: entity.id,
+                        kind: entity.kind,
+                        column: $0.column,
+                        row: $0.row
+                    )
+                }
+            }
+        )
+    }
+
     func makeEntities(
         navigationGrid: NavigationGrid
     ) -> [BattleEntity] {

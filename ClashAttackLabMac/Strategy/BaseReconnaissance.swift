@@ -124,7 +124,7 @@ nonisolated struct BaseReconnaissanceSystem {
             (8, "Corsia centrale"),
             (10, "Corsia medio-bassa"),
             (13, "Corsia bassa")
-        ]
+        ].map { (navigationGrid.scaledRow(fromPrototype: $0.0), $0.1) }
     }
 
     private func assess(
@@ -137,7 +137,10 @@ nonisolated struct BaseReconnaissanceSystem {
         )
         let wallTraversalCost = estimatedWallTraversalCost()
 
-        let routes = defenses.compactMap {
+        let routes = navigationGrid.routingCandidates(
+            defenses,
+            near: start
+        ).compactMap {
             defense -> (entity: BattleEntity, path: PathfindingResult)? in
             guard let path = pathfinder.findPath(
                 from: start,

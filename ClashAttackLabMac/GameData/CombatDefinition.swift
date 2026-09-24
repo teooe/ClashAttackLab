@@ -115,6 +115,10 @@ nonisolated struct CombatDefinition {
     /// Troops released when a siege machine is destroyed.
     let siegePayload: [BattleEntityKind]
 
+    /// Side of the square footprint in world units. Zero keeps the entity
+    /// a point, so attack ranges are measured centre to centre.
+    let footprintSize: Double
+
     init(
         displayName: String,
         role: BattleEntityRole,
@@ -141,7 +145,8 @@ nonisolated struct CombatDefinition {
         attackTargetLayer: AttackTargetLayer = .both,
         targetingProfile: TargetingProfile?,
         heroAbility: HeroAbilityDefinition? = nil,
-        siegePayload: [BattleEntityKind] = []
+        siegePayload: [BattleEntityKind] = [],
+        footprintSize: Double = 0
     ) {
         self.displayName = displayName
         self.role = role
@@ -171,6 +176,19 @@ nonisolated struct CombatDefinition {
         self.targetingProfile = targetingProfile
         self.heroAbility = heroAbility
         self.siegePayload = siegePayload
+        self.footprintSize = max(footprintSize, 0)
+    }
+
+    /// Distance from `point` to the edge of this entity's footprint when it
+    /// is centred on `center`; the plain centre distance for point entities.
+    func reachDistance(
+        from point: WorldPosition,
+        toCenter center: WorldPosition
+    ) -> Double {
+        let halfSize = footprintSize / 2
+        let deltaX = max(abs(point.x - center.x) - halfSize, 0)
+        let deltaY = max(abs(point.y - center.y) - halfSize, 0)
+        return (deltaX * deltaX + deltaY * deltaY).squareRoot()
     }
 
     func damageRampMultiplier(
@@ -190,4 +208,13 @@ nonisolated struct CombatDefinition {
 nonisolated protocol GameDataProviding {
     func definition(for kind: BattleEntityKind) -> CombatDefinition
     func spellDefinition(for kind: BattleSpellKind) -> SpellDefinition
+
+    /// Seconds before the battle ends on time.
+    var battleDuration: TimeInterval { get }
+}
+
+extension GameDataProviding {
+    nonisolated var battleDuration: TimeInterval {
+        60
+    }
 }

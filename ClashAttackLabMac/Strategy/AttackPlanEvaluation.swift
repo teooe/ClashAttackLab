@@ -250,12 +250,17 @@ nonisolated struct ScenarioAdjustedGameData: GameDataProviding {
             attackTargetLayer: definition.attackTargetLayer,
             targetingProfile: definition.targetingProfile,
             heroAbility: definition.heroAbility,
-            siegePayload: definition.siegePayload
+            siegePayload: definition.siegePayload,
+            footprintSize: definition.footprintSize
         )
     }
 
     func spellDefinition(for kind: BattleSpellKind) -> SpellDefinition {
         base.spellDefinition(for: kind)
+    }
+
+    var battleDuration: TimeInterval {
+        base.battleDuration
     }
 }
 

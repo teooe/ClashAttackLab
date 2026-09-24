@@ -85,8 +85,9 @@ struct ReferenceGameDataTests {
         #expect(barbarian.attackDamage == 51)
         // Speed 18 is 2.25 tiles per second on 40-unit tiles.
         #expect(isClose(barbarian.movementSpeed, 90))
-        // 0.4 tiles of reach plus one tile of contact padding.
-        #expect(isClose(barbarian.attackRange, 56))
+        // 0.4 tiles of reach, measured from the target's footprint edge.
+        #expect(isClose(barbarian.attackRange, 16))
+        #expect(barbarian.footprintSize == 0)
         #expect(barbarian.targetingProfile?.preference == .anyBuilding)
     }
 
@@ -125,6 +126,11 @@ struct ReferenceGameDataTests {
         #expect(data.definition(for: .airSweeper).pushbackDistance == 4 * 40)
         #expect(data.definition(for: .wall).maxHitPoints == 8_000)
         #expect(data.definition(for: .townHall).maxHitPoints == 7_500)
+        #expect(mortar.footprintSize == 3 * 40)
+        #expect(data.definition(for: .townHall).footprintSize == 4 * 40)
+        #expect(data.definition(for: .infernoTower).footprintSize == 2 * 40)
+        #expect(data.definition(for: .wall).footprintSize == 40)
+        #expect(giantBomb.footprintSize == 0)
     }
 
     @Test
@@ -243,7 +249,9 @@ struct ReferenceGameDataTests {
 
         #expect(data is ReferenceGameData)
         #expect(try GameDataSource.prototype.makeGameData() is PrototypeGameData)
-        #expect(GameDataSource.reference(townHall: 15).title == "Reali · Municipio 15")
+        #expect(GameDataSource.reference(townHall: 15).title == "Reale · Municipio 15")
+        #expect(data.battleDuration == 180)
+        #expect(PrototypeGameData().battleDuration == 60)
     }
 
     @Test
