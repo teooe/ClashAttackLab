@@ -1197,7 +1197,7 @@ struct ClashAttackLabMacTests {
                     second.destructionPercentage
             )
         )
-        #expect(results.allSatisfy { $0.result.elapsedTime <= 60 })
+        #expect(results.allSatisfy { $0.result.elapsedTime <= BattleRules.battleDuration })
     }
 
     @Test
@@ -1781,7 +1781,7 @@ func planRefinerKeepsArmyAndClampsShiftedDeploymentRows() {
     #expect(
         variants.allSatisfy { variant in
             variant.spellDeployments.allSatisfy {
-                $0.deploymentTime >= 0 && $0.deploymentTime <= 59
+                $0.deploymentTime >= 0 && $0.deploymentTime <= BattleRules.latestCommandTime
             }
         }
     )
@@ -2575,7 +2575,7 @@ func freezePlacementCoversClustersAndIsIndependentOfEntityOrder() throws {
     let grid = PrototypeBattleMap.makeNavigationGrid()
     let data = PrototypeGameData()
     let planner = FreezePlacementPlanner(navigationGrid: grid, gameData: data)
-    let positions = [WorldPosition(x: 500, y: 400), WorldPosition(x: 600, y: 400)]
+    let positions = [WorldPosition(x: 11.25, y: 8.5), WorldPosition(x: 13.75, y: 8.5)]
     let defenses = positions.map { BattleEntity(kind: .cannon, position: $0) }
     let selected = try #require(planner.position(
         entities: defenses, troopKinds: [.giant], laneRow: 8
@@ -2596,7 +2596,7 @@ func freezePlacementIgnoresDefensesThatCannotAttackTheArmy() throws {
     let planner = FreezePlacementPlanner(
         navigationGrid: grid, gameData: PrototypeGameData()
     )
-    let cannon = BattleEntity(kind: .cannon, position: WorldPosition(x: 350, y: 400))
+    let cannon = BattleEntity(kind: .cannon, position: WorldPosition(x: 7.5, y: 8.5))
     #expect(planner.position(
         entities: [cannon], troopKinds: [.balloon], laneRow: 8
     ) == nil)
@@ -2604,13 +2604,13 @@ func freezePlacementIgnoresDefensesThatCannotAttackTheArmy() throws {
         entities: [], troopKinds: [.giant], laneRow: 8
     ) == nil)
     let airDefense = BattleEntity(
-        kind: .airDefense, position: WorldPosition(x: 850, y: 400)
+        kind: .airDefense, position: WorldPosition(x: 20, y: 8.5)
     )
     let selected = try #require(planner.position(
         entities: [cannon, airDefense], troopKinds: [.balloon], laneRow: 8
     ))
     #expect(hypot(selected.x - airDefense.position.x,
-        selected.y - airDefense.position.y) <= 135)
+        selected.y - airDefense.position.y) <= PrototypeGameData().spellDefinition(for: .freeze).radius)
 }
 
 @Test
@@ -2619,8 +2619,8 @@ func repeatedFreezePlacementCanCoverAnotherCluster() throws {
     let planner = FreezePlacementPlanner(
         navigationGrid: grid, gameData: PrototypeGameData()
     )
-    let defenses = [350.0, 850.0].map {
-        BattleEntity(kind: .cannon, position: WorldPosition(x: $0, y: 400))
+    let defenses = [7.5, 20.0].map {
+        BattleEntity(kind: .cannon, position: WorldPosition(x: $0, y: 8.5))
     }
     let first = try #require(planner.position(
         entities: defenses, troopKinds: [.giant], laneRow: 8
@@ -2630,7 +2630,7 @@ func repeatedFreezePlacementCanCoverAnotherCluster() throws {
         previousPositions: [first]
     ))
     #expect(first != second)
-    #expect(hypot(first.x - second.x, first.y - second.y) > 135)
+    #expect(hypot(first.x - second.x, first.y - second.y) > PrototypeGameData().spellDefinition(for: .freeze).radius)
 }
 
 @Test
@@ -2652,7 +2652,7 @@ func generatedFreezeUsesBaseAndRefinementPreservesItsAnchor() throws {
         let spell = try #require(plan.spellDeployments.first)
         #expect(spell.kind == .freeze)
         #expect(hypot(spell.position.x - defensePosition.x,
-            spell.position.y - defensePosition.y) <= 135)
+            spell.position.y - defensePosition.y) <= PrototypeGameData().spellDefinition(for: .freeze).radius)
         #expect(plan.deployments.count == 1)
     }
     let source = try #require(plans.first)
@@ -2713,7 +2713,7 @@ func freezePreventsShotsAndResetClearsTheZone() throws {
 @Test
 func heroCommandSurvivesJSONAndLegacyPlansStillLoad() throws {
     let troop = DeploymentOrder(
-        kind: .barbarianKing, position: WorldPosition(x: 100, y: 300),
+        kind: .barbarianKing, position: WorldPosition(x: 1.25, y: 6),
         deploymentTime: 0
     )
     let plan = AttackPlan(
@@ -2822,7 +2822,7 @@ func heroCommandsArePreservedByRenameDuplicateAndLibraryReload() throws {
     defer { UserDefaults.standard.removeObject(forKey: key) }
     let library = AttackPlanLibrary(storageKey: key)
     let troop = DeploymentOrder(
-        kind: .barbarianKing, position: WorldPosition(x: 100, y: 300),
+        kind: .barbarianKing, position: WorldPosition(x: 1.25, y: 6),
         deploymentTime: 0
     )
     let plan = AttackPlan(
@@ -2868,7 +2868,7 @@ func editingAndRefiningKeepHeroCommandsAttachedToTheirDeployment() throws {
 @Test
 func heroScheduleEditorClampsTimeAndKeepsOneCommandPerHero() throws {
     let hero = DeploymentOrder(
-        kind: .archerQueen, position: WorldPosition(x: 100, y: 300),
+        kind: .archerQueen, position: WorldPosition(x: 1.25, y: 6),
         deploymentTime: 3
     )
     let troop = DeploymentOrder(
@@ -2880,12 +2880,12 @@ func heroScheduleEditorClampsTimeAndKeepsOneCommandPerHero() throws {
     draft.setHeroAbilityTime(entityID: hero.entityID, to: 0)
     #expect(draft.heroAbilityOrders.first?.activationTime == 3)
     let commandID = try #require(draft.heroAbilityOrders.first?.id)
-    draft.setHeroAbilityTime(entityID: hero.entityID, to: 100)
+    draft.setHeroAbilityTime(entityID: hero.entityID, to: 1_000)
     #expect(draft.heroAbilityOrders.count == 1)
-    #expect(draft.heroAbilityOrders.first?.activationTime == 59)
+    #expect(draft.heroAbilityOrders.first?.activationTime == BattleRules.latestCommandTime)
     #expect(draft.heroAbilityOrders.first?.id == commandID)
     draft.setHeroAbilityTime(entityID: hero.entityID, to: .nan)
-    #expect(draft.heroAbilityOrders.first?.activationTime == 59)
+    #expect(draft.heroAbilityOrders.first?.activationTime == BattleRules.latestCommandTime)
     #expect(draft.totalOrderCount == 3)
     draft.removeHeroAbility(entityID: hero.entityID)
     #expect(draft.totalOrderCount == 2)
@@ -2895,7 +2895,7 @@ func heroScheduleEditorClampsTimeAndKeepsOneCommandPerHero() throws {
 @Test
 func removingLastOrderRemovesScheduledAbilityBeforeItsHero() {
     let hero = DeploymentOrder(
-        kind: .barbarianKing, position: WorldPosition(x: 100, y: 300),
+        kind: .barbarianKing, position: WorldPosition(x: 1.25, y: 6),
         deploymentTime: 0
     )
     var draft = ManualAttackPlan(deployments: [hero])
@@ -2967,14 +2967,14 @@ func heroTimingSearchPreservesArmySpellsAndBaseline() throws {
         for command in variant.heroAbilityOrders {
             let hero = try #require(plan.deployments.first { $0.entityID == command.entityID })
             #expect(command.activationTime >= hero.deploymentTime)
-            #expect(command.activationTime <= 59)
+            #expect(command.activationTime <= BattleRules.latestCommandTime)
         }
     }
 }
 
 @Test
 func heroTimingSearchIncludesAutomaticAndChangesOneHeroAtATime() {
-    let position = WorldPosition(x: 100, y: 300)
+    let position = WorldPosition(x: 1.25, y: 6)
     let king = DeploymentOrder(kind: .barbarianKing, position: position, deploymentTime: 0)
     let queen = DeploymentOrder(kind: .archerQueen, position: position, deploymentTime: 0)
     let plan = AttackPlan(
@@ -3004,16 +3004,16 @@ func heroTimingSearchIncludesAutomaticAndChangesOneHeroAtATime() {
 func heroTimingSearchDeduplicatesClampedTimesAndSkipsNonHeroes() {
     let grid = PrototypeBattleMap.makeNavigationGrid()
     let refiner = AttackPlanRefiner(navigationGrid: grid)
-    let position = WorldPosition(x: 100, y: 300)
+    let position = WorldPosition(x: 1.25, y: 6)
     let ordinary = AttackPlan(name: "No heroes", deployments: [
         DeploymentOrder(kind: .giant, position: position, deploymentTime: 0)
     ])
     #expect(refiner.heroTimingVariants(for: ordinary).isEmpty)
-    let hero = DeploymentOrder(kind: .barbarianKing, position: position, deploymentTime: 59)
+    let hero = DeploymentOrder(kind: .barbarianKing, position: position, deploymentTime: BattleRules.latestCommandTime)
     let late = AttackPlan(name: "Late hero", deployments: [hero])
     let variants = refiner.heroTimingVariants(for: late)
     #expect(variants.count == 1)
-    #expect(variants.first?.heroAbilityOrders.first?.activationTime == 59)
+    #expect(variants.first?.heroAbilityOrders.first?.activationTime == BattleRules.latestCommandTime)
 }
 
 
@@ -3326,7 +3326,7 @@ func planArchiveRejectsInvalidPositionsTimesAndArmyCapacity() {
     let grid = PrototypeBattleMap.makeNavigationGrid()
     let legal = grid.worldPosition(for: GridCoordinate(column: 1, row: 8))
     let invalidOrders = [
-        DeploymentOrder(kind: .giant, position: WorldPosition(x: .nan, y: 300), deploymentTime: 0),
+        DeploymentOrder(kind: .giant, position: WorldPosition(x: .nan, y: 6), deploymentTime: 0),
         DeploymentOrder(kind: .giant, position: legal, deploymentTime: .infinity),
         DeploymentOrder(kind: .giant, position: grid.worldPosition(
             for: GridCoordinate(column: 10, row: 8)), deploymentTime: 0),
@@ -3984,7 +3984,7 @@ func spellTacticalSearchVariesEachCastAndPreservesTheArmy() throws {
         $0.spellDeployments[0].deploymentTime != 4
     })
     #expect(variants.allSatisfy {
-        $0.spellDeployments.allSatisfy { (0...59).contains($0.deploymentTime) }
+        $0.spellDeployments.allSatisfy { (0...BattleRules.latestCommandTime).contains($0.deploymentTime) }
     })
 }
 

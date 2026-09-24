@@ -717,7 +717,7 @@ final class AttackLabSession: ObservableObject {
                 return HeroAbilityOrder(
                     entityID: deployment.entityID,
                     activationTime: min(
-                        59,
+                        BattleRules.latestCommandTime,
                         max(
                             deployment.deploymentTime,
                             deployment.deploymentTime +
@@ -974,7 +974,7 @@ final class AttackLabSession: ObservableObject {
             heroAbilityOrders: plan.heroAbilityOrders
         )
         manualNextDeploymentTime = min(
-            59,
+            BattleRules.latestCommandTime,
             manualPlan.latestDeploymentTime + 0.6
         )
         manualSelection = defaultManualSelection
@@ -1060,7 +1060,7 @@ final class AttackLabSession: ObservableObject {
                             }) else { return nil }
                             return HeroAbilityOrder(
                                 entityID: deployment.entityID,
-                                activationTime: min(59, max(deployment.deploymentTime,
+                                activationTime: min(BattleRules.latestCommandTime, max(deployment.deploymentTime,
                                     deployment.deploymentTime + command.activationTime -
                                         original.deploymentTime))
                             )
@@ -1286,7 +1286,7 @@ final class AttackLabSession: ObservableObject {
 
     func adjustManualDeploymentTime(by delta: TimeInterval) {
         let updated = manualNextDeploymentTime + delta
-        manualNextDeploymentTime = min(59, max(0, updated))
+        manualNextDeploymentTime = min(BattleRules.latestCommandTime, max(0, updated))
     }
 
     func setManualHeroAbilityTime(entityID: UUID, to time: TimeInterval) {
@@ -1321,7 +1321,7 @@ final class AttackLabSession: ObservableObject {
         manualPlan.removeMostRecentOrder()
         manualNextDeploymentTime = manualPlan.totalOrderCount == 0
             ? 0
-            : min(59, manualPlan.latestDeploymentTime + 0.6)
+            : min(BattleRules.latestCommandTime, manualPlan.latestDeploymentTime + 0.6)
         scene.loadAttackPlan(manualPlan.makeAttackPlan())
     }
 
@@ -1358,7 +1358,7 @@ final class AttackLabSession: ObservableObject {
             time: manualNextDeploymentTime
         )
         manualNextDeploymentTime = min(
-            59,
+            BattleRules.latestCommandTime,
             manualNextDeploymentTime + 0.6
         )
 

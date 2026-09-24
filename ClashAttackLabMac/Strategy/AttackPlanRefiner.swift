@@ -121,7 +121,7 @@ nonisolated struct AttackPlanRefiner {
     func heroTimingVariants(for sourcePlan: AttackPlan) -> [AttackPlan] {
         let heroes = Array(sourcePlan.orderedDeployments.filter {
             ($0.kind == .barbarianKing || $0.kind == .archerQueen) &&
-                $0.deploymentTime.isFinite && (0...59).contains($0.deploymentTime)
+                $0.deploymentTime.isFinite && (0...BattleRules.latestCommandTime).contains($0.deploymentTime)
         }.prefix(2))
         guard !heroes.isEmpty else { return [] }
         var result: [AttackPlan] = []
@@ -150,7 +150,7 @@ nonisolated struct AttackPlanRefiner {
             append(otherCommands, label: "\(heroName) automatica")
             let anchor = existing?.activationTime ?? (hero.deploymentTime + 6)
             for offset in [-2.0, 2.0] {
-                let time = min(59, max(hero.deploymentTime, anchor + offset))
+                let time = min(BattleRules.latestCommandTime, max(hero.deploymentTime, anchor + offset))
                 let command = HeroAbilityOrder(
                     id: existing?.id ?? UUID(),
                     entityID: hero.entityID,
@@ -169,7 +169,7 @@ nonisolated struct AttackPlanRefiner {
             let commands = heroes.map { hero in
                 HeroAbilityOrder(
                     entityID: hero.entityID,
-                    activationTime: min(59, hero.deploymentTime + delay)
+                    activationTime: min(BattleRules.latestCommandTime, hero.deploymentTime + delay)
                 )
             }
             append(remaining + commands,
@@ -325,7 +325,7 @@ nonisolated struct AttackPlanRefiner {
         _ time: TimeInterval,
         multiplier: Double
     ) -> TimeInterval {
-        min(59, max(0, time * multiplier))
+        min(BattleRules.latestCommandTime, max(0, time * multiplier))
     }
 
     private func adjustedSpellTime(
@@ -333,7 +333,7 @@ nonisolated struct AttackPlanRefiner {
         multiplier: Double,
         offset: TimeInterval
     ) -> TimeInterval {
-        min(59, max(0, time * multiplier + offset))
+        min(BattleRules.latestCommandTime, max(0, time * multiplier + offset))
     }
 
     private func variantName(

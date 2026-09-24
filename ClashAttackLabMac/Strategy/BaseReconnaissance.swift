@@ -15,7 +15,7 @@ nonisolated struct DeploymentLaneAssessment: Identifiable {
     }
 
     var routeScore: Double {
-        pathCost + Double(wallCrossings) * 200 + pressureScore * 25
+        pathCost + Double(wallCrossings) * 5 + pressureScore * 0.625
     }
 }
 

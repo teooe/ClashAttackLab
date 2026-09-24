@@ -25,6 +25,43 @@ final class BattleScene: SKScene {
     private var manualPlacementUsesWholeArena = false
     private let manualPlacementZone = SKShapeNode()
 
+    /// Scene rectangle that shows the battlefield grid.
+    ///
+    /// Simulation coordinates are tiles; the scene converts them to points
+    /// so the whole map fits the view at any grid size.
+    private var mapFrame: CGRect {
+        let available = CGRect(
+            x: 50,
+            y: 60,
+            width: size.width - 100,
+            height: size.height - 120
+        )
+        let scale = min(
+            available.width / CGFloat(worldWidth),
+            available.height / CGFloat(worldHeight)
+        )
+        let width = CGFloat(worldWidth) * scale
+        let height = CGFloat(worldHeight) * scale
+        return CGRect(
+            x: available.midX - width / 2,
+            y: available.midY - height / 2,
+            width: width,
+            height: height
+        )
+    }
+
+    private var worldWidth: Double {
+        Double(navigationGrid.columns) * navigationGrid.cellSize
+    }
+
+    private var worldHeight: Double {
+        Double(navigationGrid.rows) * navigationGrid.cellSize
+    }
+
+    private var pointsPerWorldUnit: CGFloat {
+        mapFrame.width / CGFloat(worldWidth)
+    }
+
     private let statusLabel = SKLabelNode(fontNamed: "AvenirNext-DemiBold")
     private let spellStatusLabel = SKLabelNode(fontNamed: "AvenirNext-Medium")
     private let scoreLabel = SKLabelNode(fontNamed: "AvenirNext-Bold")
@@ -68,10 +105,8 @@ final class BattleScene: SKScene {
             return
         }
 
-        let location = event.location(in: self)
-        let position = WorldPosition(
-            x: Double(location.x),
-            y: Double(location.y)
+        let position = worldPosition(
+            fromScenePoint: event.location(in: self)
         )
 
         guard
@@ -221,19 +256,16 @@ final class BattleScene: SKScene {
     }
 
     private func updateManualPlacementZone() {
-        let width =
-            navigationGrid.cellSize *
-            Double(
-                manualPlacementUsesWholeArena
-                    ? navigationGrid.columns
-                    : 3
-            )
+        let columns = manualPlacementUsesWholeArena
+            ? navigationGrid.columns
+            : 3
         let zone = CGRect(
-            x: navigationGrid.origin.x,
-            y: navigationGrid.origin.y,
-            width: width,
-            height: navigationGrid.cellSize *
-                Double(navigationGrid.rows)
+            x: mapFrame.minX,
+            y: mapFrame.minY,
+            width: sceneLength(
+                navigationGrid.cellSize * Double(columns)
+            ),
+            height: mapFrame.height
         )
         manualPlacementZone.path = CGPath(rect: zone, transform: nil)
         manualPlacementZone.isHidden =
@@ -241,51 +273,68 @@ final class BattleScene: SKScene {
     }
 
     private func drawNavigationGrid() {
-        for column in 0...navigationGrid.columns {
-            let x = navigationGrid.origin.x +
-                Double(column) * navigationGrid.cellSize
-            let path = CGMutablePath()
-            path.move(
-                to: CGPoint(x: x, y: navigationGrid.origin.y)
-            )
-            path.addLine(
-                to: CGPoint(
-                    x: x,
-                    y: navigationGrid.origin.y +
-                        Double(navigationGrid.rows) *
-                        navigationGrid.cellSize
-                )
-            )
+        let frame = mapFrame
+        let step = sceneLength(navigationGrid.cellSize)
 
-            let line = SKShapeNode(path: path)
-            line.strokeColor = .white.withAlphaComponent(0.04)
-            line.lineWidth = 1
-            line.zPosition = 1
-            addChild(line)
+        for column in 0...navigationGrid.columns {
+            let x = frame.minX + CGFloat(column) * step
+            addGridLine(
+                from: CGPoint(x: x, y: frame.minY),
+                to: CGPoint(x: x, y: frame.maxY)
+            )
         }
 
         for row in 0...navigationGrid.rows {
-            let y = navigationGrid.origin.y +
-                Double(row) * navigationGrid.cellSize
-            let path = CGMutablePath()
-            path.move(
-                to: CGPoint(x: navigationGrid.origin.x, y: y)
+            let y = frame.minY + CGFloat(row) * step
+            addGridLine(
+                from: CGPoint(x: frame.minX, y: y),
+                to: CGPoint(x: frame.maxX, y: y)
             )
-            path.addLine(
-                to: CGPoint(
-                    x: navigationGrid.origin.x +
-                        Double(navigationGrid.columns) *
-                        navigationGrid.cellSize,
-                    y: y
-                )
-            )
-
-            let line = SKShapeNode(path: path)
-            line.strokeColor = .white.withAlphaComponent(0.04)
-            line.lineWidth = 1
-            line.zPosition = 1
-            addChild(line)
         }
+    }
+
+    private func addGridLine(from start: CGPoint, to end: CGPoint) {
+        let path = CGMutablePath()
+        path.move(to: start)
+        path.addLine(to: end)
+
+        let line = SKShapeNode(path: path)
+        line.strokeColor = .white.withAlphaComponent(0.04)
+        line.lineWidth = 1
+        line.zPosition = 1
+        addChild(line)
+    }
+
+    private func scenePoint(_ position: WorldPosition) -> CGPoint {
+        let frame = mapFrame
+        let scale = pointsPerWorldUnit
+        return CGPoint(
+            x: frame.minX +
+                CGFloat(position.x - navigationGrid.origin.x) * scale,
+            y: frame.minY +
+                CGFloat(position.y - navigationGrid.origin.y) * scale
+        )
+    }
+
+    private func worldPosition(
+        fromScenePoint point: CGPoint
+    ) -> WorldPosition {
+        let frame = mapFrame
+        let scale = pointsPerWorldUnit
+        return WorldPosition(
+            x: navigationGrid.origin.x +
+                Double((point.x - frame.minX) / scale),
+            y: navigationGrid.origin.y +
+                Double((point.y - frame.minY) / scale)
+        )
+    }
+
+    private func sceneLength(_ worldLength: Double) -> CGFloat {
+        CGFloat(worldLength) * pointsPerWorldUnit
+    }
+
+    private func worldLength(fromPoints points: Double) -> Double {
+        points / Double(pointsPerWorldUnit)
     }
 
     private func configureLabels() {
@@ -337,10 +386,7 @@ final class BattleScene: SKScene {
     private func drawDeploymentMarkers() {
         for order in attackPlan.deployments {
             let root = SKNode()
-            root.position = CGPoint(
-                x: order.position.x,
-                y: order.position.y
-            )
+            root.position = scenePoint(order.position)
             root.zPosition = 8
 
             let markerColor = deploymentMarkerColor(for: order.kind)
@@ -371,10 +417,7 @@ final class BattleScene: SKScene {
     private func drawSpellMarkers() {
         for order in attackPlan.spellDeployments {
             let root = SKNode()
-            root.position = CGPoint(
-                x: order.position.x,
-                y: order.position.y
-            )
+            root.position = scenePoint(order.position)
             root.zPosition = 9
 
             let color = spellColor(for: order.kind)
@@ -448,10 +491,7 @@ final class BattleScene: SKScene {
                 addChild(node)
             }
 
-            node.position = CGPoint(
-                x: spell.position.x,
-                y: spell.position.y
-            )
+            node.position = scenePoint(spell.position)
         }
     }
 
@@ -464,7 +504,7 @@ final class BattleScene: SKScene {
         root.zPosition = 6
 
         let zone = SKShapeNode(
-            circleOfRadius: definition.radius
+            circleOfRadius: sceneLength(definition.radius)
         )
         zone.fillColor = color.withAlphaComponent(0.09)
         zone.strokeColor = color.withAlphaComponent(0.72)
@@ -512,10 +552,7 @@ final class BattleScene: SKScene {
                 addChild(node)
             }
 
-            node.position = CGPoint(
-                x: projectile.position.x,
-                y: projectile.position.y
-            )
+            node.position = scenePoint(projectile.position)
         }
     }
 
@@ -636,7 +673,7 @@ final class BattleScene: SKScene {
         }
 
         let maximumRing = SKShapeNode(
-            circleOfRadius: definition.attackRange
+            circleOfRadius: sceneLength(definition.attackRange)
         )
         maximumRing.strokeColor = .systemRed.withAlphaComponent(0.16)
         maximumRing.lineWidth = 2
@@ -649,7 +686,9 @@ final class BattleScene: SKScene {
         }
 
         let minimumRing = SKShapeNode(
-            circleOfRadius: definition.minimumAttackRange
+            circleOfRadius: sceneLength(
+                definition.minimumAttackRange
+            )
         )
         minimumRing.strokeColor = .systemOrange.withAlphaComponent(0.28)
         minimumRing.lineWidth = 2
@@ -688,7 +727,7 @@ final class BattleScene: SKScene {
             .sorted { $0.id.uuidString < $1.id.uuidString }
 
         var clusters: [[BattleEntity]] = []
-        let overlapDistance = 18.0
+        let overlapDistance = worldLength(fromPoints: 18)
 
         for troop in livingTroops {
             if let clusterIndex = clusters.firstIndex(where: { cluster in
@@ -706,9 +745,11 @@ final class BattleScene: SKScene {
         }
 
         for cluster in clusters where cluster.count > 1 {
-            let radius = min(
-                44.0,
-                18.0 + Double(cluster.count) * 4.0
+            let radius = worldLength(
+                fromPoints: min(
+                    44.0,
+                    18.0 + Double(cluster.count) * 4.0
+                )
             )
 
             for (index, troop) in cluster.enumerated() {
@@ -751,13 +792,10 @@ final class BattleScene: SKScene {
         {
             let definition = simulation.definition(for: entity.kind)
             let radius = entity.kind.isTrap
-                ? definition.destructionRadius
+                ? sceneLength(definition.destructionRadius)
                 : 30
             let explosion = SKShapeNode(circleOfRadius: radius)
-            explosion.position = CGPoint(
-                x: entity.position.x,
-                y: entity.position.y
-            )
+            explosion.position = scenePoint(entity.position)
             switch entity.kind {
             case .giantBomb:
                 explosion.fillColor = .systemRed.withAlphaComponent(0.42)
@@ -814,10 +852,7 @@ final class BattleScene: SKScene {
 
             let displayPosition =
                 displayPositions[entity.id] ?? entity.position
-            visual.root.position = CGPoint(
-                x: displayPosition.x,
-                y: displayPosition.y
-            )
+            visual.root.position = scenePoint(displayPosition)
             let isFrozen = simulation.isDefenseDisabled(entity.id)
             let isHiddenDefense = definition.startsHidden &&
                 !entity.isRevealed
@@ -948,30 +983,18 @@ final class BattleScene: SKScene {
         }
 
         let path = CGMutablePath()
-        path.move(
-            to: CGPoint(
-                x: displayPosition.x,
-                y: displayPosition.y
-            )
-        )
+        path.move(to: scenePoint(displayPosition))
 
         let movementPath = simulation.movementPath(for: entity.id)
 
         if definition.role == .troop, !movementPath.isEmpty {
             for waypoint in movementPath {
-                path.addLine(
-                    to: CGPoint(x: waypoint.x, y: waypoint.y)
-                )
+                path.addLine(to: scenePoint(waypoint))
             }
         } else {
             let targetPosition =
                 targetDisplayPosition ?? target.position
-            path.addLine(
-                to: CGPoint(
-                    x: targetPosition.x,
-                    y: targetPosition.y
-                )
-            )
+            path.addLine(to: scenePoint(targetPosition))
         }
 
         line.path = path

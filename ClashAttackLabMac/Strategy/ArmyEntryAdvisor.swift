@@ -285,8 +285,8 @@ nonisolated struct ArmyEntryAdvisor {
             defenses: defenses
         )
         let score = bestTarget.pathCost +
-            Double(bestTarget.wallCrossings) * 200 +
-            pressure * 25
+            Double(bestTarget.wallCrossings) * 5 +
+            pressure * 0.625
 
         return (
             lane,

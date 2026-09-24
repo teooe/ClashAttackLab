@@ -232,7 +232,7 @@ nonisolated enum AttackPlanArchiveCodec {
     }
 
     private static func validTime(_ time: TimeInterval) -> Bool {
-        time.isFinite && (0...59).contains(time)
+        time.isFinite && (0...BattleRules.latestCommandTime).contains(time)
     }
 
     private static func inBounds(_ position: WorldPosition, grid: NavigationGrid) -> Bool {

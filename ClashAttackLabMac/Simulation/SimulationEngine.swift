@@ -3,7 +3,7 @@ import CryptoKit
 
 final class SimulationEngine {
     private let fixedTimeStep: TimeInterval = 1.0 / 60.0
-    private let timeLimit: TimeInterval = 60
+    private let timeLimit = BattleRules.battleDuration
     private let gameData: any GameDataProviding
     private let navigationGrid: NavigationGrid
     private let pathfinder: AStarPathfinder
@@ -1316,7 +1316,7 @@ final class SimulationEngine {
         for (offset, kind) in payload.enumerated() {
             let angle = Double(offset) *
                 (2 * Double.pi / Double(max(payload.count, 1)))
-            let radius = min(navigationGrid.cellSize * 0.28, 18)
+            let radius = navigationGrid.cellSize * 0.28
             let proposedPosition = WorldPosition(
                 x: position.x + cos(angle) * radius,
                 y: position.y + sin(angle) * radius

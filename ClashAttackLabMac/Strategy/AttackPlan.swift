@@ -229,7 +229,7 @@ nonisolated struct ManualAttackPlan: Identifiable {
         orderedDeployments.filter {
             ($0.kind == .barbarianKing || $0.kind == .archerQueen) &&
                 $0.deploymentTime.isFinite &&
-                (0...59).contains($0.deploymentTime)
+                (0...BattleRules.latestCommandTime).contains($0.deploymentTime)
         }
     }
 
@@ -237,7 +237,7 @@ nonisolated struct ManualAttackPlan: Identifiable {
         guard time.isFinite,
             let deployment = heroDeployments.first(where: { $0.entityID == entityID })
         else { return }
-        let boundedTime = min(59, max(deployment.deploymentTime, time))
+        let boundedTime = min(BattleRules.latestCommandTime, max(deployment.deploymentTime, time))
         let existingID = heroAbilityOrders.first { $0.entityID == entityID }?.id
         heroAbilityOrders.removeAll { $0.entityID == entityID }
         heroAbilityOrders.append(HeroAbilityOrder(
@@ -291,14 +291,14 @@ nonisolated struct ManualAttackPlan: Identifiable {
                 entityID: order.entityID,
                 kind: order.kind,
                 position: order.position,
-                deploymentTime: min(59, max(0, time))
+                deploymentTime: min(BattleRules.latestCommandTime, max(0, time))
             )
-            let newTime = min(59, max(0, time))
+            let newTime = min(BattleRules.latestCommandTime, max(0, time))
             heroAbilityOrders = heroAbilityOrders.map { command in
                 guard command.entityID == order.entityID else { return command }
                 return HeroAbilityOrder(
                     id: command.id, entityID: command.entityID,
-                    activationTime: min(59, max(newTime,
+                    activationTime: min(BattleRules.latestCommandTime, max(newTime,
                         command.activationTime + newTime - order.deploymentTime))
                 )
             }
@@ -311,7 +311,7 @@ nonisolated struct ManualAttackPlan: Identifiable {
                 id: order.id,
                 kind: order.kind,
                 position: order.position,
-                deploymentTime: min(59, max(0, time))
+                deploymentTime: min(BattleRules.latestCommandTime, max(0, time))
             )
         }
     }

@@ -6,8 +6,8 @@ nonisolated enum PrototypeBattleMap {
         NavigationGrid(
             columns: 25,
             rows: 16,
-            cellSize: 40,
-            origin: WorldPosition(x: 50, y: 60),
+            cellSize: 1,
+            origin: WorldPosition(x: 0, y: 0),
             blockedCells: []
         )
     }
