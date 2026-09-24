@@ -351,7 +351,8 @@ nonisolated struct ReferenceGameData: GameDataProviding {
             }
 
         case .building, .wall:
-            break
+            // Builder huts export a repair weapon; buildings never attack.
+            attackDamage = base.attackDamage
         }
 
         return CombatDefinition(
@@ -551,6 +552,24 @@ extension BattleEntityKind {
         case .townHall: return "townHall"
         case .goldStorage: return "goldStorage"
         case .wall: return "wall"
+        case .goldMine: return "goldMine"
+        case .elixirCollector: return "elixirCollector"
+        case .darkElixirDrill: return "darkElixirDrill"
+        case .elixirStorage: return "elixirStorage"
+        case .darkElixirStorage: return "darkElixirStorage"
+        case .clanCastle: return "clanCastle"
+        case .armyCamp: return "armyCamp"
+        case .barracks: return "barracks"
+        case .darkBarracks: return "darkBarracks"
+        case .laboratory: return "laboratory"
+        case .spellFactory: return "spellFactory"
+        case .darkSpellFactory: return "darkSpellFactory"
+        case .workshop: return "workshop"
+        case .heroHall: return "heroHall"
+        case .petHouse: return "petHouse"
+        case .blacksmith: return "blacksmith"
+        case .builderHut: return "builderHut"
+        case .helperHut: return "helperHut"
         }
     }
 }

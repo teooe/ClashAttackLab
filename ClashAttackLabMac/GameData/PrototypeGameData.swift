@@ -602,6 +602,26 @@ nonisolated struct PrototypeGameData: GameDataProviding {
                 targetingProfile: nil
             )
 
+        case .goldMine, .elixirCollector, .darkElixirDrill, .elixirStorage, .darkElixirStorage, .clanCastle, .armyCamp, .barracks, .darkBarracks, .laboratory, .spellFactory, .darkSpellFactory, .workshop, .heroHall, .petHouse, .blacksmith, .builderHut, .helperHut:
+            // Non-defensive village buildings: they only count for
+            // destruction and never attack.
+            return CombatDefinition(
+                displayName: UtilityBuildingStyle.style(for: kind).displayName,
+                role: .building,
+                maxHitPoints: 500,
+                movementSpeed: 0,
+                attackDamage: 0,
+                minimumAttackRange: 0,
+                attackRange: 0,
+                attackInterval: 0,
+                canMove: false,
+                projectileKind: nil,
+                projectileSpeed: 0,
+                splashRadius: 0,
+                selfDestructsOnAttack: false,
+                targetingProfile: nil
+            )
+
         case .wall:
             return CombatDefinition(
                 displayName: "Muro",

@@ -208,7 +208,8 @@ nonisolated struct ArmyConfiguration: Equatable {
         case .stoneSlammer:
             return stoneSlammers
         case .cannon, .archerTower, .mortar, .wizardTower, .infernoTower, .bombTower, .hiddenTesla, .giantBomb, .airBomb, .airSweeper, .airDefense,
-             .townHall, .goldStorage, .wall:
+             .townHall, .goldStorage, .wall,
+             .goldMine, .elixirCollector, .darkElixirDrill, .elixirStorage, .darkElixirStorage, .clanCastle, .armyCamp, .barracks, .darkBarracks, .laboratory, .spellFactory, .darkSpellFactory, .workshop, .heroHall, .petHouse, .blacksmith, .builderHut, .helperHut:
             return 0
         }
     }

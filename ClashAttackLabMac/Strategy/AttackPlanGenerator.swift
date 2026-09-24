@@ -336,7 +336,8 @@ nonisolated struct AttackPlanGenerator {
         case .stoneSlammer:
             offset = direction * 2
         case .cannon, .archerTower, .mortar, .wizardTower, .infernoTower, .bombTower, .hiddenTesla, .giantBomb, .airBomb, .airSweeper, .airDefense,
-             .townHall, .goldStorage, .wall:
+             .townHall, .goldStorage, .wall,
+             .goldMine, .elixirCollector, .darkElixirDrill, .elixirStorage, .darkElixirStorage, .clanCastle, .armyCamp, .barracks, .darkBarracks, .laboratory, .spellFactory, .darkSpellFactory, .workshop, .heroHall, .petHouse, .blacksmith, .builderHut, .helperHut:
             offset = 0
         }
 
@@ -362,7 +363,8 @@ nonisolated struct AttackPlanGenerator {
         case .stoneSlammer:
             return 0
         case .cannon, .archerTower, .mortar, .wizardTower, .infernoTower, .bombTower, .hiddenTesla, .giantBomb, .airBomb, .airSweeper, .airDefense,
-             .townHall, .goldStorage, .wall:
+             .townHall, .goldStorage, .wall,
+             .goldMine, .elixirCollector, .darkElixirDrill, .elixirStorage, .darkElixirStorage, .clanCastle, .armyCamp, .barracks, .darkBarracks, .laboratory, .spellFactory, .darkSpellFactory, .workshop, .heroHall, .petHouse, .blacksmith, .builderHut, .helperHut:
             return 1
         }
     }

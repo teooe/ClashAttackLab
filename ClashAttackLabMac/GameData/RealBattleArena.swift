@@ -180,7 +180,8 @@ nonisolated struct RealBaseLayoutGenerator {
         place(.townHall, column: townHallOrigin, row: townHallOrigin, size: 4)
 
         let slots = orderedSlots(rotation: variant.rotation)
-        let buildings = interleaved(variant.priority)
+        let buildings = interleaved(variant.priority) +
+            interleaved(Self.utilityPriority)
         for (kind, slot) in zip(buildings, slots) {
             let size = footprint(of: kind)
             let offset = size >= 3 ? 0 : 1
@@ -310,7 +311,7 @@ nonisolated struct RealBaseLayoutGenerator {
     }
 
     private func footprint(of kind: BattleEntityKind) -> Int {
-        min(max(catalog.unit(for: kind)?.size ?? 1, 1), 3)
+        min(max(catalog.unit(for: kind)?.size ?? 1, 1), Self.slotPitch)
     }
 
     /// Takes one of each kind in priority order until every count is used.
@@ -325,6 +326,15 @@ nonisolated struct RealBaseLayoutGenerator {
         }
         return result
     }
+
+    /// Non-defensive buildings fill the rings after the defenses: the clan
+    /// castle and storages first, collectors and huts on the outside.
+    static let utilityPriority: [BattleEntityKind] = [
+        .clanCastle, .elixirStorage, .darkElixirStorage, .laboratory,
+        .spellFactory, .darkSpellFactory, .heroHall, .blacksmith, .petHouse,
+        .workshop, .barracks, .darkBarracks, .armyCamp, .goldMine,
+        .elixirCollector, .darkElixirDrill, .builderHut, .helperHut
+    ]
 
     private static func variant(for layout: PrototypeBaseLayout) -> Variant {
         switch layout {

@@ -1709,6 +1709,102 @@
    "range": 10,
    "size": 3
   },
+  "armyCamp": {
+   "countByTownHall": [
+    1,
+    1,
+    2,
+    2,
+    3,
+    3,
+    4,
+    4,
+    4,
+    4,
+    4,
+    4,
+    4,
+    4,
+    4,
+    4,
+    4,
+    4
+   ],
+   "levels": [
+    {
+     "hitpoints": 100,
+     "level": 1,
+     "townHall": 1
+    },
+    {
+     "hitpoints": 150,
+     "level": 2,
+     "townHall": 2
+    },
+    {
+     "hitpoints": 200,
+     "level": 3,
+     "townHall": 3
+    },
+    {
+     "hitpoints": 250,
+     "level": 4,
+     "townHall": 4
+    },
+    {
+     "hitpoints": 300,
+     "level": 5,
+     "townHall": 5
+    },
+    {
+     "hitpoints": 330,
+     "level": 6,
+     "townHall": 6
+    },
+    {
+     "hitpoints": 400,
+     "level": 7,
+     "townHall": 9
+    },
+    {
+     "hitpoints": 500,
+     "level": 8,
+     "townHall": 10
+    },
+    {
+     "hitpoints": 600,
+     "level": 9,
+     "townHall": 11
+    },
+    {
+     "hitpoints": 700,
+     "level": 10,
+     "townHall": 12
+    },
+    {
+     "hitpoints": 800,
+     "level": 11,
+     "townHall": 13
+    },
+    {
+     "hitpoints": 850,
+     "level": 12,
+     "townHall": 15
+    },
+    {
+     "hitpoints": 900,
+     "level": 13,
+     "townHall": 17
+    },
+    {
+     "hitpoints": 950,
+     "level": 14,
+     "townHall": 18
+    }
+   ],
+   "name": "Army Camp",
+   "size": 4
+  },
   "balloon": {
    "attackInterval": 3,
    "housingSpace": 5,
@@ -2674,6 +2770,203 @@
    "name": "Barbarian King",
    "range": 1
   },
+  "barracks": {
+   "countByTownHall": [
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1
+   ],
+   "levels": [
+    {
+     "hitpoints": 100,
+     "level": 1,
+     "townHall": 1
+    },
+    {
+     "hitpoints": 200,
+     "level": 2,
+     "townHall": 1
+    },
+    {
+     "hitpoints": 250,
+     "level": 3,
+     "townHall": 1
+    },
+    {
+     "hitpoints": 300,
+     "level": 4,
+     "townHall": 2
+    },
+    {
+     "hitpoints": 360,
+     "level": 5,
+     "townHall": 3
+    },
+    {
+     "hitpoints": 420,
+     "level": 6,
+     "townHall": 4
+    },
+    {
+     "hitpoints": 500,
+     "level": 7,
+     "townHall": 5
+    },
+    {
+     "hitpoints": 575,
+     "level": 8,
+     "townHall": 6
+    },
+    {
+     "hitpoints": 650,
+     "level": 9,
+     "townHall": 7
+    },
+    {
+     "hitpoints": 730,
+     "level": 10,
+     "townHall": 8
+    },
+    {
+     "hitpoints": 810,
+     "level": 11,
+     "townHall": 9
+    },
+    {
+     "hitpoints": 900,
+     "level": 12,
+     "townHall": 10
+    },
+    {
+     "hitpoints": 980,
+     "level": 13,
+     "townHall": 11
+    },
+    {
+     "hitpoints": 1050,
+     "level": 14,
+     "townHall": 12
+    },
+    {
+     "hitpoints": 1150,
+     "level": 15,
+     "townHall": 13
+    },
+    {
+     "hitpoints": 1250,
+     "level": 16,
+     "townHall": 14
+    },
+    {
+     "hitpoints": 1350,
+     "level": 17,
+     "townHall": 15
+    },
+    {
+     "hitpoints": 1450,
+     "level": 18,
+     "townHall": 16
+    },
+    {
+     "hitpoints": 1520,
+     "level": 19,
+     "townHall": 17
+    }
+   ],
+   "name": "Barracks",
+   "size": 3
+  },
+  "blacksmith": {
+   "countByTownHall": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1
+   ],
+   "levels": [
+    {
+     "hitpoints": 700,
+     "level": 1,
+     "townHall": 8
+    },
+    {
+     "hitpoints": 800,
+     "level": 2,
+     "townHall": 9
+    },
+    {
+     "hitpoints": 900,
+     "level": 3,
+     "townHall": 10
+    },
+    {
+     "hitpoints": 1000,
+     "level": 4,
+     "townHall": 11
+    },
+    {
+     "hitpoints": 1100,
+     "level": 5,
+     "townHall": 12
+    },
+    {
+     "hitpoints": 1200,
+     "level": 6,
+     "townHall": 13
+    },
+    {
+     "hitpoints": 1300,
+     "level": 7,
+     "townHall": 14
+    },
+    {
+     "hitpoints": 1400,
+     "level": 8,
+     "townHall": 15
+    },
+    {
+     "hitpoints": 1500,
+     "level": 9,
+     "townHall": 16
+    },
+    {
+     "hitpoints": 1600,
+     "level": 10,
+     "townHall": 17
+    }
+   ],
+   "name": "Blacksmith",
+   "size": 3
+  },
   "bombTower": {
    "attackInterval": 1.1,
    "countByTownHall": [
@@ -2793,6 +3086,81 @@
    "range": 6,
    "size": 3,
    "splashRadius": 1.5
+  },
+  "builderHut": {
+   "attackInterval": 0.4,
+   "countByTownHall": [
+    5,
+    5,
+    5,
+    5,
+    5,
+    5,
+    5,
+    5,
+    5,
+    5,
+    5,
+    5,
+    5,
+    5,
+    5,
+    5,
+    5,
+    5
+   ],
+   "levels": [
+    {
+     "hitpoints": 250,
+     "level": 1,
+     "townHall": 1
+    },
+    {
+     "damagePerHit": 32,
+     "hitpoints": 1000,
+     "level": 2,
+     "townHall": 14
+    },
+    {
+     "damagePerHit": 40,
+     "hitpoints": 1300,
+     "level": 3,
+     "townHall": 14
+    },
+    {
+     "damagePerHit": 48,
+     "hitpoints": 1600,
+     "level": 4,
+     "townHall": 14
+    },
+    {
+     "damagePerHit": 54,
+     "hitpoints": 1800,
+     "level": 5,
+     "townHall": 15
+    },
+    {
+     "damagePerHit": 60,
+     "hitpoints": 1900,
+     "level": 6,
+     "townHall": 16
+    },
+    {
+     "damagePerHit": 66,
+     "hitpoints": 2000,
+     "level": 7,
+     "townHall": 17
+    },
+    {
+     "damagePerHit": 72,
+     "hitpoints": 2100,
+     "level": 8,
+     "townHall": 18
+    }
+   ],
+   "name": "Builder's Hut",
+   "range": 7,
+   "size": 2
   },
   "cannon": {
    "attackInterval": 0.8,
@@ -2948,6 +3316,432 @@
    "range": 9,
    "size": 3
   },
+  "clanCastle": {
+   "countByTownHall": [
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1
+   ],
+   "levels": [
+    {
+     "hitpoints": 600,
+     "level": 1,
+     "townHall": 3
+    },
+    {
+     "hitpoints": 1200,
+     "level": 2,
+     "townHall": 4
+    },
+    {
+     "hitpoints": 1800,
+     "level": 3,
+     "townHall": 6
+    },
+    {
+     "hitpoints": 2600,
+     "level": 4,
+     "townHall": 8
+    },
+    {
+     "hitpoints": 3000,
+     "level": 5,
+     "townHall": 9
+    },
+    {
+     "hitpoints": 3400,
+     "level": 6,
+     "townHall": 10
+    },
+    {
+     "hitpoints": 4000,
+     "level": 7,
+     "townHall": 11
+    },
+    {
+     "hitpoints": 4400,
+     "level": 8,
+     "townHall": 12
+    },
+    {
+     "hitpoints": 4800,
+     "level": 9,
+     "townHall": 13
+    },
+    {
+     "hitpoints": 5200,
+     "level": 10,
+     "townHall": 14
+    },
+    {
+     "hitpoints": 5400,
+     "level": 11,
+     "townHall": 15
+    },
+    {
+     "hitpoints": 5600,
+     "level": 12,
+     "townHall": 16
+    },
+    {
+     "hitpoints": 5800,
+     "level": 13,
+     "townHall": 17
+    },
+    {
+     "hitpoints": 6000,
+     "level": 14,
+     "townHall": 18
+    }
+   ],
+   "name": "Clan Castle",
+   "size": 3,
+   "triggerRadius": 13
+  },
+  "darkBarracks": {
+   "countByTownHall": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1
+   ],
+   "levels": [
+    {
+     "hitpoints": 500,
+     "level": 1,
+     "townHall": 7
+    },
+    {
+     "hitpoints": 550,
+     "level": 2,
+     "townHall": 7
+    },
+    {
+     "hitpoints": 600,
+     "level": 3,
+     "townHall": 8
+    },
+    {
+     "hitpoints": 650,
+     "level": 4,
+     "townHall": 8
+    },
+    {
+     "hitpoints": 700,
+     "level": 5,
+     "townHall": 9
+    },
+    {
+     "hitpoints": 750,
+     "level": 6,
+     "townHall": 9
+    },
+    {
+     "hitpoints": 800,
+     "level": 7,
+     "townHall": 10
+    },
+    {
+     "hitpoints": 850,
+     "level": 8,
+     "townHall": 11
+    },
+    {
+     "hitpoints": 900,
+     "level": 9,
+     "townHall": 12
+    },
+    {
+     "hitpoints": 950,
+     "level": 10,
+     "townHall": 13
+    },
+    {
+     "hitpoints": 1000,
+     "level": 11,
+     "townHall": 14
+    },
+    {
+     "hitpoints": 1050,
+     "level": 12,
+     "townHall": 15
+    },
+    {
+     "hitpoints": 1100,
+     "level": 13,
+     "townHall": 16
+    }
+   ],
+   "name": "Dark Barracks",
+   "size": 3
+  },
+  "darkElixirDrill": {
+   "countByTownHall": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    2,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3,
+    3
+   ],
+   "levels": [
+    {
+     "hitpoints": 800,
+     "level": 1,
+     "townHall": 7
+    },
+    {
+     "hitpoints": 860,
+     "level": 2,
+     "townHall": 7
+    },
+    {
+     "hitpoints": 920,
+     "level": 3,
+     "townHall": 7
+    },
+    {
+     "hitpoints": 980,
+     "level": 4,
+     "townHall": 9
+    },
+    {
+     "hitpoints": 1060,
+     "level": 5,
+     "townHall": 9
+    },
+    {
+     "hitpoints": 1160,
+     "level": 6,
+     "townHall": 9
+    },
+    {
+     "hitpoints": 1280,
+     "level": 7,
+     "townHall": 10
+    },
+    {
+     "hitpoints": 1380,
+     "level": 8,
+     "townHall": 11
+    },
+    {
+     "hitpoints": 1480,
+     "level": 9,
+     "townHall": 12
+    },
+    {
+     "hitpoints": 1550,
+     "level": 10,
+     "townHall": 14
+    },
+    {
+     "hitpoints": 1600,
+     "level": 11,
+     "townHall": 16
+    }
+   ],
+   "name": "Dark Elixir Drill",
+   "size": 3
+  },
+  "darkElixirStorage": {
+   "countByTownHall": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1
+   ],
+   "levels": [
+    {
+     "hitpoints": 2000,
+     "level": 1,
+     "townHall": 7
+    },
+    {
+     "hitpoints": 2200,
+     "level": 2,
+     "townHall": 7
+    },
+    {
+     "hitpoints": 2400,
+     "level": 3,
+     "townHall": 8
+    },
+    {
+     "hitpoints": 2600,
+     "level": 4,
+     "townHall": 8
+    },
+    {
+     "hitpoints": 2900,
+     "level": 5,
+     "townHall": 9
+    },
+    {
+     "hitpoints": 3200,
+     "level": 6,
+     "townHall": 9
+    },
+    {
+     "hitpoints": 3500,
+     "level": 7,
+     "townHall": 12
+    },
+    {
+     "hitpoints": 3800,
+     "level": 8,
+     "townHall": 13
+    },
+    {
+     "hitpoints": 4100,
+     "level": 9,
+     "townHall": 14
+    },
+    {
+     "hitpoints": 4300,
+     "level": 10,
+     "townHall": 15
+    },
+    {
+     "hitpoints": 4500,
+     "level": 11,
+     "townHall": 16
+    },
+    {
+     "hitpoints": 4700,
+     "level": 12,
+     "townHall": 17
+    },
+    {
+     "hitpoints": 4800,
+     "level": 13,
+     "townHall": 18
+    }
+   ],
+   "name": "Dark Elixir Storage",
+   "size": 3
+  },
+  "darkSpellFactory": {
+   "countByTownHall": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1
+   ],
+   "levels": [
+    {
+     "hitpoints": 600,
+     "level": 1,
+     "townHall": 8
+    },
+    {
+     "hitpoints": 660,
+     "level": 2,
+     "townHall": 8
+    },
+    {
+     "hitpoints": 720,
+     "level": 3,
+     "townHall": 9
+    },
+    {
+     "hitpoints": 780,
+     "level": 4,
+     "townHall": 9
+    },
+    {
+     "hitpoints": 840,
+     "level": 5,
+     "townHall": 10
+    },
+    {
+     "hitpoints": 950,
+     "level": 6,
+     "townHall": 12
+    },
+    {
+     "hitpoints": 1010,
+     "level": 7,
+     "townHall": 14
+    },
+    {
+     "hitpoints": 1070,
+     "level": 8,
+     "townHall": 15
+    }
+   ],
+   "name": "Dark Spell Factory",
+   "size": 3
+  },
   "dragon": {
    "attackInterval": 1.25,
    "housingSpace": 20,
@@ -3034,6 +3828,238 @@
    "movementSpeed": 16,
    "name": "Dragon",
    "range": 3
+  },
+  "elixirCollector": {
+   "countByTownHall": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    6,
+    6,
+    7,
+    7,
+    7,
+    7,
+    7,
+    7,
+    7,
+    7,
+    7,
+    7
+   ],
+   "levels": [
+    {
+     "hitpoints": 75,
+     "level": 1,
+     "townHall": 1
+    },
+    {
+     "hitpoints": 150,
+     "level": 2,
+     "townHall": 1
+    },
+    {
+     "hitpoints": 300,
+     "level": 3,
+     "townHall": 2
+    },
+    {
+     "hitpoints": 400,
+     "level": 4,
+     "townHall": 2
+    },
+    {
+     "hitpoints": 500,
+     "level": 5,
+     "townHall": 3
+    },
+    {
+     "hitpoints": 550,
+     "level": 6,
+     "townHall": 3
+    },
+    {
+     "hitpoints": 600,
+     "level": 7,
+     "townHall": 4
+    },
+    {
+     "hitpoints": 660,
+     "level": 8,
+     "townHall": 4
+    },
+    {
+     "hitpoints": 720,
+     "level": 9,
+     "townHall": 5
+    },
+    {
+     "hitpoints": 780,
+     "level": 10,
+     "townHall": 5
+    },
+    {
+     "hitpoints": 860,
+     "level": 11,
+     "townHall": 7
+    },
+    {
+     "hitpoints": 960,
+     "level": 12,
+     "townHall": 8
+    },
+    {
+     "hitpoints": 1080,
+     "level": 13,
+     "townHall": 10
+    },
+    {
+     "hitpoints": 1180,
+     "level": 14,
+     "townHall": 11
+    },
+    {
+     "hitpoints": 1280,
+     "level": 15,
+     "townHall": 12
+    },
+    {
+     "hitpoints": 1350,
+     "level": 16,
+     "townHall": 14
+    },
+    {
+     "hitpoints": 1400,
+     "level": 17,
+     "townHall": 16
+    }
+   ],
+   "name": "Elixir Collector",
+   "size": 3
+  },
+  "elixirStorage": {
+   "countByTownHall": [
+    1,
+    1,
+    2,
+    2,
+    2,
+    2,
+    2,
+    3,
+    4,
+    4,
+    4,
+    4,
+    4,
+    4,
+    4,
+    4,
+    4,
+    4
+   ],
+   "levels": [
+    {
+     "hitpoints": 150,
+     "level": 1,
+     "townHall": 1
+    },
+    {
+     "hitpoints": 300,
+     "level": 2,
+     "townHall": 2
+    },
+    {
+     "hitpoints": 450,
+     "level": 3,
+     "townHall": 2
+    },
+    {
+     "hitpoints": 600,
+     "level": 4,
+     "townHall": 3
+    },
+    {
+     "hitpoints": 800,
+     "level": 5,
+     "townHall": 3
+    },
+    {
+     "hitpoints": 1000,
+     "level": 6,
+     "townHall": 3
+    },
+    {
+     "hitpoints": 1250,
+     "level": 7,
+     "townHall": 4
+    },
+    {
+     "hitpoints": 1500,
+     "level": 8,
+     "townHall": 4
+    },
+    {
+     "hitpoints": 1700,
+     "level": 9,
+     "townHall": 5
+    },
+    {
+     "hitpoints": 1900,
+     "level": 10,
+     "townHall": 6
+    },
+    {
+     "hitpoints": 2100,
+     "level": 11,
+     "townHall": 7
+    },
+    {
+     "hitpoints": 2500,
+     "level": 12,
+     "townHall": 11
+    },
+    {
+     "hitpoints": 2900,
+     "level": 13,
+     "townHall": 12
+    },
+    {
+     "hitpoints": 3300,
+     "level": 14,
+     "townHall": 13
+    },
+    {
+     "hitpoints": 3700,
+     "level": 15,
+     "townHall": 14
+    },
+    {
+     "hitpoints": 3900,
+     "level": 16,
+     "townHall": 15
+    },
+    {
+     "hitpoints": 4050,
+     "level": 17,
+     "townHall": 16
+    },
+    {
+     "hitpoints": 4200,
+     "level": 18,
+     "townHall": 17
+    },
+    {
+     "hitpoints": 4300,
+     "level": 19,
+     "townHall": 18
+    }
+   ],
+   "name": "Elixir Storage",
+   "size": 3
   },
   "giant": {
    "attackInterval": 2,
@@ -3227,6 +4253,117 @@
    "size": 2,
    "triggerRadius": 2
   },
+  "goldMine": {
+   "countByTownHall": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    6,
+    6,
+    7,
+    7,
+    7,
+    7,
+    7,
+    7,
+    7,
+    7,
+    7,
+    7
+   ],
+   "levels": [
+    {
+     "hitpoints": 75,
+     "level": 1,
+     "townHall": 1
+    },
+    {
+     "hitpoints": 150,
+     "level": 2,
+     "townHall": 1
+    },
+    {
+     "hitpoints": 300,
+     "level": 3,
+     "townHall": 2
+    },
+    {
+     "hitpoints": 400,
+     "level": 4,
+     "townHall": 2
+    },
+    {
+     "hitpoints": 500,
+     "level": 5,
+     "townHall": 3
+    },
+    {
+     "hitpoints": 550,
+     "level": 6,
+     "townHall": 3
+    },
+    {
+     "hitpoints": 600,
+     "level": 7,
+     "townHall": 4
+    },
+    {
+     "hitpoints": 660,
+     "level": 8,
+     "townHall": 4
+    },
+    {
+     "hitpoints": 720,
+     "level": 9,
+     "townHall": 5
+    },
+    {
+     "hitpoints": 780,
+     "level": 10,
+     "townHall": 5
+    },
+    {
+     "hitpoints": 860,
+     "level": 11,
+     "townHall": 7
+    },
+    {
+     "hitpoints": 960,
+     "level": 12,
+     "townHall": 8
+    },
+    {
+     "hitpoints": 1080,
+     "level": 13,
+     "townHall": 10
+    },
+    {
+     "hitpoints": 1180,
+     "level": 14,
+     "townHall": 11
+    },
+    {
+     "hitpoints": 1280,
+     "level": 15,
+     "townHall": 12
+    },
+    {
+     "hitpoints": 1350,
+     "level": 16,
+     "townHall": 14
+    },
+    {
+     "hitpoints": 1400,
+     "level": 17,
+     "townHall": 16
+    }
+   ],
+   "name": "Gold Mine",
+   "size": 3
+  },
   "goldStorage": {
    "countByTownHall": [
     1,
@@ -3347,6 +4484,123 @@
    ],
    "name": "Gold Storage",
    "size": 3
+  },
+  "helperHut": {
+   "countByTownHall": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1
+   ],
+   "levels": [
+    {
+     "hitpoints": 500,
+     "level": 1,
+     "townHall": 9
+    }
+   ],
+   "name": "Helper Hut",
+   "size": 3
+  },
+  "heroHall": {
+   "countByTownHall": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1
+   ],
+   "levels": [
+    {
+     "hitpoints": 2000,
+     "level": 1,
+     "townHall": 7
+    },
+    {
+     "hitpoints": 2400,
+     "level": 2,
+     "townHall": 8
+    },
+    {
+     "hitpoints": 2800,
+     "level": 3,
+     "townHall": 9
+    },
+    {
+     "hitpoints": 3200,
+     "level": 4,
+     "townHall": 10
+    },
+    {
+     "hitpoints": 3600,
+     "level": 5,
+     "townHall": 11
+    },
+    {
+     "hitpoints": 3800,
+     "level": 6,
+     "townHall": 12
+    },
+    {
+     "hitpoints": 4200,
+     "level": 7,
+     "townHall": 13
+    },
+    {
+     "hitpoints": 4600,
+     "level": 8,
+     "townHall": 14
+    },
+    {
+     "hitpoints": 5000,
+     "level": 9,
+     "townHall": 15
+    },
+    {
+     "hitpoints": 5400,
+     "level": 10,
+     "townHall": 16
+    },
+    {
+     "hitpoints": 5800,
+     "level": 11,
+     "townHall": 17
+    },
+    {
+     "hitpoints": 6000,
+     "level": 12,
+     "townHall": 18
+    }
+   ],
+   "name": "Hero Hall",
+   "size": 4
   },
   "hiddenTesla": {
    "attackInterval": 0.6,
@@ -3639,6 +4893,112 @@
    "range": 9,
    "size": 2
   },
+  "laboratory": {
+   "countByTownHall": [
+    0,
+    0,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1
+   ],
+   "levels": [
+    {
+     "hitpoints": 500,
+     "level": 1,
+     "townHall": 3
+    },
+    {
+     "hitpoints": 550,
+     "level": 2,
+     "townHall": 4
+    },
+    {
+     "hitpoints": 600,
+     "level": 3,
+     "townHall": 5
+    },
+    {
+     "hitpoints": 650,
+     "level": 4,
+     "townHall": 6
+    },
+    {
+     "hitpoints": 700,
+     "level": 5,
+     "townHall": 7
+    },
+    {
+     "hitpoints": 750,
+     "level": 6,
+     "townHall": 8
+    },
+    {
+     "hitpoints": 830,
+     "level": 7,
+     "townHall": 9
+    },
+    {
+     "hitpoints": 950,
+     "level": 8,
+     "townHall": 10
+    },
+    {
+     "hitpoints": 1070,
+     "level": 9,
+     "townHall": 11
+    },
+    {
+     "hitpoints": 1140,
+     "level": 10,
+     "townHall": 12
+    },
+    {
+     "hitpoints": 1210,
+     "level": 11,
+     "townHall": 13
+    },
+    {
+     "hitpoints": 1280,
+     "level": 12,
+     "townHall": 14
+    },
+    {
+     "hitpoints": 1350,
+     "level": 13,
+     "townHall": 15
+    },
+    {
+     "hitpoints": 1400,
+     "level": 14,
+     "townHall": 16
+    },
+    {
+     "hitpoints": 1450,
+     "level": 15,
+     "townHall": 17
+    },
+    {
+     "hitpoints": 1500,
+     "level": 16,
+     "townHall": 18
+    }
+   ],
+   "name": "Laboratory",
+   "size": 3
+  },
   "mortar": {
    "attackInterval": 5,
    "countByTownHall": [
@@ -3775,6 +5135,163 @@
    "range": 11,
    "size": 3,
    "splashRadius": 1.5
+  },
+  "petHouse": {
+   "countByTownHall": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    1,
+    1,
+    1,
+    1
+   ],
+   "levels": [
+    {
+     "hitpoints": 700,
+     "level": 1,
+     "townHall": 14
+    },
+    {
+     "hitpoints": 800,
+     "level": 2,
+     "townHall": 14
+    },
+    {
+     "hitpoints": 900,
+     "level": 3,
+     "townHall": 14
+    },
+    {
+     "hitpoints": 1000,
+     "level": 4,
+     "townHall": 14
+    },
+    {
+     "hitpoints": 1050,
+     "level": 5,
+     "townHall": 15
+    },
+    {
+     "hitpoints": 1100,
+     "level": 6,
+     "townHall": 15
+    },
+    {
+     "hitpoints": 1150,
+     "level": 7,
+     "townHall": 15
+    },
+    {
+     "hitpoints": 1200,
+     "level": 8,
+     "townHall": 15
+    },
+    {
+     "hitpoints": 1250,
+     "level": 9,
+     "townHall": 16
+    },
+    {
+     "hitpoints": 1300,
+     "level": 10,
+     "townHall": 16
+    },
+    {
+     "hitpoints": 1350,
+     "level": 11,
+     "townHall": 17
+    },
+    {
+     "hitpoints": 1400,
+     "level": 12,
+     "townHall": 18
+    }
+   ],
+   "name": "Pet House",
+   "size": 3
+  },
+  "spellFactory": {
+   "countByTownHall": [
+    0,
+    0,
+    0,
+    0,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1
+   ],
+   "levels": [
+    {
+     "hitpoints": 425,
+     "level": 1,
+     "townHall": 5
+    },
+    {
+     "hitpoints": 470,
+     "level": 2,
+     "townHall": 6
+    },
+    {
+     "hitpoints": 520,
+     "level": 3,
+     "townHall": 7
+    },
+    {
+     "hitpoints": 600,
+     "level": 4,
+     "townHall": 9
+    },
+    {
+     "hitpoints": 720,
+     "level": 5,
+     "townHall": 10
+    },
+    {
+     "hitpoints": 840,
+     "level": 6,
+     "townHall": 11
+    },
+    {
+     "hitpoints": 960,
+     "level": 7,
+     "townHall": 13
+    },
+    {
+     "hitpoints": 1080,
+     "level": 8,
+     "townHall": 15
+    },
+    {
+     "hitpoints": 1150,
+     "level": 9,
+     "townHall": 16
+    }
+   ],
+   "name": "Spell Factory",
+   "size": 3
   },
   "stoneSlammer": {
    "attackInterval": 2.5,
@@ -4423,6 +5940,77 @@
    "range": 7,
    "size": 3,
    "splashRadius": 1
+  },
+  "workshop": {
+   "countByTownHall": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1
+   ],
+   "levels": [
+    {
+     "hitpoints": 1000,
+     "level": 1,
+     "townHall": 12
+    },
+    {
+     "hitpoints": 1100,
+     "level": 2,
+     "townHall": 12
+    },
+    {
+     "hitpoints": 1200,
+     "level": 3,
+     "townHall": 12
+    },
+    {
+     "hitpoints": 1300,
+     "level": 4,
+     "townHall": 13
+    },
+    {
+     "hitpoints": 1400,
+     "level": 5,
+     "townHall": 13
+    },
+    {
+     "hitpoints": 1500,
+     "level": 6,
+     "townHall": 14
+    },
+    {
+     "hitpoints": 1600,
+     "level": 7,
+     "townHall": 15
+    },
+    {
+     "hitpoints": 1700,
+     "level": 8,
+     "townHall": 16
+    },
+    {
+     "hitpoints": 1800,
+     "level": 9,
+     "townHall": 17
+    }
+   ],
+   "name": "Workshop",
+   "size": 4
   }
  }
 }

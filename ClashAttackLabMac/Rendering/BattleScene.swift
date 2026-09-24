@@ -1125,7 +1125,8 @@ final class BattleScene: SKScene {
         case .stoneSlammer:
             return .systemCyan
         case .cannon, .archerTower, .mortar, .wizardTower, .infernoTower, .bombTower, .hiddenTesla, .giantBomb, .airBomb, .airSweeper, .airDefense,
-             .townHall, .goldStorage, .wall:
+             .townHall, .goldStorage, .wall,
+             .goldMine, .elixirCollector, .darkElixirDrill, .elixirStorage, .darkElixirStorage, .clanCastle, .armyCamp, .barracks, .darkBarracks, .laboratory, .spellFactory, .darkSpellFactory, .workshop, .heroHall, .petHouse, .blacksmith, .builderHut, .helperHut:
             return .systemCyan
         }
     }
@@ -1182,6 +1183,8 @@ final class BattleScene: SKScene {
             return "D"
         case .wall:
             return "M"
+        case .goldMine, .elixirCollector, .darkElixirDrill, .elixirStorage, .darkElixirStorage, .clanCastle, .armyCamp, .barracks, .darkBarracks, .laboratory, .spellFactory, .darkSpellFactory, .workshop, .heroHall, .petHouse, .blacksmith, .builderHut, .helperHut:
+            return UtilityBuildingStyle.style(for: kind).symbol
         }
     }
 
@@ -1358,6 +1361,19 @@ final class BattleScene: SKScene {
                 radius: 35,
                 color: .systemYellow,
                 text: "D"
+            )
+
+        case .goldMine, .elixirCollector, .darkElixirDrill, .elixirStorage, .darkElixirStorage, .clanCastle, .armyCamp, .barracks, .darkBarracks, .laboratory, .spellFactory, .darkSpellFactory, .workshop, .heroHall, .petHouse, .blacksmith, .builderHut, .helperHut:
+            let style = UtilityBuildingStyle.style(for: kind)
+            return makeLabeledRectangle(
+                size: CGSize(width: 70, height: 70),
+                color: SKColor(
+                    red: style.red,
+                    green: style.green,
+                    blue: style.blue,
+                    alpha: 1
+                ),
+                text: style.symbol
             )
 
         case .wall:

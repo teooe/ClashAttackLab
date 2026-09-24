@@ -32,6 +32,24 @@ nonisolated enum BattleEntityKind: Hashable, Codable, CaseIterable {
     case townHall
     case goldStorage
     case wall
+    case goldMine
+    case elixirCollector
+    case darkElixirDrill
+    case elixirStorage
+    case darkElixirStorage
+    case clanCastle
+    case armyCamp
+    case barracks
+    case darkBarracks
+    case laboratory
+    case spellFactory
+    case darkSpellFactory
+    case workshop
+    case heroHall
+    case petHouse
+    case blacksmith
+    case builderHut
+    case helperHut
 
     var isTrap: Bool {
         switch self {

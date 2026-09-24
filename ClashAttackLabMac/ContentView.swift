@@ -738,7 +738,8 @@ struct ContentView: View {
         case .stoneSlammer:
             return "Schiantapietre"
         case .cannon, .archerTower, .mortar, .wizardTower, .infernoTower, .bombTower, .hiddenTesla, .giantBomb, .airBomb, .airSweeper, .airDefense,
-             .townHall, .goldStorage, .wall:
+             .townHall, .goldStorage, .wall,
+             .goldMine, .elixirCollector, .darkElixirDrill, .elixirStorage, .darkElixirStorage, .clanCastle, .armyCamp, .barracks, .darkBarracks, .laboratory, .spellFactory, .darkSpellFactory, .workshop, .heroHall, .petHouse, .blacksmith, .builderHut, .helperHut:
             return "Edificio"
         }
     }
@@ -768,7 +769,8 @@ struct ContentView: View {
         case .stoneSlammer:
             return "SP"
         case .cannon, .archerTower, .mortar, .wizardTower, .infernoTower, .bombTower, .hiddenTesla, .giantBomb, .airBomb, .airSweeper, .airDefense,
-             .townHall, .goldStorage, .wall:
+             .townHall, .goldStorage, .wall,
+             .goldMine, .elixirCollector, .darkElixirDrill, .elixirStorage, .darkElixirStorage, .clanCastle, .armyCamp, .barracks, .darkBarracks, .laboratory, .spellFactory, .darkSpellFactory, .workshop, .heroHall, .petHouse, .blacksmith, .builderHut, .helperHut:
             return "?"
         }
     }
@@ -798,7 +800,8 @@ struct ContentView: View {
         case .stoneSlammer:
             return .cyan
         case .cannon, .archerTower, .mortar, .wizardTower, .infernoTower, .bombTower, .hiddenTesla, .giantBomb, .airBomb, .airSweeper, .airDefense,
-             .townHall, .goldStorage, .wall:
+             .townHall, .goldStorage, .wall,
+             .goldMine, .elixirCollector, .darkElixirDrill, .elixirStorage, .darkElixirStorage, .clanCastle, .armyCamp, .barracks, .darkBarracks, .laboratory, .spellFactory, .darkSpellFactory, .workshop, .heroHall, .petHouse, .blacksmith, .builderHut, .helperHut:
             return .gray
         }
     }

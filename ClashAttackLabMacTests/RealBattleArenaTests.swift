@@ -7,7 +7,7 @@ struct RealBattleArenaTests {
     private static let buildingKinds: [BattleEntityKind] = [
         .cannon, .archerTower, .mortar, .wizardTower, .infernoTower,
         .bombTower, .hiddenTesla, .airSweeper, .airDefense, .goldStorage
-    ]
+    ] + BattleEntityKind.utilityBuildings
 
     private func arena(townHall: Int) throws -> BattleArena {
         try BattleArena.make(for: .reference(townHall: townHall))
@@ -360,5 +360,39 @@ struct RealBattleArenaTests {
 
         #expect(evaluation.result.elapsedTime <= 180)
         #expect(evaluation.result.deployedTroops > 0)
+    }
+
+    @Test
+    func catalogCoversEveryEntityKind() throws {
+        let catalog = try ReferenceGameCatalog.loadBundled()
+        for kind in BattleEntityKind.allCases {
+            #expect(catalog.unit(for: kind) != nil, "\(kind) missing from the catalog")
+        }
+    }
+
+    @Test
+    func utilityBuildingsAreRealNonAttackingObjectives() throws {
+        let real = try arena(townHall: 16)
+        let camp = real.gameData.definition(for: .armyCamp)
+        let hut = real.gameData.definition(for: .builderHut)
+        let mine = real.gameData.definition(for: .goldMine)
+
+        #expect(camp.role == .building)
+        #expect(camp.countsForDestruction)
+        #expect(camp.footprintSize == 4 * 40)
+        #expect(hut.attackDamage == 0)
+        #expect(hut.footprintSize == 2 * 40)
+        #expect(mine.maxHitPoints == 1_400)
+        #expect(PrototypeGameData().definition(for: .laboratory).role == .building)
+        #expect(
+            UtilityBuildingStyle.style(for: .laboratory).displayName == "Laboratorio"
+        )
+
+        let entities = real.makeBaseEntities(layout: .fortress)
+        let scored = entities.filter {
+            real.gameData.definition(for: $0.kind).countsForDestruction
+        }
+        #expect(scored.count >= 80)
+        #expect(entities.contains { $0.kind == .clanCastle })
     }
 }
