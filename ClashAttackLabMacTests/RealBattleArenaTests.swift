@@ -395,4 +395,71 @@ struct RealBattleArenaTests {
         #expect(scored.count >= 80)
         #expect(entities.contains { $0.kind == .clanCastle })
     }
+
+    @Test
+    func rotationKeepsCellCentresAndReturnsAfterFourTurns() throws {
+        let grid = try arena(townHall: 16).navigationGrid
+        let cell = grid.worldPosition(for: GridCoordinate(column: 1, row: 10))
+
+        let north = grid.rotated(cell, quarterTurns: -1)
+        let northCell = try #require(grid.coordinate(for: north))
+        #expect(grid.worldPosition(for: northCell) == north)
+        #expect(northCell.row >= grid.rows - NavigationGrid.deploymentDepth)
+        #expect(grid.rotated(cell, quarterTurns: 4) == cell)
+        #expect(grid.rotated(grid.rotated(cell, quarterTurns: 1), quarterTurns: -1) == cell)
+    }
+
+    @Test
+    func deploymentZoneCoversEveryBorderOnlyOnTheRealMap() throws {
+        let real = try arena(townHall: 16).navigationGrid
+        let prototype = PrototypeBattleMap.makeNavigationGrid()
+
+        #expect(real.isDeploymentCell(GridCoordinate(column: 25, row: 0)))
+        #expect(real.isDeploymentCell(GridCoordinate(column: 49, row: 25)))
+        #expect(real.isDeploymentCell(GridCoordinate(column: 25, row: 48)))
+        #expect(!real.isDeploymentCell(GridCoordinate(column: 25, row: 25)))
+        #expect(prototype.isDeploymentCell(GridCoordinate(column: 2, row: 5)))
+        #expect(!prototype.isDeploymentCell(GridCoordinate(column: 3, row: 5)))
+        #expect(!prototype.isDeploymentCell(GridCoordinate(column: 20, row: 0)))
+    }
+
+    @Test
+    func plansRotatedToEverySideDeployOnThatBorder() throws {
+        let real = try arena(townHall: 14)
+        let grid = real.navigationGrid
+        let entities = real.makeBaseEntities(layout: .corridor)
+
+        for side in DeploySide.allCases {
+            let turns = side.quarterTurnsToWest
+            let rotatedBase = entities.map { $0.rotated(quarterTurns: turns, on: grid) }
+            let westPlan = try #require(
+                AttackPlanGenerator(
+                    navigationGrid: grid,
+                    armyConfiguration: real.defaultArmy,
+                    baseEntities: rotatedBase,
+                    gameData: real.gameData,
+                    armyRules: real.armyRules
+                ).generate().first
+            )
+            let plan = westPlan.rotated(quarterTurns: -turns, on: grid)
+
+            #expect(DeploySide.side(of: plan, on: grid) == side)
+            for order in plan.deployments {
+                let cell = try #require(grid.coordinate(for: order.position))
+                #expect(grid.isDeploymentCell(cell), "\(side) deploys at \(cell)")
+            }
+            #expect(plan.deployments.map(\.entityID) == westPlan.deployments.map(\.entityID))
+        }
+    }
+
+    @Test
+    func realSessionGeneratesPlansFromEverySide() {
+        let session = AttackLabSession()
+        let prototypeCount = session.candidatePlanCount
+
+        session.applyGameDataSource(.reference(townHall: 12))
+
+        #expect(session.candidatePlanCount >= 4 * 24)
+        #expect(session.candidatePlanCount > prototypeCount)
+    }
 }

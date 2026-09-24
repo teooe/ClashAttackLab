@@ -491,7 +491,18 @@ final class AttackLabSession: ObservableObject {
             return
         }
 
-        let deploymentRows = activePlan.deployments.compactMap {
+        // Reconnaissance lanes describe the west edge, so the plan is
+        // turned to attack from the west before taking the lane.
+        let westPlan = attacksFromEverySide
+            ? activePlan.rotated(
+                quarterTurns: DeploySide.side(
+                    of: activePlan,
+                    on: navigationGrid
+                ).quarterTurnsToWest,
+                on: navigationGrid
+            )
+            : activePlan
+        let deploymentRows = westPlan.deployments.compactMap {
             navigationGrid.coordinate(for: $0.position)?.row
         }
         guard !deploymentRows.isEmpty else {
@@ -503,7 +514,7 @@ final class AttackLabSession: ObservableObject {
         let shiftedPlan = AttackPlanRefiner(
             navigationGrid: navigationGrid
         ).variant(
-            from: activePlan,
+            from: westPlan,
             laneOffset: lane.row - averageRow
         )
 
@@ -840,7 +851,8 @@ final class AttackLabSession: ObservableObject {
     func refineCurrentPlanAcrossBases() {
         guard !isManualPlanning else { return }
         let plan = activePlan
-        let variants = AttackPlanRefiner(navigationGrid: navigationGrid).variants(for: plan)
+        let refiner = AttackPlanRefiner(navigationGrid: navigationGrid)
+        let variants = transformingOnWest(plan) { refiner.variants(for: $0) }
         startSearch(title: "Ottimizzazione", total: variants.count * PrototypeBaseLayout.allCases.count) { [weak self] in
             guard let self else { return }
             let results = try await self.analyzePlans(variants)
@@ -861,24 +873,76 @@ final class AttackLabSession: ObservableObject {
         entities: [BattleEntity],
         baseName: String
     ) -> (plans: [AttackPlan], advice: ArmyEntryAdvice) {
-        let advice = ArmyEntryAdvisor(
-            navigationGrid: navigationGrid,
-            gameData: gameData
-        ).analyze(
-            entities: entities,
-            armyConfiguration: configuration,
-            baseName: baseName
-        )
-        let plans = AttackPlanGenerator(
-            navigationGrid: navigationGrid,
-            armyConfiguration: configuration,
-            entryAdvice: advice,
-            baseEntities: entities,
-            gameData: gameData,
-            armyRules: arena.armyRules
-        ).generate()
+        // Real square maps are attacked from every edge: rotate the base so
+        // each side faces west, plan there, and rotate the plans back.
+        let sides: [DeploySide] = attacksFromEverySide
+            ? DeploySide.allCases
+            : [.west]
+        var plans: [AttackPlan] = []
+        var westAdvice: ArmyEntryAdvice?
 
-        return (plans, advice)
+        for side in sides {
+            let turns = side.quarterTurnsToWest
+            let sideEntities = turns == 0
+                ? entities
+                : entities.map {
+                    $0.rotated(quarterTurns: turns, on: navigationGrid)
+                }
+            let advice = ArmyEntryAdvisor(
+                navigationGrid: navigationGrid,
+                gameData: gameData
+            ).analyze(
+                entities: sideEntities,
+                armyConfiguration: configuration,
+                baseName: baseName
+            )
+            if side == .west {
+                westAdvice = advice
+            }
+            let sidePlans = AttackPlanGenerator(
+                navigationGrid: navigationGrid,
+                armyConfiguration: configuration,
+                entryAdvice: advice,
+                baseEntities: sideEntities,
+                gameData: gameData,
+                armyRules: arena.armyRules
+            ).generate()
+
+            plans += sides.count == 1
+                ? sidePlans
+                : sidePlans.map {
+                    $0.rotated(
+                        quarterTurns: -turns,
+                        on: navigationGrid,
+                        name: "\(side.displayName) · \($0.name)"
+                    )
+                }
+        }
+
+        return (plans, westAdvice ?? ArmyEntryAdvice(baseName: baseName, recommendations: []))
+    }
+
+    private var attacksFromEverySide: Bool {
+        arena.isReal && navigationGrid.isSquare
+    }
+
+    /// Runs a west-only transformation on a plan from any side by turning
+    /// it to face west first and turning the results back afterwards.
+    private func transformingOnWest(
+        _ plan: AttackPlan,
+        _ transform: (AttackPlan) -> [AttackPlan]
+    ) -> [AttackPlan] {
+        let turns = attacksFromEverySide
+            ? DeploySide.side(of: plan, on: navigationGrid).quarterTurnsToWest
+            : 0
+        guard turns != 0 else {
+            return transform(plan)
+        }
+        return transform(
+            plan.rotated(quarterTurns: turns, on: navigationGrid)
+        ).map {
+            $0.rotated(quarterTurns: -turns, on: navigationGrid)
+        }
     }
 
     private func makeRobustnessAnalysis(

@@ -94,7 +94,7 @@ final class BattleScene: SKScene {
         guard
             let coordinate = navigationGrid.coordinate(for: position),
             manualPlacementUsesWholeArena ||
-                (0...2).contains(coordinate.column)
+                navigationGrid.isDeploymentCell(coordinate)
         else {
             return
         }
@@ -240,6 +240,34 @@ final class BattleScene: SKScene {
     }
 
     private func updateManualPlacementZone() {
+        if
+            !manualPlacementUsesWholeArena,
+            navigationGrid.isLarge,
+            navigationGrid.isSquare
+        {
+            // Deployment border on every side: outer square minus inner.
+            let cell = navigationGrid.cellSize
+            let depth = Double(NavigationGrid.deploymentDepth) * cell
+            let outer = CGRect(
+                x: navigationGrid.origin.x,
+                y: navigationGrid.origin.y,
+                width: cell * Double(navigationGrid.columns),
+                height: cell * Double(navigationGrid.rows)
+            )
+            let inner = outer.insetBy(dx: depth, dy: depth)
+            let ring = CGMutablePath()
+            ring.addRect(outer)
+            // Opposite winding keeps the inner square unfilled.
+            ring.move(to: CGPoint(x: inner.minX, y: inner.minY))
+            ring.addLine(to: CGPoint(x: inner.minX, y: inner.maxY))
+            ring.addLine(to: CGPoint(x: inner.maxX, y: inner.maxY))
+            ring.addLine(to: CGPoint(x: inner.maxX, y: inner.minY))
+            ring.closeSubpath()
+            manualPlacementZone.path = ring
+            manualPlacementZone.isHidden = manualPlacementHandler == nil
+            return
+        }
+
         let width =
             navigationGrid.cellSize *
             Double(

@@ -40,6 +40,41 @@ nonisolated struct NavigationGrid {
         }.prefix(limit))
     }
 
+    /// Width of the deployment strip: the three outer columns of the
+    /// prototype, or the three-tile border all around a large grid.
+    static let deploymentDepth = 3
+
+    var isSquare: Bool {
+        columns == rows
+    }
+
+    /// Cells where troops may be deployed. The prototype only allows the
+    /// western strip; large square grids allow the border on every side.
+    func isDeploymentCell(_ cell: GridCoordinate) -> Bool {
+        guard contains(cell) else {
+            return false
+        }
+        let depth = Self.deploymentDepth
+        guard isLarge && isSquare else {
+            return cell.column < depth
+        }
+        return cell.column < depth || cell.row < depth ||
+            cell.column >= columns - depth || cell.row >= rows - depth
+    }
+
+    /// Rotates a position about the grid centre by counter-clockwise
+    /// quarter turns. Cell centres map onto cell centres on square grids.
+    func rotated(_ position: WorldPosition, quarterTurns: Int) -> WorldPosition {
+        let centerX = origin.x + Double(columns) * cellSize / 2
+        let centerY = origin.y + Double(rows) * cellSize / 2
+        var deltaX = position.x - centerX
+        var deltaY = position.y - centerY
+        for _ in 0..<((quarterTurns % 4 + 4) % 4) {
+            (deltaX, deltaY) = (-deltaY, deltaX)
+        }
+        return WorldPosition(x: centerX + deltaX, y: centerY + deltaY)
+    }
+
     /// Maps a row chosen for the 16-row prototype arena onto this grid.
     func scaledRow(fromPrototype row: Int) -> Int {
         guard rows != Self.prototypeRows else {

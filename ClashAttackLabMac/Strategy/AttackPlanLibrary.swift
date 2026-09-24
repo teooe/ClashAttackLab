@@ -203,7 +203,7 @@ nonisolated enum AttackPlanArchiveCodec {
                 guard isTroop(order.kind), validTime(order.deploymentTime),
                     inBounds(order.position, grid: grid),
                     let cell = grid.coordinate(for: order.position),
-                    cell.column <= 2, grid.isWalkable(cell) else {
+                    grid.isDeploymentCell(cell), grid.isWalkable(cell) else {
                     throw AttackPlanArchiveError.invalid("Deploy non valido: truppa, tempo o posizione fuori dalla fascia consentita.")
                 }
             }

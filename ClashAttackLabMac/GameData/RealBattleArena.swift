@@ -499,3 +499,95 @@ extension ArmyConfiguration {
         return army
     }
 }
+
+// MARK: - Deployment sides
+
+/// Edge of the battlefield an attack comes from.
+///
+/// Plans are generated from the west edge; other sides rotate the base so
+/// that side faces west, plan there, then rotate the plan back.
+nonisolated enum DeploySide: Int, CaseIterable {
+    case west
+    case north
+    case east
+    case south
+
+    /// Counter-clockwise quarter turns that bring this side to the west.
+    var quarterTurnsToWest: Int {
+        rawValue
+    }
+
+    var displayName: String {
+        switch self {
+        case .west: return "Ovest"
+        case .north: return "Nord"
+        case .east: return "Est"
+        case .south: return "Sud"
+        }
+    }
+
+    /// Side closest to the average deployment position of a plan.
+    static func side(of plan: AttackPlan, on grid: NavigationGrid) -> DeploySide {
+        guard grid.isSquare, !plan.deployments.isEmpty else {
+            return .west
+        }
+        let count = Double(plan.deployments.count)
+        let x = plan.deployments.reduce(0) { $0 + $1.position.x } / count
+        let y = plan.deployments.reduce(0) { $0 + $1.position.y } / count
+        let minimumX = grid.origin.x
+        let minimumY = grid.origin.y
+        let maximumX = minimumX + Double(grid.columns) * grid.cellSize
+        let maximumY = minimumY + Double(grid.rows) * grid.cellSize
+        let distances: [(DeploySide, Double)] = [
+            (.west, x - minimumX),
+            (.north, maximumY - y),
+            (.east, maximumX - x),
+            (.south, y - minimumY)
+        ]
+        return distances.min { $0.1 < $1.1 }?.0 ?? .west
+    }
+}
+
+extension BattleEntity {
+    nonisolated func rotated(
+        quarterTurns: Int,
+        on grid: NavigationGrid
+    ) -> BattleEntity {
+        var copy = self
+        copy.position = grid.rotated(position, quarterTurns: quarterTurns)
+        return copy
+    }
+}
+
+extension AttackPlan {
+    /// The same plan with every troop and spell position rotated about the
+    /// grid centre; timings and identities are unchanged.
+    nonisolated func rotated(
+        quarterTurns: Int,
+        on grid: NavigationGrid,
+        name newName: String? = nil
+    ) -> AttackPlan {
+        AttackPlan(
+            id: id,
+            name: newName ?? name,
+            deployments: deployments.map {
+                DeploymentOrder(
+                    id: $0.id,
+                    entityID: $0.entityID,
+                    kind: $0.kind,
+                    position: grid.rotated($0.position, quarterTurns: quarterTurns),
+                    deploymentTime: $0.deploymentTime
+                )
+            },
+            spellDeployments: spellDeployments.map {
+                SpellDeploymentOrder(
+                    id: $0.id,
+                    kind: $0.kind,
+                    position: grid.rotated($0.position, quarterTurns: quarterTurns),
+                    deploymentTime: $0.deploymentTime
+                )
+            },
+            heroAbilityOrders: heroAbilityOrders
+        )
+    }
+}
