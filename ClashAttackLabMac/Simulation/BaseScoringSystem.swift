@@ -16,7 +16,7 @@ nonisolated struct BaseScoreSnapshot {
     )
 }
 
-struct BaseScoringSystem {
+nonisolated struct BaseScoringSystem {
     func calculate(
         entities: [BattleEntity],
         gameData: any GameDataProviding

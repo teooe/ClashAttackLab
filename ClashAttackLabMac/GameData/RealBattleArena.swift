@@ -19,7 +19,7 @@ nonisolated struct BattleArena {
         BattleArena(
             source: .prototype,
             navigationGrid: PrototypeBattleMap.makeNavigationGrid(),
-            gameData: PrototypeGameData(),
+            gameData: PrecomputedGameData(PrototypeGameData()),
             armyRules: .prototype,
             defaultArmy: .prototypeDefault,
             sceneSize: CGSize(width: 1_100, height: 760),
@@ -45,10 +45,12 @@ nonisolated struct BattleArena {
             return BattleArena(
                 source: source,
                 navigationGrid: grid,
-                gameData: ReferenceGameData(
-                    catalog: catalog,
-                    profile: ReferenceLevelProfile(townHall: townHall),
-                    tileSize: grid.cellSize
+                gameData: PrecomputedGameData(
+                    ReferenceGameData(
+                        catalog: catalog,
+                        profile: ReferenceLevelProfile(townHall: townHall),
+                        tileSize: grid.cellSize
+                    )
                 ),
                 armyRules: rules,
                 defaultArmy: ArmyConfiguration.realDefault(for: rules),

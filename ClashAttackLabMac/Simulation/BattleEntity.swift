@@ -6,7 +6,7 @@ nonisolated struct WorldPosition: Equatable, Codable {
     var y: Double
 }
 
-nonisolated enum BattleEntityKind: Hashable, Codable {
+nonisolated enum BattleEntityKind: Hashable, Codable, CaseIterable {
     case giant
     case barbarian
     case archer

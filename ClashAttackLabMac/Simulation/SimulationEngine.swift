@@ -1,7 +1,7 @@
 import Foundation
 import CryptoKit
 
-final class SimulationEngine {
+nonisolated final class SimulationEngine {
     private let fixedTimeStep: TimeInterval = 1.0 / 60.0
     private var timeLimit: TimeInterval {
         gameData.battleDuration
@@ -75,7 +75,7 @@ final class SimulationEngine {
         self.initialEntities = entities
         self.entities = entities
         self.attackPlan = attackPlan
-        self.gameData = gameData
+        self.gameData = PrecomputedGameData.wrapping(gameData)
         self.navigationGrid = navigationGrid
         self.pathfinder = pathfinder
         self.targetSelectionSystem =
@@ -179,6 +179,7 @@ final class SimulationEngine {
     }
 
     func reset() {
+        wallCellsCache = nil
         entities = initialEntities.map { entity in
             var resetEntity = entity
             resetEntity.hitPoints =
@@ -227,7 +228,7 @@ final class SimulationEngine {
         gameData: (any GameDataProviding)? = nil
     ) {
         if let gameData {
-            self.gameData = gameData
+            self.gameData = PrecomputedGameData.wrapping(gameData)
         }
         initialEntities = entities
         self.attackPlan = attackPlan
@@ -1247,6 +1248,9 @@ final class SimulationEngine {
                 let entityDefinition = definition(
                     for: entities[index].kind
                 )
+                if entityDefinition.role == .wall {
+                    wallCellsCache = nil
+                }
                 let eventKind: BattleTimelineEventKind
                 let suffix: String
                 switch entityDefinition.role {
@@ -1467,12 +1471,21 @@ final class SimulationEngine {
         }
     }
 
+    /// Cells of standing walls, rebuilt only after a wall falls: routing
+    /// asks for it for every troop on every tick.
+    private var wallCellsCache: Set<GridCoordinate>?
+
     private func livingWallCells() -> Set<GridCoordinate> {
-        Set(
+        if let wallCellsCache {
+            return wallCellsCache
+        }
+        let cells = Set(
             livingIndices(with: .wall).compactMap {
                 navigationGrid.coordinate(for: entities[$0].position)
             }
         )
+        wallCellsCache = cells
+        return cells
     }
 
     private func livingWallIndex(at position: WorldPosition) -> Int? {

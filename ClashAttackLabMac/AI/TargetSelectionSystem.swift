@@ -1,6 +1,6 @@
 import Foundation
 
-struct TargetSelectionDecision {
+nonisolated struct TargetSelectionDecision {
     let targetIndex: Int
 
     /// Nil means that the troop can keep its current path.
@@ -14,7 +14,7 @@ struct TargetSelectionDecision {
 /// - Air troops compare direct distance and fly over walls.
 /// - A selected objective stays locked until it becomes invalid.
 /// - Target preferences remain prototype inputs unless separately documented.
-struct TargetSelectionSystem {
+nonisolated struct TargetSelectionSystem {
     private let pathfinder: AStarPathfinder
 
     init(pathfinder: AStarPathfinder = AStarPathfinder()) {

@@ -884,33 +884,51 @@ final class AttackLabSession: ObservableObject {
     private func makeRobustnessAnalysis(
         for plan: AttackPlan
     ) async throws -> AttackPlanRobustnessAnalysis {
-        var entries: [BaseAttackEvaluation] = []
-        for layout in PrototypeBaseLayout.allCases {
-            try Task.checkCancellation()
-            let entities = arena.makeBaseEntities(layout: layout)
-            let evaluator = AttackPlanEvaluator(
-                baseEntities: entities, gameData: gameData,
-                navigationGrid: navigationGrid
-            )
-            let results = try await evaluator.evaluateAsync([plan])
-            try Task.checkCancellation()
-            if let evaluation = results.first {
-                entries.append(BaseAttackEvaluation(layout: layout, evaluation: evaluation))
-            }
-            searchCompleted += 1
-        }
-        return AttackPlanRobustnessAnalysis(plan: plan, entries: entries)
+        try await robustnessAnalyses(for: [plan])[0]
     }
 
     private func analyzePlans(
         _ plans: [AttackPlan]
     ) async throws -> [AttackPlanRobustnessAnalysis] {
-        var results: [AttackPlanRobustnessAnalysis] = []
-        for plan in plans {
-            results.append(try await makeRobustnessAnalysis(for: plan))
-        }
+        let results = try await robustnessAnalyses(for: plans)
         try Task.checkCancellation()
         return AttackPlanRobustnessRanker.rank(results, objective: robustnessObjective)
+    }
+
+    /// Plays every plan on every base layout, all battles in parallel.
+    private func robustnessAnalyses(
+        for plans: [AttackPlan]
+    ) async throws -> [AttackPlanRobustnessAnalysis] {
+        let layouts = PrototypeBaseLayout.allCases
+        let bases = layouts.map { arena.makeBaseEntities(layout: $0) }
+        let jobs = plans.flatMap { plan in
+            bases.map {
+                ParallelBattleRunner.Job(
+                    entities: $0,
+                    plan: plan,
+                    gameData: gameData,
+                    navigationGrid: navigationGrid
+                )
+            }
+        }
+        let completedBefore = searchCompleted
+        let results = try await ParallelBattleRunner.run(jobs) {
+            self.searchCompleted = completedBefore + $0
+        }
+        try Task.checkCancellation()
+
+        return plans.enumerated().map { planIndex, plan in
+            let entries = layouts.enumerated().compactMap {
+                layoutIndex, layout -> BaseAttackEvaluation? in
+                results[planIndex * layouts.count + layoutIndex].map {
+                    BaseAttackEvaluation(
+                        layout: layout,
+                        evaluation: AttackPlanEvaluation(plan: plan, result: $0)
+                    )
+                }
+            }
+            return AttackPlanRobustnessAnalysis(plan: plan, entries: entries)
+        }
     }
 
     func clearAttackHistory() {

@@ -279,4 +279,86 @@ struct RealBattleArenaTests {
         #expect(session.armyConfiguration == .prototypeDefault)
         #expect(session.scene.size.height == 760)
     }
+
+    @Test
+    func precomputedDataMatchesItsSource() throws {
+        let source = try ReferenceGameCatalog.loadBundled()
+        let reference = ReferenceGameData(
+            catalog: source,
+            profile: ReferenceLevelProfile(townHall: 12)
+        )
+        let cached = PrecomputedGameData(reference)
+
+        for kind in BattleEntityKind.allCases {
+            let expected = reference.definition(for: kind)
+            let actual = cached.definition(for: kind)
+            #expect(actual.maxHitPoints == expected.maxHitPoints)
+            #expect(actual.attackDamage == expected.attackDamage)
+            #expect(actual.attackRange == expected.attackRange)
+            #expect(actual.footprintSize == expected.footprintSize)
+        }
+        for kind in BattleSpellKind.allCases {
+            #expect(
+                cached.spellDefinition(for: kind).radius ==
+                    reference.spellDefinition(for: kind).radius
+            )
+        }
+        #expect(cached.battleDuration == 180)
+        #expect(PrecomputedGameData.wrapping(cached).battleDuration == 180)
+    }
+
+    @Test
+    func parallelBattlesMatchSequentialResultsInOrder() async throws {
+        let grid = PrototypeBattleMap.makeNavigationGrid()
+        let base = PrototypeBattleMap.makeBaseEntities(navigationGrid: grid)
+        let gameData = PrototypeGameData()
+        let plans = Array(AttackPlanGenerator(navigationGrid: grid).generate().prefix(6))
+        let jobs = plans.map {
+            ParallelBattleRunner.Job(
+                entities: base,
+                plan: $0,
+                gameData: gameData,
+                navigationGrid: grid
+            )
+        }
+
+        var progress: [Int] = []
+        let parallel = try await ParallelBattleRunner.run(jobs) { progress.append($0) }
+        let sequential = jobs.map { ParallelBattleRunner.simulate($0) }
+
+        #expect(progress == Array(1...plans.count))
+        #expect(parallel.count == sequential.count)
+        for (first, second) in zip(parallel, sequential) {
+            let first = try #require(first)
+            let second = try #require(second)
+            #expect(first.score.destructionPercentage == second.score.destructionPercentage)
+            #expect(first.elapsedTime == second.elapsedTime)
+            #expect(first.survivingTroops == second.survivingTroops)
+        }
+    }
+
+    @Test
+    func realBattlesRunToTheEndInTheEvaluator() async throws {
+        let real = try arena(townHall: 12)
+        let entities = real.makeBaseEntities(layout: .fortress)
+        let plan = try #require(
+            AttackPlanGenerator(
+                navigationGrid: real.navigationGrid,
+                armyConfiguration: real.defaultArmy,
+                baseEntities: entities,
+                gameData: real.gameData,
+                armyRules: real.armyRules
+            ).generate().first
+        )
+        let evaluator = AttackPlanEvaluator(
+            baseEntities: entities,
+            gameData: real.gameData,
+            navigationGrid: real.navigationGrid
+        )
+
+        let evaluation = try #require(try await evaluator.evaluateAsync([plan]).first)
+
+        #expect(evaluation.result.elapsedTime <= 180)
+        #expect(evaluation.result.deployedTroops > 0)
+    }
 }

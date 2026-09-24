@@ -4,9 +4,15 @@ import SpriteKit
 final class BattleScene: SKScene {
     private struct EntityVisual {
         let root: SKNode
+        let healthBackground: SKSpriteNode
         let healthFill: SKSpriteNode
         let healthLabel: SKLabelNode
-        let targetLine: SKShapeNode
+
+        /// Only troops and defenses draw a line to their target.
+        let targetLine: SKShapeNode?
+
+        /// Walls hide their health bar until they are damaged.
+        let hidesHealthWhenFull: Bool
     }
 
     private let simulation: SimulationEngine
@@ -429,7 +435,7 @@ final class BattleScene: SKScene {
 
         for id in removedIDs {
             entityVisuals[id]?.root.removeFromParent()
-            entityVisuals[id]?.targetLine.removeFromParent()
+            entityVisuals[id]?.targetLine?.removeFromParent()
             entityVisuals.removeValue(forKey: id)
         }
 
@@ -627,27 +633,37 @@ final class BattleScene: SKScene {
         healthLabel.isHidden = isWall || navigationGrid.isLarge
         root.addChild(healthLabel)
 
-        let targetLine = SKShapeNode()
-        if definition.role == .troop {
-            targetLine.strokeColor =
-                definition.movementDomain == .air
-                    ? .systemCyan
-                    : .systemYellow
-        } else {
-            targetLine.strokeColor = .systemRed
+        var targetLine: SKShapeNode?
+        if definition.role == .troop || definition.role == .defense {
+            let line = SKShapeNode()
+            if definition.role == .troop {
+                line.strokeColor =
+                    definition.movementDomain == .air
+                        ? .systemCyan
+                        : .systemYellow
+            } else {
+                line.strokeColor = .systemRed
+            }
+            line.lineWidth = 2 * uiScale
+            line.alpha = 0.48
+            line.zPosition = 5
+            addChild(line)
+            targetLine = line
         }
-        targetLine.lineWidth = 2 * uiScale
-        targetLine.alpha = 0.48
-        targetLine.zPosition = 5
-        addChild(targetLine)
 
         root.zPosition = isWall ? 7 : 15
 
+        let hidesHealthWhenFull = isWall && navigationGrid.isLarge
+        healthBackground.isHidden = hidesHealthWhenFull
+        healthFill.isHidden = hidesHealthWhenFull
+
         entityVisuals[entity.id] = EntityVisual(
             root: root,
+            healthBackground: healthBackground,
             healthFill: healthFill,
             healthLabel: healthLabel,
-            targetLine: targetLine
+            targetLine: targetLine,
+            hidesHealthWhenFull: hidesHealthWhenFull
         )
         addChild(root)
     }
@@ -656,7 +672,10 @@ final class BattleScene: SKScene {
         for definition: CombatDefinition,
         to root: SKNode
     ) {
+        // Dozens of large rings on the real map cost frame rate and hide the
+        // battle; they are only drawn on the prototype arena.
         guard
+            !navigationGrid.isLarge,
             definition.role == .defense,
             definition.attackRange > 0
         else {
@@ -855,15 +874,32 @@ final class BattleScene: SKScene {
             visual.root.setScale(
                 entity.heroAbilityIsActive ? 1.12 : 1
             )
-            visual.healthFill.xScale = healthFraction
-            visual.healthFill.color =
-                healthFraction > 0.35 ? .systemGreen : .systemRed
-            let abilityLabel = entity.heroAbilityIsActive
-                ? " · \(definition.heroAbility?.displayName ?? "")"
-                : ""
-            let frozenLabel = isFrozen ? " · CONGELATA" : ""
-            visual.healthLabel.text =
-                "\(definition.displayName): \(Int(entity.hitPoints.rounded(.up)))/\(Int(definition.maxHitPoints))\(abilityLabel)\(frozenLabel)"
+            if visual.hidesHealthWhenFull {
+                let showsHealth = entity.isAlive && healthFraction < 1
+                visual.healthBackground.isHidden = !showsHealth
+                visual.healthFill.isHidden = !showsHealth
+            }
+            if visual.healthFill.xScale != healthFraction {
+                visual.healthFill.xScale = healthFraction
+                visual.healthFill.color =
+                    healthFraction > 0.35 ? .systemGreen : .systemRed
+            }
+            if !visual.healthLabel.isHidden {
+                let abilityLabel = entity.heroAbilityIsActive
+                    ? " · \(definition.heroAbility?.displayName ?? "")"
+                    : ""
+                let frozenLabel = isFrozen ? " · CONGELATA" : ""
+                let text =
+                    "\(definition.displayName): \(Int(entity.hitPoints.rounded(.up)))/\(Int(definition.maxHitPoints))\(abilityLabel)\(frozenLabel)"
+                // Re-rendering label text is costly; only touch it on change.
+                if visual.healthLabel.text != text {
+                    visual.healthLabel.text = text
+                }
+            }
+
+            guard let targetLine = visual.targetLine else {
+                continue
+            }
 
             let visibleTargetID =
                 entity.blockingWallID ??
@@ -871,7 +907,7 @@ final class BattleScene: SKScene {
 
             let target = visibleTargetID.flatMap { entitiesByID[$0] }
             updateTargetPath(
-                visual.targetLine,
+                targetLine,
                 from: entity,
                 displayPosition: displayPosition,
                 target: target,
@@ -1325,16 +1361,17 @@ final class BattleScene: SKScene {
             )
 
         case .wall:
-            return makeLabeledRectangle(
-                size: CGSize(width: 36, height: 36),
+            // Plain sprites batch far better than hundreds of shape nodes.
+            let wall = SKSpriteNode(
                 color: SKColor(
                     red: 0.44,
                     green: 0.31,
                     blue: 0.20,
                     alpha: 1
                 ),
-                text: ""
+                size: CGSize(width: 36, height: 36)
             )
+            return wall
         }
     }
 
