@@ -60,7 +60,7 @@ nonisolated struct SpellImpactAnalyzer {
     ) -> SpellImpactAnalysis {
         let entries = plan.orderedSpellDeployments.compactMap { order -> SpellImpactEntry? in
             let spell = gameData.spellDefinition(for: order.kind)
-            guard spell.instantDamage > 0 else { return nil }
+            guard spell.dealsInstantDamage else { return nil }
 
             var targetCount = 0
             var defenseCount = 0
@@ -81,7 +81,9 @@ nonisolated struct SpellImpactAnalyzer {
                 ) <= spell.radius else { continue }
 
                 let multiplier = definition.role == .wall ? 4.0 : 1.0
-                let damage = spell.instantDamage * multiplier
+                let damage = spell.impactDamage(
+                    forMaxHitPoints: definition.maxHitPoints
+                ) * multiplier
                 targetCount += 1
                 rawDamage += damage
                 usefulDamage += min(entity.hitPoints, damage)

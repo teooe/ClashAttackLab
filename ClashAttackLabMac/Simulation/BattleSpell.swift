@@ -22,6 +22,22 @@ nonisolated struct SpellDefinition {
     let disablesDefenses: Bool
     let behaviorEvidence: MechanicEvidence
     let tuningEvidence: MechanicEvidence
+
+    /// Extra instant damage as a fraction of each target's maximum hit
+    /// points, as dealt by the real Earthquake Spell.
+    var maxHitPointDamageFraction: Double = 0
+
+    /// Flat movement speed bonus in world units per second, added on top of
+    /// each troop's own speed, as granted by the real Rage Spell.
+    var movementSpeedBonus: Double = 0
+
+    var dealsInstantDamage: Bool {
+        instantDamage > 0 || maxHitPointDamageFraction > 0
+    }
+
+    func impactDamage(forMaxHitPoints maxHitPoints: Double) -> Double {
+        instantDamage + maxHitPointDamageFraction * maxHitPoints
+    }
 }
 
 /// Runtime spell zone. Its identifier matches the scheduled spell order.

@@ -112,6 +112,8 @@ final class AttackLabSession: ObservableObject {
         "Le abilità degli eroi sono pronte dopo il loro schieramento."
     @Published private(set) var lastSpellOptimization:
         SpellPlanOptimizationResult?
+    @Published private(set) var gameDataSource: GameDataSource = .prototype
+    @Published private(set) var gameDataError: String?
 
     let scene: BattleScene
 
@@ -197,7 +199,7 @@ final class AttackLabSession: ObservableObject {
         }
     }
 
-    private let gameData: any GameDataProviding
+    private var gameData: any GameDataProviding
     private let navigationGrid: NavigationGrid
     private var baseEntities: [BattleEntity]
     private var candidatePlans: [AttackPlan]
@@ -1129,6 +1131,63 @@ final class AttackLabSession: ObservableObject {
         selectedPlanID = firstPlan.id
         resetManualDraft()
         scene.loadAttackPlan(firstPlan)
+    }
+
+    /// Switches between prototype tuning and real per-level statistics,
+    /// then rebuilds every analysis that depends on them.
+    func applyGameDataSource(_ source: GameDataSource) {
+        guard source != gameDataSource, !isManualPlanning else {
+            return
+        }
+
+        let newGameData: any GameDataProviding
+        do {
+            newGameData = try source.makeGameData()
+        } catch {
+            gameDataError =
+                "Dati reali non disponibili: \(error.localizedDescription)"
+            return
+        }
+
+        cancelSearch()
+        gameData = newGameData
+        gameDataSource = source
+        gameDataError = nil
+        evaluator = AttackPlanEvaluator(
+            baseEntities: baseEntities,
+            gameData: gameData,
+            navigationGrid: navigationGrid
+        )
+
+        let guidance = makeGuidedCandidatePlans(
+            for: armyConfiguration,
+            entities: baseEntities,
+            baseName: activeBaseSnapshot.name
+        )
+        armyEntryAdvice = guidance.advice
+        if !guidance.plans.isEmpty {
+            candidatePlans = guidance.plans
+        }
+
+        evaluations = []
+        comparisonEvaluations = []
+        lastSimulationResult = nil
+        currentPlanAnalysis = nil
+        robustnessRankings = []
+        refinementReport = nil
+        generatedPlanRankings = []
+        baseReconnaissance = nil
+        savedBasePlanAnalysis = nil
+        savedBasePlanRankings = []
+        baseStrategyBook = nil
+        scenarioAnalysis = nil
+        resilientPlanRankings = []
+        lastSpellOptimization = nil
+        scene.loadScenario(
+            entities: baseEntities,
+            attackPlan: activePlan,
+            gameData: gameData
+        )
     }
 
     func applyBaseLayout(_ layout: PrototypeBaseLayout) {

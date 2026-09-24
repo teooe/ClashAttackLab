@@ -161,12 +161,14 @@ final class BattleScene: SKScene {
 
     func loadScenario(
         entities: [BattleEntity],
-        attackPlan: AttackPlan
+        attackPlan: AttackPlan,
+        gameData: (any GameDataProviding)? = nil
     ) {
         self.attackPlan = attackPlan
         simulation.loadScenario(
             entities: entities,
-            attackPlan: attackPlan
+            attackPlan: attackPlan,
+            gameData: gameData
         )
         refreshDeploymentMarkers()
 

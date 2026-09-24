@@ -4,7 +4,7 @@ import CryptoKit
 final class SimulationEngine {
     private let fixedTimeStep: TimeInterval = 1.0 / 60.0
     private let timeLimit: TimeInterval = 60
-    private let gameData: any GameDataProviding
+    private var gameData: any GameDataProviding
     private let navigationGrid: NavigationGrid
     private let pathfinder: AStarPathfinder
     private let targetSelectionSystem: TargetSelectionSystem
@@ -221,8 +221,12 @@ final class SimulationEngine {
 
     func loadScenario(
         entities: [BattleEntity],
-        attackPlan: AttackPlan
+        attackPlan: AttackPlan,
+        gameData: (any GameDataProviding)? = nil
     ) {
+        if let gameData {
+            self.gameData = gameData
+        }
         initialEntities = entities
         self.attackPlan = attackPlan
         reset()
@@ -385,10 +389,11 @@ final class SimulationEngine {
         {
             let definition = spellDefinition(for: next.kind)
             pendingSpellDeployments.removeFirst()
-            if definition.instantDamage > 0 {
+            if definition.dealsInstantDamage {
                 var damage: [UUID: Double] = [:]
                 for index in entities.indices where entities[index].isAlive {
-                    let role = gameData.definition(for: entities[index].kind).role
+                    let targetDefinition = gameData.definition(for: entities[index].kind)
+                    let role = targetDefinition.role
                     let isStandardTarget = role == .defense || role == .building
                     let isEarthquakeWall = next.kind == .earthquake && role == .wall
                     guard (isStandardTarget || isEarthquakeWall) &&
@@ -396,7 +401,9 @@ final class SimulationEngine {
                     else { continue }
                     let wallMultiplier = role == .wall ? 4.0 : 1.0
                     damage[entities[index].id, default: 0] +=
-                        definition.instantDamage * wallMultiplier
+                        definition.impactDamage(
+                            forMaxHitPoints: targetDefinition.maxHitPoints
+                        ) * wallMultiplier
                 }
                 apply(damage)
             } else {
@@ -1640,10 +1647,14 @@ final class SimulationEngine {
                 continue
             }
 
+            let baseSpeed = definition(for: entity.kind).movementSpeed
+            let bonusMultiplier = baseSpeed > 0
+                ? (baseSpeed + spellData.movementSpeedBonus) / baseSpeed
+                : 1
             damage = max(damage, spellData.damageMultiplier)
             movementSpeed = max(
                 movementSpeed,
-                spellData.movementSpeedMultiplier
+                spellData.movementSpeedMultiplier * bonusMultiplier
             )
             attackSpeed = max(
                 attackSpeed,
