@@ -25,6 +25,30 @@ struct ContentView: View {
                         .foregroundStyle(.secondary)
                         .lineLimit(1)
                         .minimumScaleFactor(0.8)
+
+                    Picker("Dati di gioco", selection: Binding(
+                        get: { session.gameDataSource },
+                        set: { session.applyGameDataSource($0) }
+                    )) {
+                        Text(GameDataSource.prototype.title)
+                            .tag(GameDataSource.prototype)
+                        ForEach(
+                            GameDataSource.referenceTownHalls,
+                            id: \.self
+                        ) { townHall in
+                            Text(
+                                GameDataSource.reference(townHall: townHall).title
+                            )
+                            .tag(GameDataSource.reference(townHall: townHall))
+                        }
+                    }
+                    .pickerStyle(.menu)
+                    .fixedSize()
+                    .disabled(session.isManualPlanning)
+                    .help(
+                        session.gameDataError ??
+                            "Valori di combattimento: prototipo o statistiche reali al livello massimo del Municipio scelto."
+                    )
                 }
 
                 Spacer()
@@ -108,35 +132,6 @@ struct ContentView: View {
                 } label: {
                     Label("Pausa / Riprendi", systemImage: "pause.fill")
                 }
-
-                Menu {
-                    Button(GameDataSource.prototype.title) {
-                        session.applyGameDataSource(.prototype)
-                    }
-                    Divider()
-                    ForEach(
-                        GameDataSource.referenceTownHalls,
-                        id: \.self
-                    ) { townHall in
-                        Button(
-                            GameDataSource.reference(townHall: townHall).title
-                        ) {
-                            session.applyGameDataSource(
-                                .reference(townHall: townHall)
-                            )
-                        }
-                    }
-                } label: {
-                    Label(
-                        session.gameDataSource.title,
-                        systemImage: "chart.bar.doc.horizontal"
-                    )
-                }
-                .disabled(session.isManualPlanning)
-                .help(
-                    session.gameDataError ??
-                        "Valori di combattimento: prototipo o statistiche reali al livello massimo del Municipio scelto."
-                )
 
                 Menu("Velocità") {
                     Button("1×") {
