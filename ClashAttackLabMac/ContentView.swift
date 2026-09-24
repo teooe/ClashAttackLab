@@ -68,115 +68,23 @@ struct ContentView: View {
                 }
 
                 Spacer()
-
-                Menu {
-                    Button("Ottimizza deploy · esercito invariato") {
-                        session.findBestAttack()
-                    }
-                    Button("Confronta anche altri eserciti") {
-                        session.findBestArmyAndAttack()
-                    }
-                } label: {
-                    Label("Trova attacco", systemImage: "wand.and.stars")
-                }
-                .disabled(session.isManualPlanning)
-                .help("La ricerca degli eserciti usa sostituzioni a pari capacità del prototipo.")
-
-                Button {
-                    showingArmyBuilder = true
-                } label: {
-                    Label("Esercito", systemImage: "person.3.fill")
-                }
-
-                Button {
-                    showingBaseLibrary = true
-                } label: {
-                    Label("Base", systemImage: "square.grid.3x3.fill")
-                }
-                .disabled(session.isRealArena)
-                .help(
-                    session.isRealArena
-                        ? "In modalità reale scegli la base sotto il titolo."
-                        : "Scegli o modifica la base del prototipo."
-                )
-
-                Button {
-                    showingSavedBaseLibrary = true
-                } label: {
-                    Label(
-                        "Basi salvate",
-                        systemImage: "square.stack.3d.up"
-                    )
-                }
-                .disabled(session.isRealArena)
-
-                Button {
-                    showingPlanLibrary = true
-                } label: {
-                    Label("Piani", systemImage: "tray.full")
-                }
-
-                Button {
-                    showingAttackHistory = true
-                } label: {
-                    Label("Storico", systemImage: "clock.arrow.circlepath")
-                }
-
-                Button {
-                    showingStrategyAnalysis = true
-                } label: {
-                    Label("Analisi", systemImage: "chart.bar.xaxis")
-                }
-
-                Button {
-                    if session.isManualPlanning {
-                        session.cancelManualPlanning()
-                    } else {
-                        session.beginManualPlanning()
-                    }
-                } label: {
-                    Label(
-                        session.isManualPlanning
-                            ? "Annulla piano"
-                            : "Piano manuale",
-                        systemImage: "cursorarrow.rays"
-                    )
-                }
-
-                Button {
-                    session.scene.startSimulation()
-                } label: {
-                    Label("Avvia", systemImage: "play.fill")
-                }
-                .disabled(session.isManualPlanning)
-
-                Button {
-                    session.scene.togglePause()
-                } label: {
-                    Label("Pausa / Riprendi", systemImage: "pause.fill")
-                }
-
-                Menu("Velocità") {
-                    Button("1×") {
-                        session.scene.simulationSpeed = 1
-                    }
-                    Button("2×") {
-                        session.scene.simulationSpeed = 2
-                    }
-                    Button("4×") {
-                        session.scene.simulationSpeed = 4
-                    }
-                }
-
-                Button {
-                    session.restartSimulation()
-                } label: {
-                    Label("Riavvia", systemImage: "arrow.counterclockwise")
-                }
-                .keyboardShortcut("r", modifiers: [.command])
             }
             .padding(.horizontal)
             .padding(.top)
+
+            HStack(spacing: 0) {
+                // Full labels when the window is wide enough, icons only
+                // otherwise, so button titles are never truncated.
+                ViewThatFits(in: .horizontal) {
+                    actionButtons
+                        .labelStyle(.titleAndIcon)
+                    actionButtons
+                        .labelStyle(.iconOnly)
+                }
+                Spacer(minLength: 0)
+            }
+            .padding(.horizontal)
+            .padding(.top, 8)
 
             HStack(spacing: 12) {
                 Button {
@@ -418,6 +326,126 @@ struct ContentView: View {
         }
     }
 
+
+    private var actionButtons: some View {
+        HStack(spacing: 8) {
+            Menu {
+                Button("Ottimizza deploy · esercito invariato") {
+                    session.findBestAttack()
+                }
+                Button("Confronta anche altri eserciti") {
+                    session.findBestArmyAndAttack()
+                }
+            } label: {
+                Label("Trova attacco", systemImage: "wand.and.stars")
+            }
+            .disabled(session.isManualPlanning)
+            .help("La ricerca degli eserciti usa sostituzioni a pari capacità del prototipo.")
+
+            Button {
+                showingArmyBuilder = true
+            } label: {
+                Label("Esercito", systemImage: "person.3.fill")
+            }
+            .help("Componi l’esercito")
+
+            Button {
+                showingBaseLibrary = true
+            } label: {
+                Label("Base", systemImage: "square.grid.3x3.fill")
+            }
+            .disabled(session.isRealArena)
+            .help(
+                session.isRealArena
+                    ? "In modalità reale scegli la base sotto il titolo."
+                    : "Scegli o modifica la base del prototipo."
+            )
+
+            Button {
+                showingSavedBaseLibrary = true
+            } label: {
+                Label(
+                    "Basi salvate",
+                    systemImage: "square.stack.3d.up"
+                )
+            }
+            .disabled(session.isRealArena)
+            .help("Basi salvate del prototipo")
+
+            Button {
+                showingPlanLibrary = true
+            } label: {
+                Label("Piani", systemImage: "tray.full")
+            }
+            .help("Piani salvati")
+
+            Button {
+                showingAttackHistory = true
+            } label: {
+                Label("Storico", systemImage: "clock.arrow.circlepath")
+            }
+            .help("Storico delle battaglie")
+
+            Button {
+                showingStrategyAnalysis = true
+            } label: {
+                Label("Analisi", systemImage: "chart.bar.xaxis")
+            }
+            .help("Analisi delle strategie")
+
+            Button {
+                if session.isManualPlanning {
+                    session.cancelManualPlanning()
+                } else {
+                    session.beginManualPlanning()
+                }
+            } label: {
+                Label(
+                    session.isManualPlanning
+                        ? "Annulla piano"
+                        : "Piano manuale",
+                    systemImage: "cursorarrow.rays"
+                )
+            }
+            .help("Piazza le truppe a mano")
+
+            Button {
+                session.scene.startSimulation()
+            } label: {
+                Label("Avvia", systemImage: "play.fill")
+            }
+            .help("Avvia la battaglia")
+            .disabled(session.isManualPlanning)
+
+            Button {
+                session.scene.togglePause()
+            } label: {
+                Label("Pausa / Riprendi", systemImage: "pause.fill")
+            }
+            .help("Pausa / Riprendi")
+
+            Menu("Velocità") {
+                Button("1×") {
+                    session.scene.simulationSpeed = 1
+                }
+                Button("2×") {
+                    session.scene.simulationSpeed = 2
+                }
+                Button("4×") {
+                    session.scene.simulationSpeed = 4
+                }
+            }
+
+            Button {
+                session.restartSimulation()
+            } label: {
+                Label("Riavvia", systemImage: "arrow.counterclockwise")
+            }
+            .help("Riavvia la battaglia")
+            .keyboardShortcut("r", modifiers: [.command])
+        }
+        .fixedSize()
+    }
 
     private var manualPlannerBar: some View {
         VStack(alignment: .leading, spacing: 10) {
