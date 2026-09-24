@@ -1,4 +1,5 @@
 import Foundation
+import SpriteKit
 import Testing
 @testable import ClashAttackLabMac
 
