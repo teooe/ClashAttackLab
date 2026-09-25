@@ -86,18 +86,33 @@ nonisolated struct ArmyConfiguration: Equatable {
             wallWreckers + stoneSlammers
     }
 
+    static let troopKinds: [BattleEntityKind] = [
+        .giant, .barbarian, .archer, .wallBreaker, .wizard, .balloon,
+        .dragon, .barbarianKing, .archerQueen, .wallWrecker, .stoneSlammer
+    ]
+
+    static let spellKinds: [BattleSpellKind] = [
+        .heal, .rage, .freeze, .lightning, .earthquake
+    ]
+
     var troopCapacityUsed: Int {
-        giants * 5 +
-            barbarians +
-            archers +
-            wallBreakers * 2 +
-            wizards * 4 +
-            balloons * 3 +
-            dragons * 2
+        troopCapacityUsed(under: .prototype)
     }
 
     var spellCapacityUsed: Int {
-        healSpells + rageSpells + freezeSpells + lightningSpells + earthquakeSpells
+        spellCapacityUsed(under: .prototype)
+    }
+
+    func troopCapacityUsed(under rules: ArmyCapacityRules) -> Int {
+        Self.troopKinds.reduce(0) {
+            $0 + troopCount(for: $1) * rules.housing(for: $1)
+        }
+    }
+
+    func spellCapacityUsed(under rules: ArmyCapacityRules) -> Int {
+        Self.spellKinds.reduce(0) {
+            $0 + spellCount(for: $1) * rules.housing(for: $1)
+        }
     }
 
     var distinctTroopKindCount: Int {
@@ -117,16 +132,18 @@ nonisolated struct ArmyConfiguration: Equatable {
     }
 
     var isValid: Bool {
-        totalTroops > 0 &&
-            troopCapacityUsed <= Self.maximumTroopCapacity &&
-            spellCapacityUsed <= Self.maximumSpellCapacity &&
-            barbarianKings <= 1 &&
-            archerQueens <= 1 &&
-            wallWreckers + stoneSlammers <= 1 &&
-            allCountsAreNonnegative
+        isValid(under: .prototype)
     }
 
     var validationMessage: String? {
+        validationMessage(under: .prototype)
+    }
+
+    func isValid(under rules: ArmyCapacityRules) -> Bool {
+        validationMessage(under: rules) == nil
+    }
+
+    func validationMessage(under rules: ArmyCapacityRules) -> String? {
         if !allCountsAreNonnegative {
             return "Le quantità non possono essere negative."
         }
@@ -135,20 +152,32 @@ nonisolated struct ArmyConfiguration: Equatable {
             return "Aggiungi almeno una truppa."
         }
 
-        if troopCapacityUsed > Self.maximumTroopCapacity {
+        if troopCapacityUsed(under: rules) > rules.troopCapacity {
             return "Capacità truppe superata."
         }
 
         if barbarianKings > 1 || archerQueens > 1 {
-            return "Puoi usare un solo esemplare per ciascun eroe prototipo."
+            return "Puoi usare un solo esemplare per ciascun eroe."
         }
 
         if wallWreckers + stoneSlammers > 1 {
-            return "Puoi usare una sola macchina d’assedio prototipo."
+            return "Puoi usare una sola macchina d’assedio."
         }
 
-        if spellCapacityUsed > Self.maximumSpellCapacity {
+        if spellCapacityUsed(under: rules) > rules.spellCapacity {
             return "Capacità incantesimi superata."
+        }
+
+        if let locked = Self.troopKinds.first(where: {
+            troopCount(for: $0) > 0 && !rules.allows($0)
+        }) {
+            return "\(rules.lockedName(for: locked)) non è ancora sbloccato."
+        }
+
+        if let locked = Self.spellKinds.first(where: {
+            spellCount(for: $0) > 0 && !rules.allows($0)
+        }) {
+            return "\(rules.lockedName(for: locked)) non è ancora sbloccato."
         }
 
         return nil
@@ -179,7 +208,8 @@ nonisolated struct ArmyConfiguration: Equatable {
         case .stoneSlammer:
             return stoneSlammers
         case .cannon, .archerTower, .mortar, .wizardTower, .infernoTower, .bombTower, .hiddenTesla, .giantBomb, .airBomb, .airSweeper, .airDefense,
-             .townHall, .goldStorage, .wall:
+             .townHall, .goldStorage, .wall,
+             .goldMine, .elixirCollector, .darkElixirDrill, .elixirStorage, .darkElixirStorage, .clanCastle, .armyCamp, .barracks, .darkBarracks, .laboratory, .spellFactory, .darkSpellFactory, .workshop, .heroHall, .petHouse, .blacksmith, .builderHut, .helperHut:
             return 0
         }
     }
@@ -270,6 +300,61 @@ nonisolated struct ArmyConfiguration: Equatable {
 }
 
 
+/// Housing costs, capacities and unlocked units used to validate an army.
+nonisolated struct ArmyCapacityRules: Equatable {
+    var troopCapacity: Int
+    var spellCapacity: Int
+    var troopHousing: [BattleEntityKind: Int]
+    var spellHousing: [BattleSpellKind: Int]
+
+    /// Nil allows every troop or spell.
+    var unlockedTroops: Set<BattleEntityKind>?
+    var unlockedSpells: Set<BattleSpellKind>?
+
+    /// Short description shown next to the capacity bars.
+    var label: String
+
+    /// Prototype constraints that keep comparisons fair; not official values.
+    static let prototype = ArmyCapacityRules(
+        troopCapacity: ArmyConfiguration.maximumTroopCapacity,
+        spellCapacity: ArmyConfiguration.maximumSpellCapacity,
+        troopHousing: [
+            .giant: 5, .barbarian: 1, .archer: 1, .wallBreaker: 2,
+            .wizard: 4, .balloon: 3, .dragon: 2
+        ],
+        spellHousing: [
+            .heal: 1, .rage: 1, .freeze: 1, .lightning: 1, .earthquake: 1
+        ],
+        unlockedTroops: nil,
+        unlockedSpells: nil,
+        label: "Prototipo"
+    )
+
+    func housing(for kind: BattleEntityKind) -> Int {
+        troopHousing[kind] ?? 0
+    }
+
+    func housing(for kind: BattleSpellKind) -> Int {
+        spellHousing[kind] ?? 0
+    }
+
+    func allows(_ kind: BattleEntityKind) -> Bool {
+        unlockedTroops?.contains(kind) ?? true
+    }
+
+    func allows(_ kind: BattleSpellKind) -> Bool {
+        unlockedSpells?.contains(kind) ?? true
+    }
+
+    fileprivate func lockedName(for kind: BattleEntityKind) -> String {
+        PrototypeGameData().definition(for: kind).displayName
+    }
+
+    fileprivate func lockedName(for kind: BattleSpellKind) -> String {
+        PrototypeGameData().spellDefinition(for: kind).displayName
+    }
+}
+
 nonisolated struct ArmySearchVariant {
     let name: String
     let configuration: ArmyConfiguration
@@ -278,14 +363,18 @@ nonisolated struct ArmySearchVariant {
 /// Local, bounded exploration of equal-capacity prototype armies.
 /// It does not claim to enumerate every possible composition.
 nonisolated enum ArmyCompositionSearch {
-    static func variants(from source: ArmyConfiguration) -> [ArmySearchVariant] {
-        guard source.isValid else { return [] }
+    static func variants(
+        from source: ArmyConfiguration,
+        rules: ArmyCapacityRules = .prototype
+    ) -> [ArmySearchVariant] {
+        guard source.isValid(under: rules) else { return [] }
         var result = [ArmySearchVariant(name: "Esercito attuale", configuration: source)]
         func append(_ name: String, change: (inout ArmyConfiguration) -> Void) {
             var candidate = source
             change(&candidate)
-            guard candidate.isValid,
-                candidate.troopCapacityUsed == source.troopCapacityUsed,
+            guard candidate.isValid(under: rules),
+                candidate.troopCapacityUsed(under: rules) ==
+                    source.troopCapacityUsed(under: rules),
                 !result.contains(where: { $0.configuration == candidate }) else { return }
             result.append(ArmySearchVariant(name: name, configuration: candidate))
         }

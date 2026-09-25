@@ -203,7 +203,7 @@ nonisolated enum AttackPlanArchiveCodec {
                 guard isTroop(order.kind), validTime(order.deploymentTime),
                     inBounds(order.position, grid: grid),
                     let cell = grid.coordinate(for: order.position),
-                    cell.column <= 2, grid.isWalkable(cell) else {
+                    grid.isDeploymentCell(cell), grid.isWalkable(cell) else {
                     throw AttackPlanArchiveError.invalid("Deploy non valido: truppa, tempo o posizione fuori dalla fascia consentita.")
                 }
             }
@@ -244,7 +244,8 @@ nonisolated enum AttackPlanArchiveCodec {
 
     private static func isTroop(_ kind: BattleEntityKind) -> Bool {
         switch kind {
-        case .cannon, .archerTower, .mortar, .wizardTower, .infernoTower, .bombTower, .hiddenTesla, .giantBomb, .airBomb, .airSweeper, .airDefense, .townHall, .goldStorage, .wall:
+        case .cannon, .archerTower, .mortar, .wizardTower, .infernoTower, .bombTower, .hiddenTesla, .giantBomb, .airBomb, .airSweeper, .airDefense, .townHall, .goldStorage, .wall,
+             .goldMine, .elixirCollector, .darkElixirDrill, .elixirStorage, .darkElixirStorage, .clanCastle, .armyCamp, .barracks, .darkBarracks, .laboratory, .spellFactory, .darkSpellFactory, .workshop, .heroHall, .petHouse, .blacksmith, .builderHut, .helperHut:
             return false
         default:
             return true

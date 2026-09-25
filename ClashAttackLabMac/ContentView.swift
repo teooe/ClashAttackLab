@@ -25,111 +25,66 @@ struct ContentView: View {
                         .foregroundStyle(.secondary)
                         .lineLimit(1)
                         .minimumScaleFactor(0.8)
+
+                    HStack(spacing: 12) {
+                        Picker("Modalità", selection: Binding(
+                            get: { session.gameDataSource },
+                            set: { session.applyGameDataSource($0) }
+                        )) {
+                            Text(GameDataSource.prototype.title)
+                                .tag(GameDataSource.prototype)
+                            ForEach(
+                                GameDataSource.referenceTownHalls,
+                                id: \.self
+                            ) { townHall in
+                                Text(
+                                    GameDataSource.reference(townHall: townHall).title
+                                )
+                                .tag(GameDataSource.reference(townHall: townHall))
+                            }
+                        }
+                        .pickerStyle(.menu)
+                        .fixedSize()
+                        .disabled(session.isManualPlanning)
+                        .help(
+                            session.gameDataError ??
+                                "Prototipo: arena di prova. Reale: mappa 44×44, statistiche, esercito e battaglia di 3 minuti del Municipio scelto."
+                        )
+
+                        if session.isRealArena {
+                            Picker("Base", selection: Binding(
+                                get: { session.baseLayout },
+                                set: { session.applyBaseLayout($0) }
+                            )) {
+                                ForEach(PrototypeBaseLayout.allCases) { layout in
+                                    Text(layout.displayName).tag(layout)
+                                }
+                            }
+                            .pickerStyle(.menu)
+                            .fixedSize()
+                            .disabled(session.isManualPlanning)
+                        }
+                    }
                 }
 
                 Spacer()
-
-                Menu {
-                    Button("Ottimizza deploy · esercito invariato") {
-                        session.findBestAttack()
-                    }
-                    Button("Confronta anche altri eserciti") {
-                        session.findBestArmyAndAttack()
-                    }
-                } label: {
-                    Label("Trova attacco", systemImage: "wand.and.stars")
-                }
-                .disabled(session.isManualPlanning)
-                .help("La ricerca degli eserciti usa sostituzioni a pari capacità del prototipo.")
-
-                Button {
-                    showingArmyBuilder = true
-                } label: {
-                    Label("Esercito", systemImage: "person.3.fill")
-                }
-
-                Button {
-                    showingBaseLibrary = true
-                } label: {
-                    Label("Base", systemImage: "square.grid.3x3.fill")
-                }
-
-                Button {
-                    showingSavedBaseLibrary = true
-                } label: {
-                    Label(
-                        "Basi salvate",
-                        systemImage: "square.stack.3d.up"
-                    )
-                }
-
-                Button {
-                    showingPlanLibrary = true
-                } label: {
-                    Label("Piani", systemImage: "tray.full")
-                }
-
-                Button {
-                    showingAttackHistory = true
-                } label: {
-                    Label("Storico", systemImage: "clock.arrow.circlepath")
-                }
-
-                Button {
-                    showingStrategyAnalysis = true
-                } label: {
-                    Label("Analisi", systemImage: "chart.bar.xaxis")
-                }
-
-                Button {
-                    if session.isManualPlanning {
-                        session.cancelManualPlanning()
-                    } else {
-                        session.beginManualPlanning()
-                    }
-                } label: {
-                    Label(
-                        session.isManualPlanning
-                            ? "Annulla piano"
-                            : "Piano manuale",
-                        systemImage: "cursorarrow.rays"
-                    )
-                }
-
-                Button {
-                    session.scene.startSimulation()
-                } label: {
-                    Label("Avvia", systemImage: "play.fill")
-                }
-                .disabled(session.isManualPlanning)
-
-                Button {
-                    session.scene.togglePause()
-                } label: {
-                    Label("Pausa / Riprendi", systemImage: "pause.fill")
-                }
-
-                Menu("Velocità") {
-                    Button("1×") {
-                        session.scene.simulationSpeed = 1
-                    }
-                    Button("2×") {
-                        session.scene.simulationSpeed = 2
-                    }
-                    Button("4×") {
-                        session.scene.simulationSpeed = 4
-                    }
-                }
-
-                Button {
-                    session.restartSimulation()
-                } label: {
-                    Label("Riavvia", systemImage: "arrow.counterclockwise")
-                }
-                .keyboardShortcut("r", modifiers: [.command])
             }
             .padding(.horizontal)
             .padding(.top)
+
+            HStack(spacing: 0) {
+                // Full labels when the window is wide enough, icons only
+                // otherwise, so button titles are never truncated.
+                ViewThatFits(in: .horizontal) {
+                    actionButtons
+                        .labelStyle(.titleAndIcon)
+                    actionButtons
+                        .labelStyle(.iconOnly)
+                }
+                Spacer(minLength: 0)
+            }
+            .padding(.horizontal)
+            .padding(.top, 8)
 
             HStack(spacing: 12) {
                 Button {
@@ -328,11 +283,14 @@ struct ContentView: View {
             }
 
             SpriteView(scene: session.scene)
+                .id(ObjectIdentifier(session.scene))
                 .frame(minWidth: 840, minHeight: 600)
         }
         .sheet(isPresented: $showingArmyBuilder) {
             ArmyEditorView(
-                configuration: session.armyConfiguration
+                configuration: session.armyConfiguration,
+                rules: session.armyRules,
+                defaultArmy: session.defaultArmy
             ) { configuration in
                 session.applyArmyConfiguration(configuration)
             }
@@ -368,6 +326,126 @@ struct ContentView: View {
         }
     }
 
+
+    private var actionButtons: some View {
+        HStack(spacing: 8) {
+            Menu {
+                Button("Ottimizza deploy · esercito invariato") {
+                    session.findBestAttack()
+                }
+                Button("Confronta anche altri eserciti") {
+                    session.findBestArmyAndAttack()
+                }
+            } label: {
+                Label("Trova attacco", systemImage: "wand.and.stars")
+            }
+            .disabled(session.isManualPlanning)
+            .help("La ricerca degli eserciti usa sostituzioni a pari capacità del prototipo.")
+
+            Button {
+                showingArmyBuilder = true
+            } label: {
+                Label("Esercito", systemImage: "person.3.fill")
+            }
+            .help("Componi l’esercito")
+
+            Button {
+                showingBaseLibrary = true
+            } label: {
+                Label("Base", systemImage: "square.grid.3x3.fill")
+            }
+            .disabled(session.isRealArena)
+            .help(
+                session.isRealArena
+                    ? "In modalità reale scegli la base sotto il titolo."
+                    : "Scegli o modifica la base del prototipo."
+            )
+
+            Button {
+                showingSavedBaseLibrary = true
+            } label: {
+                Label(
+                    "Basi salvate",
+                    systemImage: "square.stack.3d.up"
+                )
+            }
+            .disabled(session.isRealArena)
+            .help("Basi salvate del prototipo")
+
+            Button {
+                showingPlanLibrary = true
+            } label: {
+                Label("Piani", systemImage: "tray.full")
+            }
+            .help("Piani salvati")
+
+            Button {
+                showingAttackHistory = true
+            } label: {
+                Label("Storico", systemImage: "clock.arrow.circlepath")
+            }
+            .help("Storico delle battaglie")
+
+            Button {
+                showingStrategyAnalysis = true
+            } label: {
+                Label("Analisi", systemImage: "chart.bar.xaxis")
+            }
+            .help("Analisi delle strategie")
+
+            Button {
+                if session.isManualPlanning {
+                    session.cancelManualPlanning()
+                } else {
+                    session.beginManualPlanning()
+                }
+            } label: {
+                Label(
+                    session.isManualPlanning
+                        ? "Annulla piano"
+                        : "Piano manuale",
+                    systemImage: "cursorarrow.rays"
+                )
+            }
+            .help("Piazza le truppe a mano")
+
+            Button {
+                session.scene.startSimulation()
+            } label: {
+                Label("Avvia", systemImage: "play.fill")
+            }
+            .help("Avvia la battaglia")
+            .disabled(session.isManualPlanning)
+
+            Button {
+                session.scene.togglePause()
+            } label: {
+                Label("Pausa / Riprendi", systemImage: "pause.fill")
+            }
+            .help("Pausa / Riprendi")
+
+            Menu("Velocità") {
+                Button("1×") {
+                    session.scene.simulationSpeed = 1
+                }
+                Button("2×") {
+                    session.scene.simulationSpeed = 2
+                }
+                Button("4×") {
+                    session.scene.simulationSpeed = 4
+                }
+            }
+
+            Button {
+                session.restartSimulation()
+            } label: {
+                Label("Riavvia", systemImage: "arrow.counterclockwise")
+            }
+            .help("Riavvia la battaglia")
+            .keyboardShortcut("r", modifiers: [.command])
+        }
+        .fixedSize()
+    }
 
     private var manualPlannerBar: some View {
         VStack(alignment: .leading, spacing: 10) {
@@ -688,7 +766,8 @@ struct ContentView: View {
         case .stoneSlammer:
             return "Schiantapietre"
         case .cannon, .archerTower, .mortar, .wizardTower, .infernoTower, .bombTower, .hiddenTesla, .giantBomb, .airBomb, .airSweeper, .airDefense,
-             .townHall, .goldStorage, .wall:
+             .townHall, .goldStorage, .wall,
+             .goldMine, .elixirCollector, .darkElixirDrill, .elixirStorage, .darkElixirStorage, .clanCastle, .armyCamp, .barracks, .darkBarracks, .laboratory, .spellFactory, .darkSpellFactory, .workshop, .heroHall, .petHouse, .blacksmith, .builderHut, .helperHut:
             return "Edificio"
         }
     }
@@ -718,7 +797,8 @@ struct ContentView: View {
         case .stoneSlammer:
             return "SP"
         case .cannon, .archerTower, .mortar, .wizardTower, .infernoTower, .bombTower, .hiddenTesla, .giantBomb, .airBomb, .airSweeper, .airDefense,
-             .townHall, .goldStorage, .wall:
+             .townHall, .goldStorage, .wall,
+             .goldMine, .elixirCollector, .darkElixirDrill, .elixirStorage, .darkElixirStorage, .clanCastle, .armyCamp, .barracks, .darkBarracks, .laboratory, .spellFactory, .darkSpellFactory, .workshop, .heroHall, .petHouse, .blacksmith, .builderHut, .helperHut:
             return "?"
         }
     }
@@ -748,7 +828,8 @@ struct ContentView: View {
         case .stoneSlammer:
             return .cyan
         case .cannon, .archerTower, .mortar, .wizardTower, .infernoTower, .bombTower, .hiddenTesla, .giantBomb, .airBomb, .airSweeper, .airDefense,
-             .townHall, .goldStorage, .wall:
+             .townHall, .goldStorage, .wall,
+             .goldMine, .elixirCollector, .darkElixirDrill, .elixirStorage, .darkElixirStorage, .clanCastle, .armyCamp, .barracks, .darkBarracks, .laboratory, .spellFactory, .darkSpellFactory, .workshop, .heroHall, .petHouse, .blacksmith, .builderHut, .helperHut:
             return .gray
         }
     }

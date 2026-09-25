@@ -4,13 +4,19 @@ struct ArmyEditorView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var draft: ArmyConfiguration
 
+    private let rules: ArmyCapacityRules
+    private let defaultArmy: ArmyConfiguration
     private let onApply: (ArmyConfiguration) -> Void
 
     init(
         configuration: ArmyConfiguration,
+        rules: ArmyCapacityRules = .prototype,
+        defaultArmy: ArmyConfiguration = .prototypeDefault,
         onApply: @escaping (ArmyConfiguration) -> Void
     ) {
         _draft = State(initialValue: configuration)
+        self.rules = rules
+        self.defaultArmy = defaultArmy
         self.onApply = onApply
     }
 
@@ -33,35 +39,35 @@ struct ArmyEditorView: View {
                         symbol: "G",
                         color: .orange,
                         title: "Gigante",
-                        cost: 5,
+                        kind: .giant,
                         value: $draft.giants
                     )
                     troopRow(
                         symbol: "B",
                         color: .red,
                         title: "Barbaro",
-                        cost: 1,
+                        kind: .barbarian,
                         value: $draft.barbarians
                     )
                     troopRow(
                         symbol: "A",
                         color: .pink,
                         title: "Arciera",
-                        cost: 1,
+                        kind: .archer,
                         value: $draft.archers
                     )
                     troopRow(
                         symbol: "WB",
                         color: .green,
                         title: "Spaccamuro",
-                        cost: 2,
+                        kind: .wallBreaker,
                         value: $draft.wallBreakers
                     )
                     troopRow(
                         symbol: "W",
                         color: .blue,
                         title: "Mago",
-                        cost: 4,
+                        kind: .wizard,
                         value: $draft.wizards
                     )
                 }
@@ -74,14 +80,14 @@ struct ArmyEditorView: View {
                         symbol: "BL",
                         color: .indigo,
                         title: "Mongolfiera",
-                        cost: 3,
+                        kind: .balloon,
                         value: $draft.balloons
                     )
                     troopRow(
                         symbol: "DR",
                         color: .mint,
                         title: "Drago",
-                        cost: 2,
+                        kind: .dragon,
                         value: $draft.dragons
                     )
                 }
@@ -93,14 +99,14 @@ struct ArmyEditorView: View {
                     symbol: "BK",
                     color: .yellow,
                     title: "Re barbaro",
-                    cost: 0,
+                    kind: .barbarianKing,
                     value: $draft.barbarianKings
                 )
                 troopRow(
                     symbol: "AQ",
                     color: .purple,
                     title: "Regina degli arcieri",
-                    cost: 0,
+                    kind: .archerQueen,
                     value: $draft.archerQueens
                 )
             }
@@ -110,14 +116,14 @@ struct ArmyEditorView: View {
                     symbol: "AR",
                     color: .brown,
                     title: "Ariete da guerra",
-                    cost: 0,
+                    kind: .wallWrecker,
                     value: $draft.wallWreckers
                 )
                 troopRow(
                     symbol: "SP",
                     color: .cyan,
                     title: "Schiantapietre",
-                    cost: 0,
+                    kind: .stoneSlammer,
                     value: $draft.stoneSlammers
                 )
             }
@@ -128,30 +134,35 @@ struct ArmyEditorView: View {
                         symbol: "H",
                         color: .green,
                         title: "Cura",
+                        kind: .heal,
                         value: $draft.healSpells
                     )
                     spellRow(
                         symbol: "R",
                         color: .purple,
                         title: "Furia",
+                        kind: .rage,
                         value: $draft.rageSpells
                     )
                     spellRow(
                         symbol: "F",
                         color: .cyan,
                         title: "Gelo",
+                        kind: .freeze,
                         value: $draft.freezeSpells
                     )
                     spellRow(
                         symbol: "L",
                         color: .yellow,
                         title: "Fulmine",
+                        kind: .lightning,
                         value: $draft.lightningSpells
                     )
                     spellRow(
                         symbol: "E",
                         color: .orange,
                         title: "Terremoto",
+                        kind: .earthquake,
                         value: $draft.earthquakeSpells
                     )
                 }
@@ -166,18 +177,19 @@ struct ArmyEditorView: View {
                     )
                     Spacer()
                     Text(
-                        "\(draft.troopCapacityUsed)/\(ArmyConfiguration.maximumTroopCapacity)"
+                        "\(draft.troopCapacityUsed(under: rules))/\(rules.troopCapacity)"
                     )
                     .monospacedDigit()
                 }
 
                 ProgressView(
-                    value: Double(draft.troopCapacityUsed),
-                    total: Double(ArmyConfiguration.maximumTroopCapacity)
+                    value: Double(
+                        min(draft.troopCapacityUsed(under: rules), rules.troopCapacity)
+                    ),
+                    total: Double(max(rules.troopCapacity, 1))
                 )
                 .tint(
-                    draft.troopCapacityUsed >
-                        ArmyConfiguration.maximumTroopCapacity
+                    draft.troopCapacityUsed(under: rules) > rules.troopCapacity
                         ? .red
                         : .accentColor
                 )
@@ -189,13 +201,13 @@ struct ArmyEditorView: View {
                     )
                     Spacer()
                     Text(
-                        "\(draft.spellCapacityUsed)/\(ArmyConfiguration.maximumSpellCapacity)"
+                        "\(draft.spellCapacityUsed(under: rules))/\(rules.spellCapacity)"
                     )
                     .monospacedDigit()
                 }
                 .font(.subheadline)
 
-                if let message = draft.validationMessage {
+                if let message = draft.validationMessage(under: rules) {
                     Label(message, systemImage: "exclamationmark.triangle.fill")
                         .font(.caption)
                         .foregroundStyle(.red)
@@ -216,7 +228,7 @@ struct ArmyEditorView: View {
                 Spacer()
 
                 Button("Ripristina") {
-                    draft = .prototypeDefault
+                    draft = defaultArmy
                 }
 
                 Button("Applica e rigenera") {
@@ -224,7 +236,7 @@ struct ArmyEditorView: View {
                     dismiss()
                 }
                 .buttonStyle(.borderedProminent)
-                .disabled(!draft.isValid)
+                .disabled(!draft.isValid(under: rules))
             }
         }
         .padding(24)
@@ -235,15 +247,28 @@ struct ArmyEditorView: View {
         symbol: String,
         color: Color,
         title: String,
-        cost: Int,
+        kind: BattleEntityKind,
         value: Binding<Int>
     ) -> some View {
-        HStack(spacing: 12) {
+        let cost = rules.housing(for: kind)
+        let uniqueKinds: [BattleEntityKind] = [
+            .barbarianKing, .archerQueen, .wallWrecker, .stoneSlammer
+        ]
+        let isUnique = uniqueKinds.contains(kind)
+        let maximum = isUnique
+            ? 1
+            : max(12, rules.troopCapacity / max(cost, 1))
+
+        return HStack(spacing: 12) {
             symbolView(symbol, color: color)
 
             VStack(alignment: .leading, spacing: 1) {
                 Text(title)
-                Text("costo prototipo: \(cost)")
+                Text(
+                    rules.allows(kind)
+                        ? "spazio: \(cost)"
+                        : "non sbloccato"
+                )
                     .font(.caption2)
                     .foregroundStyle(.secondary)
             }
@@ -252,7 +277,7 @@ struct ArmyEditorView: View {
 
             Stepper(
                 value: value,
-                in: cost == 0 ? 0...1 : 0...12
+                in: 0...maximum
             ) {
                 Text("\(value.wrappedValue)")
                     .font(.body.monospacedDigit())
@@ -265,16 +290,26 @@ struct ArmyEditorView: View {
         symbol: String,
         color: Color,
         title: String,
+        kind: BattleSpellKind,
         value: Binding<Int>
     ) -> some View {
         HStack(spacing: 12) {
             symbolView(symbol, color: color)
 
-            Text(title)
+            VStack(alignment: .leading, spacing: 1) {
+                Text(title)
+                Text(
+                    rules.allows(kind)
+                        ? "spazio: \(rules.housing(for: kind))"
+                        : "non sbloccato"
+                )
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
+            }
 
             Spacer()
 
-            Stepper(value: value, in: 0...4) {
+            Stepper(value: value, in: 0...max(4, rules.spellCapacity)) {
                 Text("\(value.wrappedValue)")
                     .font(.body.monospacedDigit())
                     .frame(width: 24, alignment: .trailing)

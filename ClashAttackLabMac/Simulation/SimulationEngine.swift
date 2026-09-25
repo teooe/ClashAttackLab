@@ -1,10 +1,12 @@
 import Foundation
 import CryptoKit
 
-final class SimulationEngine {
+nonisolated final class SimulationEngine {
     private let fixedTimeStep: TimeInterval = 1.0 / 60.0
-    private let timeLimit: TimeInterval = 60
-    private let gameData: any GameDataProviding
+    private var timeLimit: TimeInterval {
+        gameData.battleDuration
+    }
+    private var gameData: any GameDataProviding
     private let navigationGrid: NavigationGrid
     private let pathfinder: AStarPathfinder
     private let targetSelectionSystem: TargetSelectionSystem
@@ -73,7 +75,7 @@ final class SimulationEngine {
         self.initialEntities = entities
         self.entities = entities
         self.attackPlan = attackPlan
-        self.gameData = gameData
+        self.gameData = PrecomputedGameData.wrapping(gameData)
         self.navigationGrid = navigationGrid
         self.pathfinder = pathfinder
         self.targetSelectionSystem =
@@ -177,6 +179,7 @@ final class SimulationEngine {
     }
 
     func reset() {
+        wallCellsCache = nil
         entities = initialEntities.map { entity in
             var resetEntity = entity
             resetEntity.hitPoints =
@@ -221,8 +224,12 @@ final class SimulationEngine {
 
     func loadScenario(
         entities: [BattleEntity],
-        attackPlan: AttackPlan
+        attackPlan: AttackPlan,
+        gameData: (any GameDataProviding)? = nil
     ) {
+        if let gameData {
+            self.gameData = PrecomputedGameData.wrapping(gameData)
+        }
         initialEntities = entities
         self.attackPlan = attackPlan
         reset()
@@ -385,10 +392,11 @@ final class SimulationEngine {
         {
             let definition = spellDefinition(for: next.kind)
             pendingSpellDeployments.removeFirst()
-            if definition.instantDamage > 0 {
+            if definition.dealsInstantDamage {
                 var damage: [UUID: Double] = [:]
                 for index in entities.indices where entities[index].isAlive {
-                    let role = gameData.definition(for: entities[index].kind).role
+                    let targetDefinition = gameData.definition(for: entities[index].kind)
+                    let role = targetDefinition.role
                     let isStandardTarget = role == .defense || role == .building
                     let isEarthquakeWall = next.kind == .earthquake && role == .wall
                     guard (isStandardTarget || isEarthquakeWall) &&
@@ -396,7 +404,9 @@ final class SimulationEngine {
                     else { continue }
                     let wallMultiplier = role == .wall ? 4.0 : 1.0
                     damage[entities[index].id, default: 0] +=
-                        definition.instantDamage * wallMultiplier
+                        definition.impactDamage(
+                            forMaxHitPoints: targetDefinition.maxHitPoints
+                        ) * wallMultiplier
                 }
                 apply(damage)
             } else {
@@ -646,9 +656,10 @@ final class SimulationEngine {
         let troopDefinition = definition(for: entities[troopIndex].kind)
         let effectiveAttackRange = troopDefinition.attackRange *
             combatModifiers(for: entities[troopIndex]).attackRange
-        let objectiveDistance = distance(
+        let objectiveDefinition = definition(for: entities[objectiveIndex].kind)
+        let objectiveDistance = objectiveDefinition.reachDistance(
             from: entities[troopIndex].position,
-            to: entities[objectiveIndex].position
+            toCenter: entities[objectiveIndex].position
         )
 
         if objectiveDistance <= effectiveAttackRange {
@@ -669,6 +680,7 @@ final class SimulationEngine {
                 entityAt: troopIndex,
                 toward: entities[objectiveIndex].position,
                 stoppingAt: effectiveAttackRange,
+                targetFootprint: objectiveDefinition.footprintSize,
                 deltaTime: deltaTime
             )
             return
@@ -716,6 +728,7 @@ final class SimulationEngine {
                 entityAt: troopIndex,
                 stoppingAt: troopDefinition.attackRange,
                 targetPosition: entities[objectiveIndex].position,
+                targetFootprint: objectiveDefinition.footprintSize,
                 deltaTime: deltaTime
             )
         }
@@ -729,9 +742,10 @@ final class SimulationEngine {
     ) {
         let troopDefinition = definition(for: entities[troopIndex].kind)
         let wallPosition = entities[wallIndex].position
-        let wallDistance = distance(
+        let wallFootprint = definition(for: entities[wallIndex].kind).footprintSize
+        let wallDistance = definition(for: entities[wallIndex].kind).reachDistance(
             from: entities[troopIndex].position,
-            to: wallPosition
+            toCenter: wallPosition
         )
 
         if wallDistance <= troopDefinition.attackRange *
@@ -747,6 +761,7 @@ final class SimulationEngine {
                 toward: wallPosition,
                 stoppingAt: troopDefinition.attackRange *
                     combatModifiers(for: entities[troopIndex]).attackRange,
+                targetFootprint: wallFootprint,
                 deltaTime: deltaTime
             )
         }
@@ -881,6 +896,7 @@ final class SimulationEngine {
         entityAt index: Int,
         stoppingAt range: Double,
         targetPosition: WorldPosition,
+        targetFootprint: Double = 0,
         deltaTime: TimeInterval
     ) {
         let entityID = entities[index].id
@@ -894,9 +910,10 @@ final class SimulationEngine {
 
         while remainingTravel > 0, let waypoint = path.first {
             let currentPosition = entities[index].position
-            let distanceToObjective = distance(
+            let distanceToObjective = footprintDistance(
                 from: currentPosition,
-                to: targetPosition
+                toCenter: targetPosition,
+                footprint: targetFootprint
             )
 
             guard distanceToObjective > range else {
@@ -932,23 +949,34 @@ final class SimulationEngine {
         entityAt index: Int,
         toward target: WorldPosition,
         stoppingAt range: Double,
+        targetFootprint: Double = 0,
         deltaTime: TimeInterval
     ) {
         let current = entities[index].position
         let targetDistance = distance(from: current, to: target)
+        let reach = footprintDistance(
+            from: current,
+            toCenter: target,
+            footprint: targetFootprint
+        )
 
-        guard targetDistance > range, targetDistance > 0 else {
+        guard reach > range, targetDistance > 0 else {
             return
         }
 
         let entity = entities[index]
         let definition = definition(for: entity.kind)
         let modifiers = combatModifiers(for: entity)
+        // Heading at the centre shortens the edge distance by at most the
+        // travelled length, so a small overshoot guarantees arrival.
+        let remainingApproach = targetFootprint > 0
+            ? min(reach - range + footprintArrivalMargin, targetDistance)
+            : targetDistance - range
         let travel = min(
             definition.movementSpeed *
                 modifiers.movementSpeed *
                 deltaTime,
-            targetDistance - range
+            remainingApproach
         )
         let ratio = travel / targetDistance
 
@@ -1220,6 +1248,9 @@ final class SimulationEngine {
                 let entityDefinition = definition(
                     for: entities[index].kind
                 )
+                if entityDefinition.role == .wall {
+                    wallCellsCache = nil
+                }
                 let eventKind: BattleTimelineEventKind
                 let suffix: String
                 switch entityDefinition.role {
@@ -1440,12 +1471,21 @@ final class SimulationEngine {
         }
     }
 
+    /// Cells of standing walls, rebuilt only after a wall falls: routing
+    /// asks for it for every troop on every tick.
+    private var wallCellsCache: Set<GridCoordinate>?
+
     private func livingWallCells() -> Set<GridCoordinate> {
-        Set(
+        if let wallCellsCache {
+            return wallCellsCache
+        }
+        let cells = Set(
             livingIndices(with: .wall).compactMap {
                 navigationGrid.coordinate(for: entities[$0].position)
             }
         )
+        wallCellsCache = cells
+        return cells
     }
 
     private func livingWallIndex(at position: WorldPosition) -> Int? {
@@ -1640,10 +1680,14 @@ final class SimulationEngine {
                 continue
             }
 
+            let baseSpeed = definition(for: entity.kind).movementSpeed
+            let bonusMultiplier = baseSpeed > 0
+                ? (baseSpeed + spellData.movementSpeedBonus) / baseSpeed
+                : 1
             damage = max(damage, spellData.damageMultiplier)
             movementSpeed = max(
                 movementSpeed,
-                spellData.movementSpeedMultiplier
+                spellData.movementSpeedMultiplier * bonusMultiplier
             )
             attackSpeed = max(
                 attackSpeed,
@@ -1657,6 +1701,22 @@ final class SimulationEngine {
             attackSpeed: attackSpeed,
             attackRange: attackRange
         )
+    }
+
+    private let footprintArrivalMargin = 1.0
+
+    private func footprintDistance(
+        from point: WorldPosition,
+        toCenter center: WorldPosition,
+        footprint: Double
+    ) -> Double {
+        guard footprint > 0 else {
+            return distance(from: point, to: center)
+        }
+        let halfSize = footprint / 2
+        let deltaX = max(abs(point.x - center.x) - halfSize, 0)
+        let deltaY = max(abs(point.y - center.y) - halfSize, 0)
+        return (deltaX * deltaX + deltaY * deltaY).squareRoot()
     }
 
     private func distance(

@@ -228,7 +228,10 @@ nonisolated struct ArmyEntryAdvisor {
         )
         let wallTraversalCost = estimatedWallTraversalCost(for: troop)
 
-        let candidates = targets.compactMap {
+        let candidates = navigationGrid.routingCandidates(
+            targets,
+            near: start
+        ).compactMap {
             target -> (
                 target: BattleEntity,
                 pathCost: Double,
@@ -305,7 +308,7 @@ nonisolated struct ArmyEntryAdvisor {
             (8, "Corsia centrale"),
             (10, "Corsia medio-bassa"),
             (13, "Corsia bassa")
-        ]
+        ].map { (navigationGrid.scaledRow(fromPrototype: $0.0), $0.1) }
     }
 
     private func directDistance(

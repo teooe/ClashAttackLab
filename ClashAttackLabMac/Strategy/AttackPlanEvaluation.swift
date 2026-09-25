@@ -46,38 +46,32 @@ struct AttackPlanEvaluator {
             .sorted(by: isBetter)
     }
 
-    /// Cooperative evaluation on the simulation actor. Yields between bounded
-    /// batches so UI events and cancellation can run without changing ticks.
+    /// Evaluates plans in parallel on every CPU core. Each battle runs in
+    /// its own deterministic engine, so results do not depend on scheduling;
+    /// they are reported in the original order before ranking.
     func evaluateAsync(
         _ plans: [AttackPlan],
         progress: (Int) -> Void = { _ in }
     ) async throws -> [AttackPlanEvaluation] {
-        var evaluations: [AttackPlanEvaluation] = []
         try Task.checkCancellation()
         progress(0)
-        for (index, plan) in plans.enumerated() {
-            let engine = SimulationEngine(
-                entities: baseEntities, attackPlan: plan,
-                gameData: gameData, navigationGrid: navigationGrid
+        let jobs = plans.map {
+            ParallelBattleRunner.Job(
+                entities: baseEntities,
+                plan: $0,
+                gameData: gameData,
+                navigationGrid: navigationGrid
             )
-            engine.start()
-            for iteration in 0..<300 {
-                try Task.checkCancellation()
-                if case .finished = engine.status { break }
-                engine.advance(by: 0.25)
-                if iteration.isMultiple(of: 4) {
-                    await Task.yield()
-                }
-            }
-            try Task.checkCancellation()
-            guard case .finished(let result) = engine.status else {
+        }
+        let results = try await ParallelBattleRunner.run(jobs, progress: progress)
+        try Task.checkCancellation()
+        var evaluations: [AttackPlanEvaluation] = []
+        for (plan, result) in zip(plans, results) {
+            guard let result else {
                 throw EvaluationError.incompleteSimulation
             }
             evaluations.append(AttackPlanEvaluation(plan: plan, result: result))
-            progress(index + 1)
-            await Task.yield()
         }
-        try Task.checkCancellation()
         return evaluations.sorted(by: isBetter)
     }
 
@@ -88,37 +82,16 @@ struct AttackPlanEvaluator {
     private func evaluate(
         _ plan: AttackPlan
     ) -> AttackPlanEvaluation? {
-        let engine = SimulationEngine(
-            entities: baseEntities,
-            attackPlan: plan,
-            gameData: gameData,
-            navigationGrid: navigationGrid
-        )
-        engine.start()
-
-        var iterations = 0
-        let maximumIterations = 300
-
-        while iterations < maximumIterations {
-            if case .finished(let result) = engine.status {
-                return AttackPlanEvaluation(
-                    plan: plan,
-                    result: result
-                )
-            }
-
-            engine.advance(by: 0.25)
-            iterations += 1
-        }
-
-        if case .finished(let result) = engine.status {
-            return AttackPlanEvaluation(
+        ParallelBattleRunner.simulate(
+            ParallelBattleRunner.Job(
+                entities: baseEntities,
                 plan: plan,
-                result: result
+                gameData: gameData,
+                navigationGrid: navigationGrid
             )
+        ).map {
+            AttackPlanEvaluation(plan: plan, result: $0)
         }
-
-        return nil
     }
 
     private func isBetter(
@@ -207,6 +180,112 @@ nonisolated enum PrototypeCombatScenario: String, CaseIterable, Identifiable {
     }
 }
 
+/// Runs complete headless battles, spreading independent jobs over every
+/// CPU core. Results come back in job order, so rankings stay deterministic.
+nonisolated enum ParallelBattleRunner {
+    /// Immutable inputs of one battle. Every field is a value that is never
+    /// mutated after creation, so sharing it between tasks is safe.
+    nonisolated struct Job: @unchecked Sendable {
+        let entities: [BattleEntity]
+        let plan: AttackPlan
+        let gameData: any GameDataProviding
+        let navigationGrid: NavigationGrid
+    }
+
+    nonisolated private struct Outcome: @unchecked Sendable {
+        let index: Int
+        let result: SimulationResult?
+    }
+
+    /// Simulated seconds per engine step.
+    static let stepDuration: TimeInterval = 0.25
+
+    static var workerCount: Int {
+        max(1, ProcessInfo.processInfo.activeProcessorCount)
+    }
+
+    /// Runs `jobs` concurrently, at most one per core, and calls `progress`
+    /// with the number of finished battles. A nil entry means the battle
+    /// did not finish within its time limit.
+    ///
+    /// Coordination and `progress` stay on the caller's actor; only the
+    /// battles themselves run on background threads.
+    static func run(
+        _ jobs: [Job],
+        isolation: isolated (any Actor)? = #isolation,
+        progress: (Int) -> Void = { _ in }
+    ) async throws -> [SimulationResult?] {
+        guard !jobs.isEmpty else {
+            return []
+        }
+
+        var results = [SimulationResult?](repeating: nil, count: jobs.count)
+        var completed = 0
+
+        try await withThrowingTaskGroup(of: Outcome.self) { group in
+            var nextIndex = 0
+
+            func enqueueNext() {
+                guard nextIndex < jobs.count else {
+                    return
+                }
+                let index = nextIndex
+                let job = jobs[index]
+                nextIndex += 1
+                group.addTask {
+                    try Task.checkCancellation()
+                    return Outcome(index: index, result: simulate(job))
+                }
+            }
+
+            for _ in 0..<min(workerCount, jobs.count) {
+                enqueueNext()
+            }
+
+            while let outcome = try await group.next() {
+                results[outcome.index] = outcome.result
+                completed += 1
+                progress(completed)
+                try Task.checkCancellation()
+                enqueueNext()
+            }
+        }
+
+        return results
+    }
+
+    /// Plays one battle to the end; nil if it is cancelled or never ends.
+    static func simulate(_ job: Job) -> SimulationResult? {
+        let engine = SimulationEngine(
+            entities: job.entities,
+            attackPlan: job.plan,
+            gameData: job.gameData,
+            navigationGrid: job.navigationGrid
+        )
+        engine.start()
+
+        // A small margin past the time limit lets the engine report the end.
+        let maximumSteps = Int(
+            (job.gameData.battleDuration / stepDuration).rounded(.up)
+        ) + 20
+
+        for step in 0..<maximumSteps {
+            if case .finished(let result) = engine.status {
+                return result
+            }
+            if step.isMultiple(of: 16), Task.isCancelled {
+                return nil
+            }
+            engine.advance(by: stepDuration)
+        }
+
+        if case .finished(let result) = engine.status {
+            return result
+        }
+        return nil
+    }
+}
+
 /// Decorates the versioned prototype data without touching the deterministic
 /// engine. Spells and target-selection rules remain unchanged.
 nonisolated struct ScenarioAdjustedGameData: GameDataProviding {
@@ -250,12 +329,17 @@ nonisolated struct ScenarioAdjustedGameData: GameDataProviding {
             attackTargetLayer: definition.attackTargetLayer,
             targetingProfile: definition.targetingProfile,
             heroAbility: definition.heroAbility,
-            siegePayload: definition.siegePayload
+            siegePayload: definition.siegePayload,
+            footprintSize: definition.footprintSize
         )
     }
 
     func spellDefinition(for kind: BattleSpellKind) -> SpellDefinition {
         base.spellDefinition(for: kind)
+    }
+
+    var battleDuration: TimeInterval {
+        base.battleDuration
     }
 }
 

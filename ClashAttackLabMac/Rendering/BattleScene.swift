@@ -4,9 +4,15 @@ import SpriteKit
 final class BattleScene: SKScene {
     private struct EntityVisual {
         let root: SKNode
+        let healthBackground: SKSpriteNode
         let healthFill: SKSpriteNode
         let healthLabel: SKLabelNode
-        let targetLine: SKShapeNode
+
+        /// Only troops and defenses draw a line to their target.
+        let targetLine: SKShapeNode?
+
+        /// Walls hide their health bar until they are damaged.
+        let hidesHealthWhenFull: Bool
     }
 
     private let simulation: SimulationEngine
@@ -32,6 +38,17 @@ final class BattleScene: SKScene {
     private let resultDetailLabel = SKLabelNode(fontNamed: "AvenirNext-Medium")
 
     var simulationSpeed: Double = 1
+
+    /// Scenes larger than the prototype are shrunk to fit the view, so
+    /// interface text and strokes grow by the same factor to stay legible.
+    private var uiScale: CGFloat {
+        max(1, size.height / 760)
+    }
+
+    /// Troops are drawn smaller on the real map, where one tile is tiny.
+    private var troopBodyScale: CGFloat {
+        navigationGrid.isLarge ? 0.55 : 1
+    }
 
     init(
         size: CGSize,
@@ -77,7 +94,7 @@ final class BattleScene: SKScene {
         guard
             let coordinate = navigationGrid.coordinate(for: position),
             manualPlacementUsesWholeArena ||
-                (0...2).contains(coordinate.column)
+                navigationGrid.isDeploymentCell(coordinate)
         else {
             return
         }
@@ -161,12 +178,14 @@ final class BattleScene: SKScene {
 
     func loadScenario(
         entities: [BattleEntity],
-        attackPlan: AttackPlan
+        attackPlan: AttackPlan,
+        gameData: (any GameDataProviding)? = nil
     ) {
         self.attackPlan = attackPlan
         simulation.loadScenario(
             entities: entities,
-            attackPlan: attackPlan
+            attackPlan: attackPlan,
+            gameData: gameData
         )
         refreshDeploymentMarkers()
 
@@ -221,6 +240,34 @@ final class BattleScene: SKScene {
     }
 
     private func updateManualPlacementZone() {
+        if
+            !manualPlacementUsesWholeArena,
+            navigationGrid.isLarge,
+            navigationGrid.isSquare
+        {
+            // Deployment border on every side: outer square minus inner.
+            let cell = navigationGrid.cellSize
+            let depth = Double(NavigationGrid.deploymentDepth) * cell
+            let outer = CGRect(
+                x: navigationGrid.origin.x,
+                y: navigationGrid.origin.y,
+                width: cell * Double(navigationGrid.columns),
+                height: cell * Double(navigationGrid.rows)
+            )
+            let inner = outer.insetBy(dx: depth, dy: depth)
+            let ring = CGMutablePath()
+            ring.addRect(outer)
+            // Opposite winding keeps the inner square unfilled.
+            ring.move(to: CGPoint(x: inner.minX, y: inner.minY))
+            ring.addLine(to: CGPoint(x: inner.minX, y: inner.maxY))
+            ring.addLine(to: CGPoint(x: inner.maxX, y: inner.maxY))
+            ring.addLine(to: CGPoint(x: inner.maxX, y: inner.minY))
+            ring.closeSubpath()
+            manualPlacementZone.path = ring
+            manualPlacementZone.isHidden = manualPlacementHandler == nil
+            return
+        }
+
         let width =
             navigationGrid.cellSize *
             Double(
@@ -289,45 +336,45 @@ final class BattleScene: SKScene {
     }
 
     private func configureLabels() {
-        statusLabel.fontSize = 17
+        statusLabel.fontSize = 17 * uiScale
         statusLabel.fontColor = .white
         statusLabel.horizontalAlignmentMode = .left
-        statusLabel.position = CGPoint(x: 65, y: size.height - 30)
+        statusLabel.position = CGPoint(x: 65, y: size.height - 30 * uiScale)
         statusLabel.zPosition = 40
         addChild(statusLabel)
 
-        spellStatusLabel.fontSize = 13
+        spellStatusLabel.fontSize = 13 * uiScale
         spellStatusLabel.fontColor = .white.withAlphaComponent(0.78)
         spellStatusLabel.horizontalAlignmentMode = .left
         spellStatusLabel.position = CGPoint(
             x: 65,
-            y: size.height - 53
+            y: size.height - 53 * uiScale
         )
         spellStatusLabel.zPosition = 40
         addChild(spellStatusLabel)
 
-        scoreLabel.fontSize = 20
+        scoreLabel.fontSize = 20 * uiScale
         scoreLabel.fontColor = .systemYellow
         scoreLabel.horizontalAlignmentMode = .right
         scoreLabel.position = CGPoint(
             x: size.width - 65,
-            y: size.height - 30
+            y: size.height - 30 * uiScale
         )
         scoreLabel.zPosition = 40
         addChild(scoreLabel)
 
-        resultLabel.fontSize = 18
+        resultLabel.fontSize = 18 * uiScale
         resultLabel.fontColor = .white
-        resultLabel.position = CGPoint(x: size.width / 2, y: 65)
+        resultLabel.position = CGPoint(x: size.width / 2, y: 65 * uiScale)
         resultLabel.zPosition = 40
         resultLabel.isHidden = true
         addChild(resultLabel)
 
-        resultDetailLabel.fontSize = 13
+        resultDetailLabel.fontSize = 13 * uiScale
         resultDetailLabel.fontColor = .white.withAlphaComponent(0.82)
         resultDetailLabel.position = CGPoint(
             x: size.width / 2,
-            y: 39
+            y: 39 * uiScale
         )
         resultDetailLabel.zPosition = 40
         resultDetailLabel.isHidden = true
@@ -416,7 +463,7 @@ final class BattleScene: SKScene {
 
         for id in removedIDs {
             entityVisuals[id]?.root.removeFromParent()
-            entityVisuals[id]?.targetLine.removeFromParent()
+            entityVisuals[id]?.targetLine?.removeFromParent()
             entityVisuals.removeValue(forKey: id)
         }
 
@@ -563,12 +610,27 @@ final class BattleScene: SKScene {
         let definition = simulation.definition(for: entity.kind)
         let root = SKNode()
         let body = makeBody(for: entity.kind)
+        let footprint = CGFloat(definition.footprintSize)
+        let isWall = definition.role == .wall
+        if footprint > 0 {
+            // Fit the drawn body inside the real footprint.
+            body.setScale(footprint * 0.9 / (isWall ? 36 : 80))
+        } else if definition.role == .troop {
+            body.setScale(troopBodyScale)
+        }
         root.addChild(body)
         addRangeRings(for: definition, to: root)
 
-        let isWall = definition.role == .wall
-        let healthWidth = isWall ? 34.0 : 88.0
-        let healthY = isWall ? -25.0 : -52.0
+        let healthWidth: Double
+        let healthY: Double
+        if footprint > 0 {
+            healthWidth = Double(footprint) * 0.8
+            healthY = -Double(footprint) / 2 + 6
+        } else {
+            let scale = definition.role == .troop ? Double(troopBodyScale) : 1
+            healthWidth = (isWall ? 34.0 : 88.0) * scale
+            healthY = (isWall ? -25.0 : -52.0) * scale
+        }
 
         let healthBackground = SKSpriteNode(
             color: .black.withAlphaComponent(0.58),
@@ -596,30 +658,40 @@ final class BattleScene: SKScene {
         healthLabel.verticalAlignmentMode = .center
         healthLabel.position = CGPoint(x: 0, y: -69)
         healthLabel.zPosition = 12
-        healthLabel.isHidden = isWall
+        healthLabel.isHidden = isWall || navigationGrid.isLarge
         root.addChild(healthLabel)
 
-        let targetLine = SKShapeNode()
-        if definition.role == .troop {
-            targetLine.strokeColor =
-                definition.movementDomain == .air
-                    ? .systemCyan
-                    : .systemYellow
-        } else {
-            targetLine.strokeColor = .systemRed
+        var targetLine: SKShapeNode?
+        if definition.role == .troop || definition.role == .defense {
+            let line = SKShapeNode()
+            if definition.role == .troop {
+                line.strokeColor =
+                    definition.movementDomain == .air
+                        ? .systemCyan
+                        : .systemYellow
+            } else {
+                line.strokeColor = .systemRed
+            }
+            line.lineWidth = 2 * uiScale
+            line.alpha = 0.48
+            line.zPosition = 5
+            addChild(line)
+            targetLine = line
         }
-        targetLine.lineWidth = 2
-        targetLine.alpha = 0.48
-        targetLine.zPosition = 5
-        addChild(targetLine)
 
         root.zPosition = isWall ? 7 : 15
 
+        let hidesHealthWhenFull = isWall && navigationGrid.isLarge
+        healthBackground.isHidden = hidesHealthWhenFull
+        healthFill.isHidden = hidesHealthWhenFull
+
         entityVisuals[entity.id] = EntityVisual(
             root: root,
+            healthBackground: healthBackground,
             healthFill: healthFill,
             healthLabel: healthLabel,
-            targetLine: targetLine
+            targetLine: targetLine,
+            hidesHealthWhenFull: hidesHealthWhenFull
         )
         addChild(root)
     }
@@ -628,7 +700,10 @@ final class BattleScene: SKScene {
         for definition: CombatDefinition,
         to root: SKNode
     ) {
+        // Dozens of large rings on the real map cost frame rate and hide the
+        // battle; they are only drawn on the prototype arena.
         guard
+            !navigationGrid.isLarge,
             definition.role == .defense,
             definition.attackRange > 0
         else {
@@ -827,15 +902,32 @@ final class BattleScene: SKScene {
             visual.root.setScale(
                 entity.heroAbilityIsActive ? 1.12 : 1
             )
-            visual.healthFill.xScale = healthFraction
-            visual.healthFill.color =
-                healthFraction > 0.35 ? .systemGreen : .systemRed
-            let abilityLabel = entity.heroAbilityIsActive
-                ? " · \(definition.heroAbility?.displayName ?? "")"
-                : ""
-            let frozenLabel = isFrozen ? " · CONGELATA" : ""
-            visual.healthLabel.text =
-                "\(definition.displayName): \(Int(entity.hitPoints.rounded(.up)))/\(Int(definition.maxHitPoints))\(abilityLabel)\(frozenLabel)"
+            if visual.hidesHealthWhenFull {
+                let showsHealth = entity.isAlive && healthFraction < 1
+                visual.healthBackground.isHidden = !showsHealth
+                visual.healthFill.isHidden = !showsHealth
+            }
+            if visual.healthFill.xScale != healthFraction {
+                visual.healthFill.xScale = healthFraction
+                visual.healthFill.color =
+                    healthFraction > 0.35 ? .systemGreen : .systemRed
+            }
+            if !visual.healthLabel.isHidden {
+                let abilityLabel = entity.heroAbilityIsActive
+                    ? " · \(definition.heroAbility?.displayName ?? "")"
+                    : ""
+                let frozenLabel = isFrozen ? " · CONGELATA" : ""
+                let text =
+                    "\(definition.displayName): \(Int(entity.hitPoints.rounded(.up)))/\(Int(definition.maxHitPoints))\(abilityLabel)\(frozenLabel)"
+                // Re-rendering label text is costly; only touch it on change.
+                if visual.healthLabel.text != text {
+                    visual.healthLabel.text = text
+                }
+            }
+
+            guard let targetLine = visual.targetLine else {
+                continue
+            }
 
             let visibleTargetID =
                 entity.blockingWallID ??
@@ -843,7 +935,7 @@ final class BattleScene: SKScene {
 
             let target = visibleTargetID.flatMap { entitiesByID[$0] }
             updateTargetPath(
-                visual.targetLine,
+                targetLine,
                 from: entity,
                 displayPosition: displayPosition,
                 target: target,
@@ -1061,7 +1153,8 @@ final class BattleScene: SKScene {
         case .stoneSlammer:
             return .systemCyan
         case .cannon, .archerTower, .mortar, .wizardTower, .infernoTower, .bombTower, .hiddenTesla, .giantBomb, .airBomb, .airSweeper, .airDefense,
-             .townHall, .goldStorage, .wall:
+             .townHall, .goldStorage, .wall,
+             .goldMine, .elixirCollector, .darkElixirDrill, .elixirStorage, .darkElixirStorage, .clanCastle, .armyCamp, .barracks, .darkBarracks, .laboratory, .spellFactory, .darkSpellFactory, .workshop, .heroHall, .petHouse, .blacksmith, .builderHut, .helperHut:
             return .systemCyan
         }
     }
@@ -1118,6 +1211,8 @@ final class BattleScene: SKScene {
             return "D"
         case .wall:
             return "M"
+        case .goldMine, .elixirCollector, .darkElixirDrill, .elixirStorage, .darkElixirStorage, .clanCastle, .armyCamp, .barracks, .darkBarracks, .laboratory, .spellFactory, .darkSpellFactory, .workshop, .heroHall, .petHouse, .blacksmith, .builderHut, .helperHut:
+            return UtilityBuildingStyle.style(for: kind).symbol
         }
     }
 
@@ -1296,17 +1391,31 @@ final class BattleScene: SKScene {
                 text: "D"
             )
 
-        case .wall:
+        case .goldMine, .elixirCollector, .darkElixirDrill, .elixirStorage, .darkElixirStorage, .clanCastle, .armyCamp, .barracks, .darkBarracks, .laboratory, .spellFactory, .darkSpellFactory, .workshop, .heroHall, .petHouse, .blacksmith, .builderHut, .helperHut:
+            let style = UtilityBuildingStyle.style(for: kind)
             return makeLabeledRectangle(
-                size: CGSize(width: 36, height: 36),
+                size: CGSize(width: 70, height: 70),
+                color: SKColor(
+                    red: style.red,
+                    green: style.green,
+                    blue: style.blue,
+                    alpha: 1
+                ),
+                text: style.symbol
+            )
+
+        case .wall:
+            // Plain sprites batch far better than hundreds of shape nodes.
+            let wall = SKSpriteNode(
                 color: SKColor(
                     red: 0.44,
                     green: 0.31,
                     blue: 0.20,
                     alpha: 1
                 ),
-                text: ""
+                size: CGSize(width: 36, height: 36)
             )
+            return wall
         }
     }
 

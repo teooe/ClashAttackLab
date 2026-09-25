@@ -6,7 +6,7 @@ nonisolated struct WorldPosition: Equatable, Codable {
     var y: Double
 }
 
-nonisolated enum BattleEntityKind: Hashable, Codable {
+nonisolated enum BattleEntityKind: Hashable, Codable, CaseIterable {
     case giant
     case barbarian
     case archer
@@ -32,6 +32,24 @@ nonisolated enum BattleEntityKind: Hashable, Codable {
     case townHall
     case goldStorage
     case wall
+    case goldMine
+    case elixirCollector
+    case darkElixirDrill
+    case elixirStorage
+    case darkElixirStorage
+    case clanCastle
+    case armyCamp
+    case barracks
+    case darkBarracks
+    case laboratory
+    case spellFactory
+    case darkSpellFactory
+    case workshop
+    case heroHall
+    case petHouse
+    case blacksmith
+    case builderHut
+    case helperHut
 
     var isTrap: Bool {
         switch self {
