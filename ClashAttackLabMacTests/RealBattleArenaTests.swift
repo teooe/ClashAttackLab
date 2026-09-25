@@ -6,7 +6,8 @@ import Testing
 struct RealBattleArenaTests {
     private static let buildingKinds: [BattleEntityKind] = [
         .cannon, .archerTower, .mortar, .wizardTower, .infernoTower,
-        .bombTower, .hiddenTesla, .airSweeper, .airDefense, .goldStorage
+        .bombTower, .hiddenTesla, .airSweeper, .airDefense, .goldStorage,
+        .xBow, .eagleArtillery, .scattershot, .spellTower, .monolith
     ] + BattleEntityKind.utilityBuildings
 
     private func arena(townHall: Int) throws -> BattleArena {
@@ -84,6 +85,13 @@ struct RealBattleArenaTests {
                     #expect(
                         entities.filter { $0.kind == kind }.count == expected,
                         "\(kind) count at TH \(townHall)"
+                    )
+                }
+                for kind in RealBaseLayoutGenerator.trapPriority {
+                    let expected = catalog.unit(for: kind)?.count(atTownHall: townHall) ?? 0
+                    #expect(
+                        entities.filter { $0.kind == kind }.count == expected,
+                        "\(kind) count at TH \(townHall), \(layout)"
                     )
                 }
                 let wallCount = entities.filter { $0.kind == .wall }.count
@@ -374,12 +382,13 @@ struct RealBattleArenaTests {
     func utilityBuildingsAreRealNonAttackingObjectives() throws {
         let real = try arena(townHall: 16)
         let camp = real.gameData.definition(for: .armyCamp)
-        let hut = real.gameData.definition(for: .builderHut)
+        let hut = try arena(townHall: 13).gameData.definition(for: .builderHut)
         let mine = real.gameData.definition(for: .goldMine)
 
         #expect(camp.role == .building)
         #expect(camp.countsForDestruction)
         #expect(camp.footprintSize == 4 * 40)
+        #expect(hut.role == .building)
         #expect(hut.attackDamage == 0)
         #expect(hut.footprintSize == 2 * 40)
         #expect(mine.maxHitPoints == 1_400)

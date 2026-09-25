@@ -25,6 +25,9 @@ nonisolated final class SimulationEngine {
     private var releasedSiegeMachineIDs: Set<UUID> = []
     private(set) var releasedPayloadTroopCount = 0
 
+    /// Housing space deployed so far; wakes the Eagle Artillery.
+    private(set) var deployedHousingSpace = 0
+
     private(set) var entities: [BattleEntity]
     private(set) var projectiles: [BattleProjectile] = []
     private(set) var activeSpells: [ActiveBattleSpell] = []
@@ -189,6 +192,7 @@ nonisolated final class SimulationEngine {
             resetEntity.heroAbilityUsed = false
             resetEntity.lastAttackedTargetID = nil
             resetEntity.consecutiveAttacksOnTarget = 0
+            resetEntity.burstShotsFired = 0
             resetEntity.isRevealed = !gameData.definition(
                 for: entity.kind
             ).startsHidden
@@ -209,6 +213,7 @@ nonisolated final class SimulationEngine {
             attackPlan.orderedSpellDeployments
         releasedSiegeMachineIDs = []
         releasedPayloadTroopCount = 0
+        deployedHousingSpace = 0
         timeline = []
         score = scoringSystem.calculate(
             entities: entities,
@@ -378,6 +383,7 @@ nonisolated final class SimulationEngine {
                 )
             )
             pendingDeployments.removeFirst()
+            deployedHousingSpace += definition.housingSpace
             recordEvent(
                 .deployment,
                 "\(definition.displayName) schierato"
@@ -543,7 +549,7 @@ nonisolated final class SimulationEngine {
         for trapIndex in trapIndices where entities[trapIndex].isAlive {
             let trap = entities[trapIndex]
             let trapDefinition = definition(for: trap.kind)
-            let shouldTrigger = livingIndices(with: .troop).contains {
+            let nearbyTroops = livingIndices(with: .troop).filter {
                 troopIndex in
                 let troopDefinition = definition(
                     for: entities[troopIndex].kind
@@ -556,13 +562,63 @@ nonisolated final class SimulationEngine {
                 ) <= trapDefinition.activationRange
             }
 
-            guard shouldTrigger else {
+            guard !nearbyTroops.isEmpty else {
                 continue
             }
 
             entities[trapIndex].isRevealed = true
-            apply([trap.id: trap.hitPoints])
+            var damage: [UUID: Double] = [trap.id: trap.hitPoints]
+            switch trapDefinition.trapEffect {
+            case .explosion:
+                break
+            case .strike:
+                let target = nearest(nearbyTroops, to: trap.position)
+                damage[entities[target].id, default: 0] +=
+                    trapDefinition.destructionDamage
+            case .spring(let capacity):
+                var remaining = capacity
+                let byDistance = nearbyTroops.sorted {
+                    distance(from: entities[$0].position, to: trap.position) <
+                        distance(from: entities[$1].position, to: trap.position)
+                }
+                for troopIndex in byDistance {
+                    let troop = entities[troopIndex]
+                    let troopDefinition = definition(for: troop.kind)
+                    guard troopDefinition.heroAbility == nil else {
+                        continue
+                    }
+                    // Siege machines and troops without known housing
+                    // are too heavy to throw.
+                    let housing = troopDefinition.housingSpace
+                    if
+                        troopDefinition.siegePayload.isEmpty,
+                        housing > 0,
+                        housing <= remaining
+                    {
+                        remaining -= housing
+                        damage[troop.id, default: 0] += troop.hitPoints
+                    } else {
+                        damage[troop.id, default: 0] +=
+                            trapDefinition.destructionDamage
+                    }
+                }
+            }
+            apply(damage)
         }
+    }
+
+    private func nearest(
+        _ indices: [Int],
+        to position: WorldPosition
+    ) -> Int {
+        indices.min {
+            let first = distance(from: entities[$0].position, to: position)
+            let second = distance(from: entities[$1].position, to: position)
+            if first == second {
+                return entities[$0].id.uuidString < entities[$1].id.uuidString
+            }
+            return first < second
+        } ?? indices[0]
     }
 
     private func revealHiddenDefenses(near troopIndices: [Int]) {
@@ -618,6 +674,10 @@ nonisolated final class SimulationEngine {
         }
 
         let definition = definition(for: entities[defenseIndex].kind)
+        guard deployedHousingSpace >= definition.activationDeployedHousing else {
+            return
+        }
+
         let targetIndex = resolveDefenseTarget(
             for: defenseIndex,
             among: possibleTargets,
@@ -1003,9 +1063,11 @@ nonisolated final class SimulationEngine {
         let rampMultiplier = attackerDefinition.damageRampMultiplier(
             forConsecutiveAttack: repeatedAttackIndex
         )
+        let bonusDamage =
+            targetDefinition.maxHitPoints *
+            attackerDefinition.targetMaxHitPointDamageFraction
         let attackDamage =
-            attackerDefinition.attackDamage *
-            rampMultiplier *
+            (attackerDefinition.attackDamage * rampMultiplier + bonusDamage) *
             modifiers.damage *
             wallMultiplier
 
@@ -1065,6 +1127,18 @@ nonisolated final class SimulationEngine {
         entities[attackerIndex].attackCooldown =
             attackerDefinition.attackInterval /
             modifiers.attackSpeed
+        if attackerDefinition.burstShotCount > 1 {
+            entities[attackerIndex].burstShotsFired += 1
+            if
+                entities[attackerIndex].burstShotsFired >=
+                    attackerDefinition.burstShotCount
+            {
+                entities[attackerIndex].burstShotsFired = 0
+                entities[attackerIndex].attackCooldown =
+                    attackerDefinition.burstReloadTime /
+                    modifiers.attackSpeed
+            }
+        }
         entities[attackerIndex].lastAttackedTargetID = target.id
         entities[attackerIndex].consecutiveAttacksOnTarget =
             repeatedAttackIndex + 1

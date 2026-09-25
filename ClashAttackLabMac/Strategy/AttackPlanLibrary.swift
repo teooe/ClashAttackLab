@@ -245,7 +245,8 @@ nonisolated enum AttackPlanArchiveCodec {
     private static func isTroop(_ kind: BattleEntityKind) -> Bool {
         switch kind {
         case .cannon, .archerTower, .mortar, .wizardTower, .infernoTower, .bombTower, .hiddenTesla, .giantBomb, .airBomb, .airSweeper, .airDefense, .townHall, .goldStorage, .wall,
-             .goldMine, .elixirCollector, .darkElixirDrill, .elixirStorage, .darkElixirStorage, .clanCastle, .armyCamp, .barracks, .darkBarracks, .laboratory, .spellFactory, .darkSpellFactory, .workshop, .heroHall, .petHouse, .blacksmith, .builderHut, .helperHut:
+             .goldMine, .elixirCollector, .darkElixirDrill, .elixirStorage, .darkElixirStorage, .clanCastle, .armyCamp, .barracks, .darkBarracks, .laboratory, .spellFactory, .darkSpellFactory, .workshop, .heroHall, .petHouse, .blacksmith, .builderHut, .helperHut,
+             .xBow, .eagleArtillery, .scattershot, .spellTower, .monolith, .bomb, .springTrap, .seekingAirMine:
             return false
         default:
             return true

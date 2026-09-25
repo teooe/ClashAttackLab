@@ -303,35 +303,10 @@ nonisolated struct ScenarioAdjustedGameData: GameDataProviding {
             multiplier = scenario.baseMultiplier
         }
 
-        return CombatDefinition(
-            displayName: definition.displayName,
-            role: definition.role,
-            maxHitPoints: definition.maxHitPoints * multiplier,
-            movementSpeed: definition.movementSpeed,
-            attackDamage: definition.attackDamage * multiplier,
-            damageMultiplierAgainstWalls: definition.damageMultiplierAgainstWalls,
-            minimumAttackRange: definition.minimumAttackRange,
-            attackRange: definition.attackRange,
-            attackInterval: definition.attackInterval,
-            canMove: definition.canMove,
-            projectileKind: definition.projectileKind,
-            projectileSpeed: definition.projectileSpeed,
-            splashRadius: definition.splashRadius,
-            selfDestructsOnAttack: definition.selfDestructsOnAttack,
-            damageRampMultipliers: definition.damageRampMultipliers,
-            destructionDamage: definition.destructionDamage,
-            destructionRadius: definition.destructionRadius,
-            destructionTargetLayer: definition.destructionTargetLayer,
-            startsHidden: definition.startsHidden,
-            activationRange: definition.activationRange,
-            pushbackDistance: definition.pushbackDistance,
-            movementDomain: definition.movementDomain,
-            attackTargetLayer: definition.attackTargetLayer,
-            targetingProfile: definition.targetingProfile,
-            heroAbility: definition.heroAbility,
-            siegePayload: definition.siegePayload,
-            footprintSize: definition.footprintSize
-        )
+        var adjusted = definition
+        adjusted.maxHitPoints *= multiplier
+        adjusted.attackDamage *= multiplier
+        return adjusted
     }
 
     func spellDefinition(for kind: BattleSpellKind) -> SpellDefinition {

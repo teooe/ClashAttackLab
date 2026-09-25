@@ -2967,6 +2967,104 @@
    "name": "Blacksmith",
    "size": 3
   },
+  "bomb": {
+   "countByTownHall": [
+    0,
+    0,
+    2,
+    2,
+    4,
+    4,
+    6,
+    6,
+    6,
+    6,
+    6,
+    6,
+    7,
+    8,
+    8,
+    8,
+    8,
+    8
+   ],
+   "damageRadius": 3,
+   "levels": [
+    {
+     "damagePerHit": 20,
+     "level": 1,
+     "townHall": 3
+    },
+    {
+     "damagePerHit": 24,
+     "level": 2,
+     "townHall": 3
+    },
+    {
+     "damagePerHit": 29,
+     "level": 3,
+     "townHall": 5
+    },
+    {
+     "damagePerHit": 35,
+     "level": 4,
+     "townHall": 7
+    },
+    {
+     "damagePerHit": 42,
+     "level": 5,
+     "townHall": 8
+    },
+    {
+     "damagePerHit": 54,
+     "level": 6,
+     "townHall": 9
+    },
+    {
+     "damagePerHit": 72,
+     "level": 7,
+     "townHall": 10
+    },
+    {
+     "damagePerHit": 92,
+     "level": 8,
+     "townHall": 11
+    },
+    {
+     "damagePerHit": 125,
+     "level": 9,
+     "townHall": 13
+    },
+    {
+     "damagePerHit": 140,
+     "level": 10,
+     "townHall": 14
+    },
+    {
+     "damagePerHit": 155,
+     "level": 11,
+     "townHall": 15
+    },
+    {
+     "damagePerHit": 170,
+     "level": 12,
+     "townHall": 16
+    },
+    {
+     "damagePerHit": 185,
+     "level": 13,
+     "townHall": 17
+    },
+    {
+     "damagePerHit": 200,
+     "level": 14,
+     "townHall": 18
+    }
+   ],
+   "name": "Bomb",
+   "size": 1,
+   "triggerRadius": 1.5
+  },
   "bombTower": {
    "attackInterval": 1.1,
    "countByTownHall": [
@@ -3828,6 +3926,81 @@
    "movementSpeed": 16,
    "name": "Dragon",
    "range": 3
+  },
+  "eagleArtillery": {
+   "activationHousingSpace": 200,
+   "attackInterval": 0.75,
+   "countByTownHall": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    0,
+    0
+   ],
+   "levels": [
+    {
+     "damagePerHit": 225,
+     "hitpoints": 4000,
+     "level": 1,
+     "townHall": 11
+    },
+    {
+     "damagePerHit": 250,
+     "hitpoints": 4400,
+     "level": 2,
+     "townHall": 11
+    },
+    {
+     "damagePerHit": 275,
+     "hitpoints": 4800,
+     "level": 3,
+     "townHall": 12
+    },
+    {
+     "damagePerHit": 350,
+     "hitpoints": 5200,
+     "level": 4,
+     "townHall": 13
+    },
+    {
+     "damagePerHit": 425,
+     "hitpoints": 5600,
+     "level": 5,
+     "townHall": 14
+    },
+    {
+     "damagePerHit": 475,
+     "hitpoints": 5900,
+     "level": 6,
+     "townHall": 15
+    },
+    {
+     "damagePerHit": 525,
+     "hitpoints": 6200,
+     "level": 7,
+     "townHall": 16
+    }
+   ],
+   "minimumRange": 7,
+   "name": "Eagle Artillery",
+   "range": 50,
+   "shotsPerBurst": 3,
+   "size": 4,
+   "splashRadius": 0.75,
+   "timeBetweenBursts": 10
   },
   "elixirCollector": {
    "countByTownHall": [
@@ -4999,6 +5172,69 @@
    "name": "Laboratory",
    "size": 3
   },
+  "monolith": {
+   "attackInterval": 1.5,
+   "countByTownHall": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    1,
+    1,
+    1,
+    1
+   ],
+   "levels": [
+    {
+     "bonusDamagePercent": 11,
+     "damagePerHit": 225,
+     "hitpoints": 4747,
+     "level": 1,
+     "townHall": 15
+    },
+    {
+     "bonusDamagePercent": 12,
+     "damagePerHit": 262.5,
+     "hitpoints": 5050,
+     "level": 2,
+     "townHall": 15
+    },
+    {
+     "bonusDamagePercent": 13,
+     "damagePerHit": 289.5,
+     "hitpoints": 5353,
+     "level": 3,
+     "townHall": 16
+    },
+    {
+     "bonusDamagePercent": 14,
+     "damagePerHit": 313.5,
+     "hitpoints": 5656,
+     "level": 4,
+     "townHall": 17
+    },
+    {
+     "bonusDamagePercent": 15,
+     "damagePerHit": 337.5,
+     "hitpoints": 5959,
+     "level": 5,
+     "townHall": 18
+    }
+   ],
+   "name": "Monolith",
+   "range": 11,
+   "size": 3
+  },
   "mortar": {
    "attackInterval": 5,
    "countByTownHall": [
@@ -5222,6 +5458,144 @@
    "name": "Pet House",
    "size": 3
   },
+  "scattershot": {
+   "attackInterval": 3.2,
+   "countByTownHall": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2
+   ],
+   "levels": [
+    {
+     "damagePerHit": 400,
+     "hitpoints": 3600,
+     "level": 1,
+     "townHall": 13
+    },
+    {
+     "damagePerHit": 480,
+     "hitpoints": 4200,
+     "level": 2,
+     "townHall": 13
+    },
+    {
+     "damagePerHit": 544,
+     "hitpoints": 4800,
+     "level": 3,
+     "townHall": 14
+    },
+    {
+     "damagePerHit": 560,
+     "hitpoints": 5100,
+     "level": 4,
+     "townHall": 15
+    },
+    {
+     "damagePerHit": 576,
+     "hitpoints": 5410,
+     "level": 5,
+     "townHall": 16
+    },
+    {
+     "damagePerHit": 592,
+     "hitpoints": 5600,
+     "level": 6,
+     "townHall": 17
+    },
+    {
+     "damagePerHit": 608,
+     "hitpoints": 5800,
+     "level": 7,
+     "townHall": 18
+    }
+   ],
+   "minimumRange": 3,
+   "name": "Scattershot",
+   "range": 10,
+   "size": 3
+  },
+  "seekingAirMine": {
+   "countByTownHall": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    2,
+    4,
+    5,
+    5,
+    6,
+    7,
+    8,
+    8,
+    8,
+    9,
+    9
+   ],
+   "levels": [
+    {
+     "damagePerHit": 1500,
+     "level": 1,
+     "townHall": 7
+    },
+    {
+     "damagePerHit": 1800,
+     "level": 2,
+     "townHall": 9
+    },
+    {
+     "damagePerHit": 2100,
+     "level": 3,
+     "townHall": 10
+    },
+    {
+     "damagePerHit": 2500,
+     "level": 4,
+     "townHall": 13
+    },
+    {
+     "damagePerHit": 2800,
+     "level": 5,
+     "townHall": 15
+    },
+    {
+     "damagePerHit": 3000,
+     "level": 6,
+     "townHall": 16
+    },
+    {
+     "damagePerHit": 3200,
+     "level": 7,
+     "townHall": 17
+    },
+    {
+     "damagePerHit": 3350,
+     "level": 8,
+     "townHall": 18
+    }
+   ],
+   "name": "Seeking Air Mine",
+   "size": 1,
+   "triggerRadius": 4
+  },
   "spellFactory": {
    "countByTownHall": [
     0,
@@ -5292,6 +5666,157 @@
    ],
    "name": "Spell Factory",
    "size": 3
+  },
+  "spellTower": {
+   "countByTownHall": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    2,
+    2,
+    2,
+    2
+   ],
+   "levels": [
+    {
+     "hitpoints": 2500,
+     "level": 1,
+     "townHall": 15
+    },
+    {
+     "hitpoints": 2800,
+     "level": 2,
+     "townHall": 15
+    },
+    {
+     "hitpoints": 3100,
+     "level": 3,
+     "townHall": 15
+    },
+    {
+     "hitpoints": 3200,
+     "level": 4,
+     "townHall": 17
+    }
+   ],
+   "name": "Spell Tower",
+   "size": 2
+  },
+  "springTrap": {
+   "countByTownHall": [
+    0,
+    0,
+    0,
+    2,
+    2,
+    4,
+    4,
+    6,
+    6,
+    6,
+    6,
+    8,
+    9,
+    9,
+    9,
+    9,
+    9,
+    9
+   ],
+   "levels": [
+    {
+     "damagePerHit": 0,
+     "level": 1,
+     "springCapacity": 10,
+     "townHall": 4
+    },
+    {
+     "damagePerHit": 250,
+     "level": 2,
+     "springCapacity": 12,
+     "townHall": 7
+    },
+    {
+     "damagePerHit": 300,
+     "level": 3,
+     "springCapacity": 14,
+     "townHall": 8
+    },
+    {
+     "damagePerHit": 350,
+     "level": 4,
+     "springCapacity": 16,
+     "townHall": 9
+    },
+    {
+     "damagePerHit": 400,
+     "level": 5,
+     "springCapacity": 18,
+     "townHall": 10
+    },
+    {
+     "damagePerHit": 500,
+     "level": 6,
+     "springCapacity": 18,
+     "townHall": 11
+    },
+    {
+     "damagePerHit": 600,
+     "level": 7,
+     "springCapacity": 18,
+     "townHall": 12
+    },
+    {
+     "damagePerHit": 750,
+     "level": 8,
+     "springCapacity": 18,
+     "townHall": 13
+    },
+    {
+     "damagePerHit": 900,
+     "level": 9,
+     "springCapacity": 18,
+     "townHall": 14
+    },
+    {
+     "damagePerHit": 1050,
+     "level": 10,
+     "springCapacity": 18,
+     "townHall": 15
+    },
+    {
+     "damagePerHit": 1200,
+     "level": 11,
+     "springCapacity": 18,
+     "townHall": 16
+    },
+    {
+     "damagePerHit": 1300,
+     "level": 12,
+     "springCapacity": 18,
+     "townHall": 17
+    },
+    {
+     "damagePerHit": 1400,
+     "level": 13,
+     "springCapacity": 18,
+     "townHall": 18
+    }
+   ],
+   "name": "Spring Trap",
+   "size": 1,
+   "triggerRadius": 1
   },
   "stoneSlammer": {
    "attackInterval": 2.5,
@@ -6010,6 +6535,112 @@
     }
    ],
    "name": "Workshop",
+   "size": 4
+  },
+  "xBow": {
+   "attackInterval": 0.128,
+   "countByTownHall": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    2,
+    3,
+    4,
+    4,
+    4,
+    4,
+    4,
+    4,
+    4,
+    4
+   ],
+   "levels": [
+    {
+     "damagePerHit": 7.68,
+     "hitpoints": 1500,
+     "level": 1,
+     "townHall": 9
+    },
+    {
+     "damagePerHit": 8.96,
+     "hitpoints": 1900,
+     "level": 2,
+     "townHall": 9
+    },
+    {
+     "damagePerHit": 10.24,
+     "hitpoints": 2300,
+     "level": 3,
+     "townHall": 9
+    },
+    {
+     "damagePerHit": 10.88,
+     "hitpoints": 2700,
+     "level": 4,
+     "townHall": 10
+    },
+    {
+     "damagePerHit": 12.16,
+     "hitpoints": 3100,
+     "level": 5,
+     "townHall": 11
+    },
+    {
+     "damagePerHit": 14.08,
+     "hitpoints": 3400,
+     "level": 6,
+     "townHall": 12
+    },
+    {
+     "damagePerHit": 16.64,
+     "hitpoints": 3700,
+     "level": 7,
+     "townHall": 13
+    },
+    {
+     "damagePerHit": 19.84,
+     "hitpoints": 4000,
+     "level": 8,
+     "townHall": 13
+    },
+    {
+     "damagePerHit": 23.68,
+     "hitpoints": 4200,
+     "level": 9,
+     "townHall": 14
+    },
+    {
+     "damagePerHit": 26.24,
+     "hitpoints": 4400,
+     "level": 10,
+     "townHall": 15
+    },
+    {
+     "damagePerHit": 28.8,
+     "hitpoints": 4600,
+     "level": 11,
+     "townHall": 16
+    },
+    {
+     "damagePerHit": 30.08,
+     "hitpoints": 4800,
+     "level": 12,
+     "townHall": 17
+    },
+    {
+     "damagePerHit": 31.36,
+     "hitpoints": 5000,
+     "level": 13,
+     "townHall": 18
+    }
+   ],
+   "name": "X-Bow",
+   "range": 11.5,
    "size": 4
   }
  }
