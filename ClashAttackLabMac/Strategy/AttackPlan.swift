@@ -184,18 +184,23 @@ nonisolated struct ManualAttackPlan: Identifiable {
     private(set) var spellDeployments: [SpellDeploymentOrder]
     private(set) var heroAbilityOrders: [HeroAbilityOrder]
 
+    /// Orders are clamped to start no later than this time.
+    let latestOrderTime: TimeInterval
+
     init(
         id: UUID = UUID(),
         name: String = "Piano manuale",
         deployments: [DeploymentOrder] = [],
         spellDeployments: [SpellDeploymentOrder] = [],
-        heroAbilityOrders: [HeroAbilityOrder] = []
+        heroAbilityOrders: [HeroAbilityOrder] = [],
+        latestOrderTime: TimeInterval = BattleTiming.prototypeLatestOrderTime
     ) {
         self.id = id
         self.name = name
         self.deployments = deployments
         self.spellDeployments = spellDeployments
         self.heroAbilityOrders = heroAbilityOrders
+        self.latestOrderTime = latestOrderTime
     }
 
     var totalOrderCount: Int {
@@ -229,7 +234,7 @@ nonisolated struct ManualAttackPlan: Identifiable {
         orderedDeployments.filter {
             ($0.kind == .barbarianKing || $0.kind == .archerQueen) &&
                 $0.deploymentTime.isFinite &&
-                (0...59).contains($0.deploymentTime)
+                (0...latestOrderTime).contains($0.deploymentTime)
         }
     }
 
@@ -237,7 +242,7 @@ nonisolated struct ManualAttackPlan: Identifiable {
         guard time.isFinite,
             let deployment = heroDeployments.first(where: { $0.entityID == entityID })
         else { return }
-        let boundedTime = min(59, max(deployment.deploymentTime, time))
+        let boundedTime = min(latestOrderTime, max(deployment.deploymentTime, time))
         let existingID = heroAbilityOrders.first { $0.entityID == entityID }?.id
         heroAbilityOrders.removeAll { $0.entityID == entityID }
         heroAbilityOrders.append(HeroAbilityOrder(
@@ -291,14 +296,14 @@ nonisolated struct ManualAttackPlan: Identifiable {
                 entityID: order.entityID,
                 kind: order.kind,
                 position: order.position,
-                deploymentTime: min(59, max(0, time))
+                deploymentTime: min(latestOrderTime, max(0, time))
             )
-            let newTime = min(59, max(0, time))
+            let newTime = min(latestOrderTime, max(0, time))
             heroAbilityOrders = heroAbilityOrders.map { command in
                 guard command.entityID == order.entityID else { return command }
                 return HeroAbilityOrder(
                     id: command.id, entityID: command.entityID,
-                    activationTime: min(59, max(newTime,
+                    activationTime: min(latestOrderTime, max(newTime,
                         command.activationTime + newTime - order.deploymentTime))
                 )
             }
@@ -311,7 +316,7 @@ nonisolated struct ManualAttackPlan: Identifiable {
                 id: order.id,
                 kind: order.kind,
                 position: order.position,
-                deploymentTime: min(59, max(0, time))
+                deploymentTime: min(latestOrderTime, max(0, time))
             )
         }
     }

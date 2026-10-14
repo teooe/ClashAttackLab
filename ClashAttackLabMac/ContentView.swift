@@ -655,7 +655,7 @@ struct ContentView: View {
                             entityID: deployment.entityID, to: $0
                         ) }
                     ),
-                    in: deployment.deploymentTime...59,
+                    in: deployment.deploymentTime...session.latestOrderTime,
                     step: 0.5
                 ) {
                     Text("Abilità @ \(command.activationTime, specifier: "%.1f") s")

@@ -208,10 +208,10 @@ struct RealBattleArenaTests {
             for order in plan.deployments {
                 let cell = try #require(real.navigationGrid.coordinate(for: order.position))
                 #expect((0...2).contains(cell.column))
-                #expect((0...59).contains(order.deploymentTime))
+                #expect((0...179).contains(order.deploymentTime))
             }
             for order in plan.spellDeployments {
-                #expect((0...59).contains(order.deploymentTime))
+                #expect((0...179).contains(order.deploymentTime))
             }
         }
     }
