@@ -183,6 +183,7 @@ nonisolated final class SimulationEngine {
 
     func reset() {
         wallCellsCache = nil
+        buildingCellsCache = nil
         entities = initialEntities.map { entity in
             var resetEntity = entity
             resetEntity.hitPoints =
@@ -834,7 +835,8 @@ nonisolated final class SimulationEngine {
 
         ensurePath(
             for: troopIndex,
-            to: entities[objectiveIndex].position
+            to: entities[objectiveIndex].position,
+            targetID: entities[objectiveIndex].id
         )
 
         guard
@@ -911,7 +913,8 @@ nonisolated final class SimulationEngine {
             breakableCells: livingWallCells(),
             breakableTraversalCost: estimatedWallTraversalCost(
                 for: entities[troopIndex].kind
-            )
+            ),
+            buildingCells: livingBuildingCells()
         )
 
         guard let decision else {
@@ -1005,7 +1008,8 @@ nonisolated final class SimulationEngine {
 
     private func ensurePath(
         for entityIndex: Int,
-        to targetPosition: WorldPosition
+        to targetPosition: WorldPosition,
+        targetID: UUID? = nil
     ) {
         let entityID = entities[entityIndex].id
 
@@ -1013,15 +1017,26 @@ nonisolated final class SimulationEngine {
             return
         }
 
-        movementPaths[entityID] = pathfinder.findPath(
+        let walls = livingWallCells()
+        let wallCost = estimatedWallTraversalCost(for: entities[entityIndex].kind)
+        let obstacles = routeObstacles(excluding: targetID)
+        // Buildings block the way; when they leave no route at all the
+        // troop walks over them rather than standing still.
+        let path: PathfindingResult? = pathfinder.findPath(
             from: entities[entityIndex].position,
             to: targetPosition,
             in: navigationGrid,
-            breakableCells: livingWallCells(),
-            breakableTraversalCost: estimatedWallTraversalCost(
-                for: entities[entityIndex].kind
-            )
-        )?.waypoints ?? []
+            breakableCells: walls,
+            breakableTraversalCost: wallCost,
+            obstacleCells: obstacles
+        ) ?? (obstacles.isEmpty ? nil : pathfinder.findPath(
+            from: entities[entityIndex].position,
+            to: targetPosition,
+            in: navigationGrid,
+            breakableCells: walls,
+            breakableTraversalCost: wallCost
+        ))
+        movementPaths[entityID] = path?.waypoints ?? []
     }
 
     private func moveAlongPath(
@@ -1446,6 +1461,9 @@ nonisolated final class SimulationEngine {
                 if entityDefinition.role == .wall {
                     wallCellsCache = nil
                 }
+                if entityDefinition.countsForDestruction {
+                    buildingCellsCache = nil
+                }
                 let eventKind: BattleTimelineEventKind
                 let suffix: String
                 switch entityDefinition.role {
@@ -1681,6 +1699,51 @@ nonisolated final class SimulationEngine {
         )
         wallCellsCache = cells
         return cells
+    }
+
+    /// Tiles covered by standing buildings, overall and per building.
+    /// Ground troops route around them; rebuilt only after one falls.
+    private var buildingCellsCache: (
+        all: Set<GridCoordinate>,
+        byID: [UUID: Set<GridCoordinate>]
+    )?
+
+    private func livingBuildingCells() -> (
+        all: Set<GridCoordinate>,
+        byID: [UUID: Set<GridCoordinate>]
+    ) {
+        if let buildingCellsCache {
+            return buildingCellsCache
+        }
+        var all: Set<GridCoordinate> = []
+        var byID: [UUID: Set<GridCoordinate>] = [:]
+        for index in entities.indices where entities[index].isAlive {
+            let entityDefinition = definition(for: entities[index].kind)
+            guard
+                entityDefinition.countsForDestruction,
+                entityDefinition.footprintSize > 0
+            else {
+                continue
+            }
+            let cells = navigationGrid.footprintCells(
+                centeredAt: entities[index].position,
+                side: entityDefinition.footprintSize
+            )
+            byID[entities[index].id] = cells
+            all.formUnion(cells)
+        }
+        let result = (all: all, byID: byID)
+        buildingCellsCache = result
+        return result
+    }
+
+    /// Standing buildings a route may not cross, except its own target.
+    private func routeObstacles(excluding targetID: UUID?) -> Set<GridCoordinate> {
+        let buildings = livingBuildingCells()
+        guard let targetID, let own = buildings.byID[targetID] else {
+            return buildings.all
+        }
+        return buildings.all.subtracting(own)
     }
 
     private func livingWallIndex(at position: WorldPosition) -> Int? {

@@ -124,6 +124,30 @@ nonisolated struct NavigationGrid {
         )
     }
 
+    /// Cells covered by a square footprint of `side` world units centred
+    /// on `center`; empty for point entities.
+    func footprintCells(
+        centeredAt center: WorldPosition,
+        side: Double
+    ) -> Set<GridCoordinate> {
+        let tiles = Int((side / cellSize).rounded())
+        guard tiles > 0 else {
+            return []
+        }
+        let firstColumn = Int(((center.x - origin.x) / cellSize - Double(tiles) / 2).rounded())
+        let firstRow = Int(((center.y - origin.y) / cellSize - Double(tiles) / 2).rounded())
+        var cells: Set<GridCoordinate> = []
+        for column in firstColumn..<(firstColumn + tiles) {
+            for row in firstRow..<(firstRow + tiles) {
+                let cell = GridCoordinate(column: column, row: row)
+                if contains(cell) {
+                    cells.insert(cell)
+                }
+            }
+        }
+        return cells
+    }
+
     func neighbors(of coordinate: GridCoordinate) -> [GridCoordinate] {
         var result: [GridCoordinate] = []
 
