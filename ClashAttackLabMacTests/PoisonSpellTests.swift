@@ -111,3 +111,46 @@ struct PoisonSpellTests {
         #expect(poison.position == castle.position)
     }
 }
+
+struct FrozenReinforcementTests {
+    @Test
+    func freezeStopsTheReinforcementsToo() throws {
+        let grid = RealBattleMap.makeNavigationGrid()
+        var data = ReferenceGameData(
+            catalog: try ReferenceGameCatalog.loadBundled(),
+            profile: ReferenceLevelProfile(townHall: 15)
+        )
+        data.clanCastleTroops = Array(repeating: .barbarian, count: 4)
+        let castle = BattleEntity(
+            kind: .clanCastle,
+            position: grid.worldPosition(for: GridCoordinate(column: 25, row: 25))
+        )
+
+        func giantLoss(frozen: Bool) throws -> Double {
+            let giant = DeploymentOrder(
+                kind: .giant,
+                position: grid.worldPosition(for: GridCoordinate(column: 21, row: 25)),
+                deploymentTime: 0
+            )
+            let spells = frozen
+                ? [SpellDeploymentOrder(kind: .freeze, position: castle.position, deploymentTime: 0)]
+                : []
+            let engine = SimulationEngine(
+                entities: [castle],
+                attackPlan: AttackPlan(name: "Gelo", deployments: [giant], spellDeployments: spells),
+                gameData: data,
+                navigationGrid: grid
+            )
+            engine.start()
+            for _ in 0..<(60 * 3) {
+                engine.advance(by: 1.0 / 60.0)
+            }
+            let survivor = try #require(engine.entities.first { $0.id == giant.entityID })
+            return data.definition(for: .giant).maxHitPoints - survivor.hitPoints
+        }
+
+        #expect(data.spellDefinition(for: .freeze).duration > 3)
+        #expect(try giantLoss(frozen: false) > 0)
+        #expect(try giantLoss(frozen: true) == 0)
+    }
+}

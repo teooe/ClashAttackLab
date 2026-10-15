@@ -268,10 +268,11 @@ nonisolated final class SimulationEngine {
     }
 
     func isDefenseDisabled(_ entityID: UUID) -> Bool {
+        // Freeze stops defenses and Clan Castle reinforcements alike.
         guard let defense = entities.first(where: {
             $0.id == entityID &&
                 $0.isAlive &&
-                definition(for: $0.kind).role == .defense
+                (definition(for: $0.kind).role == .defense || $0.isDefender)
         }) else {
             return false
         }
@@ -1052,6 +1053,9 @@ nonisolated final class SimulationEngine {
         deltaTime: TimeInterval,
         pendingDamage: inout [UUID: Double]
     ) {
+        guard !isDefenseDisabled(entities[index].id) else {
+            return
+        }
         let defenderDefinition = definition(for: entities[index].kind)
         let candidates = possibleTargets.filter {
             !entities[$0].isUnderground &&
