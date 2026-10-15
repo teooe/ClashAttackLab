@@ -18,6 +18,12 @@ Questa pagina elenca cosa viene simulato e quali valori sono stime, cioè numeri
   - se la base non indica la riga `rinforzi`, il Castello contiene fino a 2 Draghi, poi 2 Stregoni, poi Arcieri per lo spazio rimasto. Al TH15 sono 50 posti;
   - i rinforzi inseguono l'attaccante più vicino. Le truppe che attaccano qualsiasi bersaglio si fermano a combatterli; Giganti, Domatori e Palloncini li ignorano.
 
+## Esercito dell'attaccante
+
+- **Capacità:** campi militari e fabbriche degli incantesimi del Municipio, più il proprio Castello del clan. Al TH15 sono 50 posti truppa e 3 incantesimi in più.
+- **Approssimazione:** le truppe del Castello si schierano come le altre, una alla volta, e non tutte insieme in un solo punto come nel gioco.
+- **Esercito predefinito:** riempie il Castello come quello difensivo: fino a 2 Draghi, 2 Stregoni, poi Arcieri.
+
 ## Truppe
 
 - **Truppe:**

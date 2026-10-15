@@ -353,6 +353,9 @@ def unit_entry(key, data, hero_halls):
             "troopCapacity": (
                 level.get("troopCapacity") if key == "clanCastle" else None
             ),
+            "spellCapacity": (
+                level.get("spellCapacity") if key == "clanCastle" else None
+            ),
         }))
 
     entry["levels"] = levels

@@ -131,6 +131,9 @@ nonisolated struct ReferenceUnitLevel: Decodable {
 
     /// Housing space of the reinforcements a Clan Castle holds.
     let troopCapacity: Int?
+
+    /// Spells a Clan Castle holds.
+    let spellCapacity: Int?
 }
 
 nonisolated struct ReferenceSpell: Decodable {

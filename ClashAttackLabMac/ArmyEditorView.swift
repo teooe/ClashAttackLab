@@ -245,19 +245,22 @@ struct ArmyEditorView: View {
                     )
                     Spacer()
                     Text(
-                        "\(draft.troopCapacityUsed(under: rules))/\(rules.troopCapacity)"
+                        "\(draft.troopCapacityUsed(under: rules))/\(rules.totalTroopCapacity)" +
+                            (rules.clanCastleTroopCapacity > 0
+                                ? " · Castello \(rules.clanCastleTroopCapacity)"
+                                : "")
                     )
                     .monospacedDigit()
                 }
 
                 ProgressView(
                     value: Double(
-                        min(draft.troopCapacityUsed(under: rules), rules.troopCapacity)
+                        min(draft.troopCapacityUsed(under: rules), rules.totalTroopCapacity)
                     ),
-                    total: Double(max(rules.troopCapacity, 1))
+                    total: Double(max(rules.totalTroopCapacity, 1))
                 )
                 .tint(
-                    draft.troopCapacityUsed(under: rules) > rules.troopCapacity
+                    draft.troopCapacityUsed(under: rules) > rules.totalTroopCapacity
                         ? .red
                         : .accentColor
                 )
@@ -269,7 +272,10 @@ struct ArmyEditorView: View {
                     )
                     Spacer()
                     Text(
-                        "\(draft.spellCapacityUsed(under: rules))/\(rules.spellCapacity)"
+                        "\(draft.spellCapacityUsed(under: rules))/\(rules.totalSpellCapacity)" +
+                            (rules.clanCastleSpellCapacity > 0
+                                ? " · Castello \(rules.clanCastleSpellCapacity)"
+                                : "")
                     )
                     .monospacedDigit()
                 }
@@ -325,7 +331,7 @@ struct ArmyEditorView: View {
         let isUnique = uniqueKinds.contains(kind)
         let maximum = isUnique
             ? 1
-            : max(12, rules.troopCapacity / max(cost, 1))
+            : max(12, rules.totalTroopCapacity / max(cost, 1))
 
         return HStack(spacing: 12) {
             symbolView(symbol, color: color)
@@ -377,7 +383,7 @@ struct ArmyEditorView: View {
 
             Spacer()
 
-            Stepper(value: value, in: 0...max(4, rules.spellCapacity)) {
+            Stepper(value: value, in: 0...max(4, rules.totalSpellCapacity)) {
                 Text("\(value.wrappedValue)")
                     .font(.body.monospacedDigit())
                     .frame(width: 24, alignment: .trailing)

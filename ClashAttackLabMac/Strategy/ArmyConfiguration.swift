@@ -196,7 +196,7 @@ nonisolated struct ArmyConfiguration: Equatable {
             return "Aggiungi almeno una truppa."
         }
 
-        if troopCapacityUsed(under: rules) > rules.troopCapacity {
+        if troopCapacityUsed(under: rules) > rules.totalTroopCapacity {
             return "Capacità truppe superata."
         }
 
@@ -208,7 +208,7 @@ nonisolated struct ArmyConfiguration: Equatable {
             return "Puoi usare una sola macchina d’assedio."
         }
 
-        if spellCapacityUsed(under: rules) > rules.spellCapacity {
+        if spellCapacityUsed(under: rules) > rules.totalSpellCapacity {
             return "Capacità incantesimi superata."
         }
 
@@ -350,6 +350,19 @@ nonisolated struct ArmyCapacityRules: Equatable {
 
     /// Short description shown next to the capacity bars.
     var label: String
+
+    /// Reinforcements and spells the attacker's own Clan Castle adds on
+    /// top of the camps and spell factories (0 in the prototype).
+    var clanCastleTroopCapacity = 0
+    var clanCastleSpellCapacity = 0
+
+    var totalTroopCapacity: Int {
+        troopCapacity + clanCastleTroopCapacity
+    }
+
+    var totalSpellCapacity: Int {
+        spellCapacity + clanCastleSpellCapacity
+    }
 
     /// Prototype constraints that keep comparisons fair; not official values.
     static let prototype = ArmyCapacityRules(

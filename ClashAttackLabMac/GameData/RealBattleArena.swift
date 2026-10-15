@@ -465,7 +465,7 @@ extension ArmyCapacityRules {
             }
         }
 
-        return ArmyCapacityRules(
+        var rules = ArmyCapacityRules(
             troopCapacity: catalog.army?.troops(atTownHall: townHall) ?? 0,
             spellCapacity: catalog.army?.spells(atTownHall: townHall) ?? 0,
             troopHousing: troopHousing,
@@ -474,6 +474,16 @@ extension ArmyCapacityRules {
             unlockedSpells: unlockedSpells,
             label: "Municipio \(townHall)"
         )
+        // The attacker's Clan Castle adds reinforcements and spells.
+        if
+            let castle = catalog.unit(for: .clanCastle),
+            castle.unlockTownHall <= townHall,
+            let level = castle.level(forTownHall: townHall)
+        {
+            rules.clanCastleTroopCapacity = level.troopCapacity ?? 0
+            rules.clanCastleSpellCapacity = level.spellCapacity ?? 0
+        }
+        return rules
     }
 
     nonisolated static let campFreeKinds: Set<BattleEntityKind> =
@@ -585,7 +595,18 @@ extension ArmyConfiguration {
         }
         add(.wallWrecker, count: 1)
 
-        var spellSpace = rules.spellCapacity
+        // Reinforcements from the attacker's Clan Castle, filled the same
+        // way as a defending castle.
+        free += rules.clanCastleTroopCapacity
+        for rule in ReferenceGameData.defaultGarrisonRules where rules.allows(rule.kind) {
+            let housing = rules.housing(for: rule.kind)
+            guard housing > 0 else {
+                continue
+            }
+            add(rule.kind, count: min(rule.limit, free / housing))
+        }
+
+        var spellSpace = rules.totalSpellCapacity
         // One Poison for the Clan Castle reinforcements every real base has.
         if rules.allows(.poison), rules.housing(for: .poison) <= spellSpace {
             army[spell: .poison] = 1
