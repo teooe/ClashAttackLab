@@ -26,3 +26,7 @@ python3 Tools/generate_reference_game_data.py
 ## Importare una base reale
 
 In modalità Reale usa **Importa base…** con un file di testo. Il formato è descritto in [`Docs/importare-una-base.md`](Docs/importare-una-base.md).
+
+## Cosa simula la modalità Reale
+
+L'elenco di truppe, difese, incantesimi ed equipaggiamenti simulati, e dei valori stimati, è in [`Docs/modalita-reale.md`](Docs/modalita-reale.md).
