@@ -111,6 +111,17 @@ nonisolated struct BattleEntity: Identifiable {
     /// troops by kind but are never part of the attacking army.
     var isDefender = false
 
+    /// Seconds defenses still cannot see this troop (Invisibility Vial).
+    var invisibleRemaining: TimeInterval = 0
+
+    /// Attacks left with the hero's bonus damage and reach (Rocket Spear).
+    var boostedAttacksRemaining = 0
+
+    /// Seconds and strength of a slow on this entity's attacks
+    /// (Frozen Arrow).
+    var slowRemaining: TimeInterval = 0
+    var slowFraction: Double = 0
+
     /// Hidden defenses cannot attack or be targeted before activation.
     var isRevealed: Bool
 

@@ -118,6 +118,92 @@ SPELLS = {
 }
 
 
+# Hero equipment modeled by the simulator, by catalog key.
+EQUIPMENT = {
+    "rageVial": "hero-equipment/rage-vial.json",
+    "giantGauntlet": "hero-equipment/giant-gauntlet.json",
+    "spikyBall": "hero-equipment/spiky-ball.json",
+    "vampstache": "hero-equipment/vampstache.json",
+    "giantArrow": "hero-equipment/giant-arrow.json",
+    "frozenArrow": "hero-equipment/frozen-arrow.json",
+    "invisibilityVial": "hero-equipment/invisibility-vial.json",
+    "eternalTome": "hero-equipment/eternal-tome.json",
+    "fireball": "hero-equipment/fireball.json",
+    "rageGem": "hero-equipment/rage-gem.json",
+    "healingTome": "hero-equipment/healing-tome.json",
+    "seekingShield": "hero-equipment/seeking-shield.json",
+    "rocketSpear": "hero-equipment/rocket-spear.json",
+    "electroBoots": "hero-equipment/electro-boots.json",
+    "royalGem": "hero-equipment/royal-gem.json",
+    "hasteVial": "hero-equipment/haste-vial.json",
+}
+
+HEROES = {
+    "barbarian-king": "barbarianKing",
+    "archer-queen": "archerQueen",
+    "grand-warden": "grandWarden",
+    "royal-champion": "royalChampion",
+}
+
+
+def number(value):
+    """'19s', '60%', '+16%', '6 tiles', 2.5 -> 19, 60, 16, 6, 2.5."""
+    if isinstance(value, (int, float)):
+        return value
+    if not isinstance(value, str):
+        return None
+    text = value.strip().lstrip("+").split(" ")[0].rstrip("s%")
+    try:
+        parsed = float(text)
+    except ValueError:
+        return None
+    return int(parsed) if parsed.is_integer() else parsed
+
+
+def numeric_fields(values):
+    """Keeps the numeric fields of a stats or ability dictionary."""
+    return {
+        key: number(value) for key, value in (values or {}).items()
+        if number(value) is not None
+    }
+
+
+def equipment_entry(data):
+    levels = []
+    for level in data["levels"]:
+        values = {
+            "level": level["level"],
+            "blacksmith": level.get("blacksmithLevelRequired", 1),
+            "hitpointIncrease": level.get("hitpointIncrease"),
+            "hpRecoveryIncrease": level.get("hpRecoveryIncrease"),
+        }
+        values.update(numeric_fields(level.get("stats")))
+        levels.append(compact(values))
+    return {
+        "name": data["name"],
+        "hero": HEROES[data["hero"]],
+        "rarity": data["rarity"].lower(),
+        "active": data.get("abilityType") == "Active",
+        "ability": numeric_fields(data.get("ability")),
+        "levels": levels,
+    }
+
+
+def blacksmith_caps(root):
+    """Highest common and epic equipment level at each Town Hall."""
+    blacksmith = load(root, "army-buildings/blacksmith.json")
+    common, epic = [], []
+    for town_hall in range(1, MAX_TOWN_HALL + 1):
+        unlocked = [
+            level for level in blacksmith["levels"]
+            if level.get("townHallRequired", 1) <= town_hall
+        ]
+        caps = unlocked[-1]["maxEquipmentLevel"] if unlocked else {}
+        common.append(caps.get("common", 0))
+        epic.append(caps.get("epic", 0))
+    return {"common": common, "epic": epic}
+
+
 def load(root, relative):
     with open(os.path.join(root, "data", "home", relative)) as handle:
         return json.load(handle)
@@ -348,6 +434,11 @@ def build(root):
             for key, path in SPELLS.items()
         },
         "army": army_capacity(root),
+        "equipment": {
+            key: equipment_entry(load(root, path))
+            for key, path in EQUIPMENT.items()
+        },
+        "equipmentLevelCaps": blacksmith_caps(root),
     }
 
 

@@ -93,8 +93,39 @@ nonisolated struct HeroAbilityDefinition {
     var strikeDamageMultiplier: Double = 0
 
     /// Troops within this radius, the hero included, take no damage for
-    /// the ability's duration (Eternal Tome).
+    /// `protectionDuration` seconds, or the ability's duration when that
+    /// is 0 (Eternal Tome).
     var protectionRadius: Double = 0
+    var protectionDuration: TimeInterval = 0
+
+    /// Flat damage of each strike, replacing `strikeDamageMultiplier`
+    /// when above 0; strikes may hit any building, not only defenses, and
+    /// splash `strikeSplashRadius` around each target (Spiky Ball, Giant
+    /// Arrow, Fireball).
+    var strikeDamage: Double = 0
+    var strikeSplashRadius: Double = 0
+    var strikesAnyBuilding = false
+
+    /// Extra damage per hit for the next `boostedAttackCount` attacks,
+    /// which reach `boostedAttackRange` (Rocket Spear), or while the hero
+    /// is invisible (Invisibility Vial).
+    var bonusDamagePerHit: Double = 0
+    var boostedAttackCount = 0
+    var boostedAttackRange: Double = 0
+
+    /// Seconds defenses cannot see the hero (Invisibility Vial).
+    var invisibilityDuration: TimeInterval = 0
+
+    /// While active: less damage taken, healing every second and splash
+    /// attacks (Giant Gauntlet).
+    var incomingDamageReduction: Double = 0
+    var selfHealingPerSecond: Double = 0
+    var splashRadius: Double = 0
+
+    /// While active, troops within `areaHealingRadius` heal this much per
+    /// second (Healing Tome).
+    var areaHealingPerSecond: Double = 0
+    var areaHealingRadius: Double = 0
 }
 
 nonisolated struct CombatDefinition {
@@ -106,7 +137,7 @@ nonisolated struct CombatDefinition {
     let damageMultiplierAgainstWalls: Double
     let minimumAttackRange: Double
     let attackRange: Double
-    let attackInterval: TimeInterval
+    var attackInterval: TimeInterval
     let canMove: Bool
     let projectileKind: ProjectileKind?
     let projectileSpeed: Double
@@ -139,7 +170,7 @@ nonisolated struct CombatDefinition {
     let targetingProfile: TargetingProfile?
 
     /// Nil for ordinary troops and all defensive structures.
-    let heroAbility: HeroAbilityDefinition?
+    var heroAbility: HeroAbilityDefinition?
 
     /// Troops released when a siege machine is destroyed.
     let siegePayload: [BattleEntityKind]
@@ -191,6 +222,28 @@ nonisolated struct CombatDefinition {
     /// castle falls.
     var garrison: [BattleEntityKind] = []
     var garrisonTriggerRadius: Double = 0
+
+    // Passive hero equipment effects.
+
+    /// Hit points healed on every attack (Vampstache).
+    var healPerHit: Double = 0
+
+    /// Each hit slows the target's attacks by this fraction for
+    /// `hitSlowDuration` seconds (Frozen Arrow).
+    var hitSlowFraction: Double = 0
+    var hitSlowDuration: TimeInterval = 0
+
+    /// Damage per second dealt to buildings within `buildingAuraRadius`
+    /// (Electro Boots).
+    var buildingAuraDamagePerSecond: Double = 0
+    var buildingAuraRadius: Double = 0
+
+    /// Hit points healed every second (Electro Boots).
+    var passiveHealingPerSecond: Double = 0
+
+    /// Troops inside the hero's `auraRadius` deal this much more damage
+    /// (Rage Gem).
+    var auraDamageBonus: Double = 0
 
     init(
         displayName: String,

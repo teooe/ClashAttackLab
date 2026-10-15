@@ -1312,7 +1312,7 @@ final class AttackLabSession: ObservableObject {
 
         let newArena: BattleArena
         do {
-            newArena = try BattleArena.make(for: source)
+            newArena = try BattleArena.make(for: source, heroEquipment: heroEquipment)
         } catch {
             gameDataError =
                 "Dati reali non disponibili: \(error.localizedDescription)"
@@ -1427,13 +1427,55 @@ final class AttackLabSession: ObservableObject {
             arena.clanCastleTroops != troops,
             let rebuilt = try? BattleArena.make(
                 for: gameDataSource,
-                clanCastleTroops: troops
+                clanCastleTroops: troops,
+                heroEquipment: heroEquipment
             )
         else {
             return
         }
         arena = rebuilt
         gameData = rebuilt.gameData
+    }
+
+    /// Equipment the heroes wear in real battles, kept between launches.
+    @Published private(set) var heroEquipment: [BattleEntityKind: [HeroEquipmentKind]] =
+        HeroEquipmentStore.load()
+
+    /// Changes the heroes' equipment and reloads the base under attack
+    /// with the new hero statistics.
+    func applyHeroEquipment(_ loadouts: [BattleEntityKind: [HeroEquipmentKind]]) {
+        guard !isManualPlanning else {
+            return
+        }
+        cancelSearch()
+        heroEquipment = loadouts
+        HeroEquipmentStore.save(loadouts)
+        guard
+            arena.isReal,
+            let rebuilt = try? BattleArena.make(
+                for: gameDataSource,
+                clanCastleTroops: arena.clanCastleTroops,
+                heroEquipment: loadouts
+            )
+        else {
+            return
+        }
+        arena = rebuilt
+        gameData = rebuilt.gameData
+        if
+            let id = selectedRealBaseID,
+            let layout = realBases.first(where: { $0.id == id })
+        {
+            applyRealBase(layout)
+        } else {
+            applyBaseLayout(baseLayout)
+        }
+    }
+
+    /// Equipment the current arena gives the heroes; empty in the
+    /// prototype.
+    var arenaHeroEquipment: [BattleEntityKind: [HeroEquipmentKind]] {
+        arena.heroEquipment
     }
 
     /// Clan Castle reinforcements of the base under attack; nil when the
