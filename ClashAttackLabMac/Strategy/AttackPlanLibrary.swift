@@ -223,7 +223,7 @@ nonisolated enum AttackPlanArchiveCodec {
                 guard validTime(command.activationTime),
                     commanded.insert(command.entityID).inserted,
                     let hero = plan.deployments.first(where: { $0.entityID == command.entityID }),
-                    hero.kind == .barbarianKing || hero.kind == .archerQueen,
+                    hero.kind.isHero,
                     command.activationTime >= hero.deploymentTime else {
                     throw AttackPlanArchiveError.invalid("Comando eroe duplicato, senza eroe o precedente al suo deploy.")
                 }

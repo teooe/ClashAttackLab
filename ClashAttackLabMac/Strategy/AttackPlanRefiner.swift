@@ -127,7 +127,7 @@ nonisolated struct AttackPlanRefiner {
     /// Automatic low-health activation remains enabled in every candidate.
     func heroTimingVariants(for sourcePlan: AttackPlan) -> [AttackPlan] {
         let heroes = Array(sourcePlan.orderedDeployments.filter {
-            ($0.kind == .barbarianKing || $0.kind == .archerQueen) &&
+            $0.kind.isHero &&
                 $0.deploymentTime.isFinite && (0...latestOrderTime).contains($0.deploymentTime)
         }.prefix(2))
         guard !heroes.isEmpty else { return [] }
@@ -153,7 +153,13 @@ nonisolated struct AttackPlanRefiner {
             let otherCommands = sourcePlan.heroAbilityOrders.filter {
                 $0.entityID != hero.entityID
             }
-            let heroName = hero.kind == .barbarianKing ? "Re" : "Regina"
+            let heroName: String
+            switch hero.kind {
+            case .barbarianKing: heroName = "Re"
+            case .archerQueen: heroName = "Regina"
+            case .grandWarden: heroName = "Sorvegliante"
+            default: heroName = "Campionessa"
+            }
             append(otherCommands, label: "\(heroName) automatica")
             let anchor = existing?.activationTime ?? (hero.deploymentTime + 6)
             for offset in [-2.0, 2.0] {

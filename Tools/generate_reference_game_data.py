@@ -95,6 +95,8 @@ UNITS = {
     "electroDragon": "troops/electro-dragon.json",
     "dragonRider": "troops/dragon-rider.json",
     "lavaHound": "troops/lava-hound.json",
+    "grandWarden": "heroes/grand-warden.json",
+    "royalChampion": "heroes/royal-champion.json",
 }
 
 # Defenses with several firing modes use the named one instead of "normal".
@@ -109,6 +111,9 @@ SPELLS = {
     "freeze": "spells/freeze-spell.json",
     "lightning": "spells/lightning-spell.json",
     "earthquake": "spells/earthquake-spell.json",
+    "jump": "spells/jump-spell.json",
+    "invisibility": "spells/invisibility-spell.json",
+    "haste": "spells/haste-spell.json",
 }
 
 
@@ -283,6 +288,11 @@ def spell_entry(key, data):
             values["damage"] = level["damage"]
         elif key == "earthquake":
             values["buildingDamagePercent"] = level["buildingDamagePercent"]
+        elif key in ("jump", "invisibility"):
+            values["duration"] = level["spellDuration"]
+        elif key == "haste":
+            values["duration"] = level["spellDuration"]
+            values["speedIncrease"] = level["speedIncrease"]
         levels.append(compact(values))
 
     return {

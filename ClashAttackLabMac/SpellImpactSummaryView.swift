@@ -54,6 +54,7 @@ struct SpellImpactSummaryView: View {
         case .freeze: return "Gelo"
         case .lightning: return "Fulmine"
         case .earthquake: return "Terremoto"
+        case .jump, .invisibility, .haste: return SpellStyle.style(for: kind).displayName
         }
     }
 
@@ -64,6 +65,7 @@ struct SpellImpactSummaryView: View {
         case .freeze: return "F"
         case .lightning: return "L"
         case .earthquake: return "E"
+        case .jump, .invisibility, .haste: return SpellStyle.style(for: kind).symbol
         }
     }
 
@@ -74,6 +76,9 @@ struct SpellImpactSummaryView: View {
         case .freeze: return .cyan
         case .lightning: return .yellow
         case .earthquake: return .orange
+        case .jump, .invisibility, .haste:
+            let style = SpellStyle.style(for: kind)
+            return Color(red: style.red, green: style.green, blue: style.blue)
         }
     }
 }

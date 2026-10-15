@@ -306,6 +306,13 @@ nonisolated struct AttackPlanGenerator {
             return 17
         case .earthquake:
             return 14
+        case .jump:
+            // Lands on the first wall ring the troops meet.
+            return 8
+        case .invisibility:
+            return 15
+        case .haste:
+            return 11
         }
     }
 
@@ -345,8 +352,10 @@ nonisolated struct AttackPlanGenerator {
             offset = direction
         case .valkyrie, .pekka, .yeti, .bowler:
             offset = -direction
-        case .golem:
+        case .golem, .royalChampion:
             offset = 0
+        case .grandWarden:
+            offset = -direction
         case .electroDragon, .dragonRider, .lavaHound:
             offset = direction * 3
         case .cannon, .archerTower, .mortar, .wizardTower, .infernoTower, .bombTower, .hiddenTesla, .giantBomb, .airBomb, .airSweeper, .airDefense,
@@ -377,8 +386,10 @@ nonisolated struct AttackPlanGenerator {
             return 2
         case .stoneSlammer:
             return 0
-        case .golem, .lavaHound, .rootRider, .yeti, .pekka:
+        case .golem, .lavaHound, .rootRider, .yeti, .pekka, .royalChampion:
             return 2
+        case .grandWarden:
+            return 1
         case .hogRider, .miner, .valkyrie, .bowler:
             return 1
         case .electroDragon, .dragonRider:

@@ -265,6 +265,24 @@ nonisolated final class SimulationEngine {
         }
     }
 
+    /// Ground troops at `position` cross walls (Jump Spell).
+    private func isInsideJumpSpell(_ position: WorldPosition) -> Bool {
+        activeSpells.contains { spell in
+            let spellData = spellDefinition(for: spell.kind)
+            return spellData.letsTroopsJumpWalls &&
+                distance(from: position, to: spell.position) <= spellData.radius
+        }
+    }
+
+    /// Defenses at `position` cannot be targeted (Invisibility Spell).
+    private func isHiddenBySpell(_ position: WorldPosition) -> Bool {
+        activeSpells.contains { spell in
+            let spellData = spellDefinition(for: spell.kind)
+            return spellData.hidesDefenses &&
+                distance(from: position, to: spell.position) <= spellData.radius
+        }
+    }
+
     func healthFraction(for entity: BattleEntity) -> Double {
         let maximum = definition(for: entity.kind).maxHitPoints
         guard maximum > 0 else {
@@ -325,7 +343,11 @@ nonisolated final class SimulationEngine {
         let buildingIndices = livingIndices(with: .building)
         let wallIndices = livingIndices(with: .wall)
         let objectiveIndices = defenseIndices + buildingIndices
-        let troopTargetIndices = objectiveIndices + wallIndices
+        let visibleDefenseIndices = defenseIndices.filter {
+            !isHiddenBySpell(entities[$0].position)
+        }
+        let troopTargetIndices =
+            visibleDefenseIndices + buildingIndices + wallIndices
 
         guard !objectiveIndices.isEmpty else {
             finish(reason: .totalDestruction)
@@ -521,6 +543,42 @@ nonisolated final class SimulationEngine {
             maximum,
             entities[index].hitPoints + ability.instantHealing
         )
+
+        if ability.protectionRadius > 0 {
+            let center = entities[index].position
+            for troopIndex in livingIndices(with: .troop) where distance(
+                from: entities[troopIndex].position,
+                to: center
+            ) <= ability.protectionRadius {
+                entities[troopIndex].invulnerableRemaining = max(
+                    entities[troopIndex].invulnerableRemaining,
+                    ability.duration
+                )
+            }
+        }
+
+        if ability.strikeTargetCount > 0 {
+            let center = entities[index].position
+            let defenses = livingIndices(with: .defense)
+                .filter {
+                    distance(from: entities[$0].position, to: center) <=
+                        ability.strikeRange
+                }
+                .sorted {
+                    let first = distance(from: entities[$0].position, to: center)
+                    let second = distance(from: entities[$1].position, to: center)
+                    if first == second {
+                        return entities[$0].id.uuidString < entities[$1].id.uuidString
+                    }
+                    return first < second
+                }
+                .prefix(ability.strikeTargetCount)
+            let damage = definition(for: entities[index].kind).attackDamage *
+                ability.strikeDamageMultiplier
+            apply(Dictionary(uniqueKeysWithValues: defenses.map {
+                (entities[$0].id, damage)
+            }))
+        }
     }
 
     private func advanceHeroAbilities(by deltaTime: TimeInterval) {
@@ -528,6 +586,12 @@ nonisolated final class SimulationEngine {
             entities[index].heroAbilityRemaining = max(
                 0,
                 entities[index].heroAbilityRemaining - deltaTime
+            )
+        }
+        for index in entities.indices where entities[index].invulnerableRemaining > 0 {
+            entities[index].invulnerableRemaining = max(
+                0,
+                entities[index].invulnerableRemaining - deltaTime
             )
         }
     }
@@ -737,7 +801,9 @@ nonisolated final class SimulationEngine {
         entities[troopIndex].isUnderground =
             troopDefinition.burrowsWhileMoving
 
-        if troopDefinition.movementDomain == .air || troopDefinition.ignoresWalls {
+        let crossesWalls = troopDefinition.ignoresWalls ||
+            isInsideJumpSpell(entities[troopIndex].position)
+        if troopDefinition.movementDomain == .air || crossesWalls {
             movementPaths[entities[troopIndex].id] = [
                 entities[objectiveIndex].position
             ]
@@ -1357,7 +1423,11 @@ nonisolated final class SimulationEngine {
                     entities[index].id,
                     default: 0
                 ]
-                guard damage > 0, entities[index].isAlive else {
+                guard
+                    damage > 0,
+                    entities[index].isAlive,
+                    entities[index].invulnerableRemaining <= 0
+                else {
                     continue
                 }
 
@@ -1795,7 +1865,7 @@ nonisolated final class SimulationEngine {
             )
         }
 
-        for spell in activeSpells where spell.kind == .rage {
+        for spell in activeSpells where spellDefinition(for: spell.kind).boostsTroops {
             let spellData = spellDefinition(for: spell.kind)
 
             guard distance(

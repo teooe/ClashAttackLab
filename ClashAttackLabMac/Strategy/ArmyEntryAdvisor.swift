@@ -109,19 +109,9 @@ nonisolated struct ArmyEntryAdvisor {
     private func troopKinds(
         in configuration: ArmyConfiguration
     ) -> [BattleEntityKind] {
-        [
-            .giant,
-            .barbarian,
-            .archer,
-            .wallBreaker,
-            .wizard,
-            .balloon,
-            .dragon,
-            .barbarianKing,
-            .archerQueen,
-            .wallWrecker,
-            .stoneSlammer
-        ].filter { configuration.troopCount(for: $0) > 0 }
+        ArmyConfiguration.troopKinds.filter {
+            configuration.troopCount(for: $0) > 0
+        }
     }
 
     private func makeRecommendation(

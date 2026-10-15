@@ -1108,6 +1108,9 @@ final class BattleScene: SKScene {
             return .systemYellow
         case .earthquake:
             return .systemOrange
+        case .jump, .invisibility, .haste:
+            let style = SpellStyle.style(for: kind)
+            return SKColor(red: style.red, green: style.green, blue: style.blue, alpha: 1)
         }
     }
 
@@ -1123,6 +1126,8 @@ final class BattleScene: SKScene {
             return "L"
         case .earthquake:
             return "E"
+        case .jump, .invisibility, .haste:
+            return SpellStyle.style(for: kind).symbol
         }
     }
 
@@ -1152,7 +1157,8 @@ final class BattleScene: SKScene {
             return .systemBrown
         case .stoneSlammer:
             return .systemCyan
-        case .hogRider, .valkyrie, .golem, .bowler, .miner, .pekka, .yeti, .rootRider, .electroDragon, .dragonRider, .lavaHound:
+        case .hogRider, .valkyrie, .golem, .bowler, .miner, .pekka, .yeti, .rootRider, .electroDragon, .dragonRider, .lavaHound,
+             .grandWarden, .royalChampion:
             let style = TroopStyle.style(for: kind)
             return SKColor(red: style.red, green: style.green, blue: style.blue, alpha: 1)
         case .cannon, .archerTower, .mortar, .wizardTower, .infernoTower, .bombTower, .hiddenTesla, .giantBomb, .airBomb, .airSweeper, .airDefense,
@@ -1187,7 +1193,8 @@ final class BattleScene: SKScene {
             return "AR"
         case .stoneSlammer:
             return "SP"
-        case .hogRider, .valkyrie, .golem, .bowler, .miner, .pekka, .yeti, .rootRider, .electroDragon, .dragonRider, .lavaHound:
+        case .hogRider, .valkyrie, .golem, .bowler, .miner, .pekka, .yeti, .rootRider, .electroDragon, .dragonRider, .lavaHound,
+             .grandWarden, .royalChampion:
             return TroopStyle.style(for: kind).symbol
         case .cannon:
             return "C"
@@ -1317,7 +1324,8 @@ final class BattleScene: SKScene {
                 text: "SP"
             )
 
-        case .hogRider, .valkyrie, .golem, .bowler, .miner, .pekka, .yeti, .rootRider, .electroDragon, .dragonRider, .lavaHound:
+        case .hogRider, .valkyrie, .golem, .bowler, .miner, .pekka, .yeti, .rootRider, .electroDragon, .dragonRider, .lavaHound,
+             .grandWarden, .royalChampion:
             let style = TroopStyle.style(for: kind)
             return makeLabeledCircle(
                 radius: CGFloat(style.radius),

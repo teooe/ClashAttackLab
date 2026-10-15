@@ -333,7 +333,7 @@ nonisolated struct ReferenceGameData: GameDataProviding {
                 housingSpace = Self.heroHousingWeight
             }
             if let ability = base.heroAbility, let healing = level.abilityHealing {
-                heroAbility = HeroAbilityDefinition(
+                var realAbility = HeroAbilityDefinition(
                     displayName: ability.displayName,
                     activationHealthFraction: ability.activationHealthFraction,
                     duration: ability.duration,
@@ -345,6 +345,12 @@ nonisolated struct ReferenceGameData: GameDataProviding {
                     behaviorEvidence: ability.behaviorEvidence,
                     tuningEvidence: .documented
                 )
+                // Strike and protection shapes are not in the catalog.
+                realAbility.strikeTargetCount = ability.strikeTargetCount
+                realAbility.strikeRange = ability.strikeRange
+                realAbility.strikeDamageMultiplier = ability.strikeDamageMultiplier
+                realAbility.protectionRadius = ability.protectionRadius
+                heroAbility = realAbility
             }
 
         case .defense:
@@ -492,9 +498,14 @@ nonisolated struct ReferenceGameData: GameDataProviding {
             instantDamage = 0
             hitPointFraction = (level.buildingDamagePercent ?? 0) / 100
             tuningEvidence = .approximation
+        case .haste:
+            movementSpeedBonus = (level.speedIncrease ?? 0) /
+                Self.movementSpeedPerTileSecond * tileSize
+        case .jump, .invisibility:
+            break
         }
 
-        return SpellDefinition(
+        var definition = SpellDefinition(
             displayName: base.displayName,
             radius: radius,
             duration: duration,
@@ -509,6 +520,9 @@ nonisolated struct ReferenceGameData: GameDataProviding {
             maxHitPointDamageFraction: hitPointFraction,
             movementSpeedBonus: movementSpeedBonus
         )
+        definition.letsTroopsJumpWalls = base.letsTroopsJumpWalls
+        definition.hidesDefenses = base.hidesDefenses
+        return definition
     }
 
     /// Expands heat stages into one multiplier per consecutive attack,
@@ -653,6 +667,8 @@ extension BattleEntityKind {
         case .electroDragon: return "electroDragon"
         case .dragonRider: return "dragonRider"
         case .lavaHound: return "lavaHound"
+        case .grandWarden: return "grandWarden"
+        case .royalChampion: return "royalChampion"
         }
     }
 }
@@ -666,6 +682,9 @@ extension BattleSpellKind {
         case .freeze: return "freeze"
         case .lightning: return "lightning"
         case .earthquake: return "earthquake"
+        case .jump: return "jump"
+        case .invisibility: return "invisibility"
+        case .haste: return "haste"
         }
     }
 }
