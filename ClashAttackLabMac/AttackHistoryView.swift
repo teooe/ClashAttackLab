@@ -215,6 +215,7 @@ struct BattleTimelineView: View {
         case .structureDestroyed: return "building.2.crop.circle"
         case .troopDefeated: return "xmark.circle.fill"
         case .siegePayloadReleased: return "shippingbox.fill"
+        case .clanCastleReinforcements: return "shield.lefthalf.filled"
         case .battleFinished: return "flag.checkered"
         }
     }
@@ -228,6 +229,7 @@ struct BattleTimelineView: View {
         case .structureDestroyed: return .orange
         case .troopDefeated: return .red
         case .siegePayloadReleased: return .brown
+        case .clanCastleReinforcements: return .red
         case .battleFinished: return .green
         }
     }

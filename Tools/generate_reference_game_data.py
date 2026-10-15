@@ -259,6 +259,9 @@ def unit_entry(key, data, hero_halls):
                 "golemitesSpawned", level.get("pupsOnOffense")
             ),
             "rampDamagePerHit": ramp,
+            "troopCapacity": (
+                level.get("troopCapacity") if key == "clanCastle" else None
+            ),
         }))
 
     entry["levels"] = levels

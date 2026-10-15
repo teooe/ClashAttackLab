@@ -3629,72 +3629,86 @@
     {
      "hitpoints": 600,
      "level": 1,
-     "townHall": 3
+     "townHall": 3,
+     "troopCapacity": 10
     },
     {
      "hitpoints": 1200,
      "level": 2,
-     "townHall": 4
+     "townHall": 4,
+     "troopCapacity": 15
     },
     {
      "hitpoints": 1800,
      "level": 3,
-     "townHall": 6
+     "townHall": 6,
+     "troopCapacity": 20
     },
     {
      "hitpoints": 2600,
      "level": 4,
-     "townHall": 8
+     "townHall": 8,
+     "troopCapacity": 25
     },
     {
      "hitpoints": 3000,
      "level": 5,
-     "townHall": 9
+     "townHall": 9,
+     "troopCapacity": 30
     },
     {
      "hitpoints": 3400,
      "level": 6,
-     "townHall": 10
+     "townHall": 10,
+     "troopCapacity": 35
     },
     {
      "hitpoints": 4000,
      "level": 7,
-     "townHall": 11
+     "townHall": 11,
+     "troopCapacity": 35
     },
     {
      "hitpoints": 4400,
      "level": 8,
-     "townHall": 12
+     "townHall": 12,
+     "troopCapacity": 40
     },
     {
      "hitpoints": 4800,
      "level": 9,
-     "townHall": 13
+     "townHall": 13,
+     "troopCapacity": 45
     },
     {
      "hitpoints": 5200,
      "level": 10,
-     "townHall": 14
+     "townHall": 14,
+     "troopCapacity": 45
     },
     {
      "hitpoints": 5400,
      "level": 11,
-     "townHall": 15
+     "townHall": 15,
+     "troopCapacity": 50
     },
     {
      "hitpoints": 5600,
      "level": 12,
-     "townHall": 16
+     "townHall": 16,
+     "troopCapacity": 50
     },
     {
      "hitpoints": 5800,
      "level": 13,
-     "townHall": 17
+     "townHall": 17,
+     "troopCapacity": 55
     },
     {
      "hitpoints": 6000,
      "level": 14,
-     "townHall": 18
+     "townHall": 18,
+     "troopCapacity": 55
     }
    ],
    "name": "Clan Castle",

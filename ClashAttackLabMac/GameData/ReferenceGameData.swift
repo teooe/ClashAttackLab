@@ -126,6 +126,9 @@ nonisolated struct ReferenceUnitLevel: Decodable {
 
     /// Inferno Tower damage per hit for its three heat stages.
     let rampDamagePerHit: [Double]?
+
+    /// Housing space of the reinforcements a Clan Castle holds.
+    let troopCapacity: Int?
 }
 
 nonisolated struct ReferenceSpell: Decodable {
@@ -254,6 +257,16 @@ nonisolated struct ReferenceGameData: GameDataProviding {
     let profile: ReferenceLevelProfile
     let fallback: any GameDataProviding
     let tileSize: Double
+
+    /// Reinforcements waiting in the Clan Castle; nil fills the castle
+    /// with `defaultGarrison(capacity:)`.
+    var clanCastleTroops: [BattleEntityKind]?
+
+    /// Common defensive filling: Dragons, then Wizards, then Archers for
+    /// the space left.
+    static let defaultGarrisonRules: [(kind: BattleEntityKind, limit: Int)] = [
+        (.dragon, 2), (.wizard, 2), (.archer, Int.max)
+    ]
 
     init(
         catalog: ReferenceGameCatalog,
@@ -468,7 +481,32 @@ nonisolated struct ReferenceGameData: GameDataProviding {
         definition.chainDamageMultiplier = base.chainDamageMultiplier
         definition.auraRadius = base.auraRadius
         definition.auraDamageReduction = base.auraDamageReduction
+        if kind == .clanCastle {
+            definition.garrison = clanCastleTroops ??
+                defaultGarrison(capacity: level.troopCapacity ?? 0)
+            definition.garrisonTriggerRadius =
+                (unit.triggerRadius ?? 0) * tileSize
+        }
         return definition
+    }
+
+    /// Fills `capacity` housing space following `defaultGarrisonRules`.
+    func defaultGarrison(capacity: Int) -> [BattleEntityKind] {
+        var remaining = capacity
+        var troops: [BattleEntityKind] = []
+        for rule in Self.defaultGarrisonRules {
+            let housing = definition(for: rule.kind).housingSpace
+            guard housing > 0 else {
+                continue
+            }
+            var added = 0
+            while added < rule.limit, housing <= remaining {
+                troops.append(rule.kind)
+                remaining -= housing
+                added += 1
+            }
+        }
+        return troops
     }
 
     /// Golemites are not in the catalog: each one takes a fifth of the
