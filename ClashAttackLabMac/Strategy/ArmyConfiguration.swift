@@ -253,7 +253,7 @@ nonisolated struct ArmyConfiguration: Equatable {
         case .stoneSlammer:
             return stoneSlammers
         case .hogRider, .valkyrie, .golem, .bowler, .miner, .pekka, .yeti, .rootRider, .electroDragon, .dragonRider, .lavaHound,
-             .grandWarden, .royalChampion, .lavaPup, .golemite, .skeleton, .bat, .battleBlimp, .flameFlinger, .siegeBarracks:
+             .grandWarden, .royalChampion, .lavaPup, .golemite, .skeleton, .bat, .battleBlimp, .flameFlinger, .siegeBarracks, .logLauncher:
             return advancedTroops[kind, default: 0]
         case .cannon, .archerTower, .mortar, .wizardTower, .infernoTower, .bombTower, .hiddenTesla, .giantBomb, .airBomb, .airSweeper, .airDefense,
              .townHall, .goldStorage, .wall,
@@ -310,7 +310,8 @@ nonisolated struct ArmyConfiguration: Equatable {
             .stoneSlammer,
             .battleBlimp,
             .flameFlinger,
-            .siegeBarracks
+            .siegeBarracks,
+            .logLauncher
         ]
         var remaining = Dictionary(
             uniqueKeysWithValues: preferredOrder.map { ($0, troopCount(for: $0)) }

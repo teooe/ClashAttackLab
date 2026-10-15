@@ -519,6 +519,8 @@ nonisolated struct ReferenceGameData: GameDataProviding {
         definition.auraRadius = base.auraRadius
         definition.auraDamageReduction = base.auraDamageReduction
         definition.releasesPayloadOnDeploy = base.releasesPayloadOnDeploy
+        definition.rollingLogLength = base.rollingLogLength
+        definition.rollingLogWidth = base.rollingLogWidth
         definition.ignoresTraps = base.ignoresTraps
         definition.resourceDamageMultiplier = base.resourceDamageMultiplier
         if let decay = unit.hitpointDecayPerSecond {
@@ -816,6 +818,7 @@ extension BattleEntityKind {
         case .battleBlimp: return "battleBlimp"
         case .flameFlinger: return "flameFlinger"
         case .siegeBarracks: return "siegeBarracks"
+        case .logLauncher: return "logLauncher"
         }
     }
 }
