@@ -82,6 +82,27 @@ nonisolated struct BattleArena {
         ).makeEntities(variant: layout)
     }
 
+    /// Battle entities for a typed-in real base; empty in the prototype.
+    func makeEntities(for layout: RealBaseLayout) -> [BattleEntity] {
+        guard let catalog else {
+            return []
+        }
+        return layout.makeEntities(navigationGrid: navigationGrid, catalog: catalog)
+    }
+
+    /// Problems found in a typed-in real base; nil in the prototype.
+    func issues(for layout: RealBaseLayout) -> [RealBaseIssue]? {
+        catalog.map { layout.issues(catalog: $0) }
+    }
+
+    /// Town Hall level of the real arena; nil in the prototype.
+    var townHall: Int? {
+        if case .reference(let townHall) = source {
+            return townHall
+        }
+        return nil
+    }
+
     func makeBaseSnapshot(layout: PrototypeBaseLayout) -> BaseSnapshot {
         guard isReal else {
             return BaseSnapshot.make(from: layout, navigationGrid: navigationGrid)

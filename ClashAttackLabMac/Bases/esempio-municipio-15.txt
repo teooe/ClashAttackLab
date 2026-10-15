@@ -1,0 +1,152 @@
+# Base d'esempio del Municipio 15, creata per provare l'importazione.
+# Colonna 0 = bordo sinistro, riga 0 = bordo in alto; ogni edificio
+# si indica con l'angolo in alto a sinistra del suo ingombro.
+nome Esempio Municipio 15
+livello 15
+
+# Muri: due anelli attorno al Municipio
+wall 15 15 - 28 15
+wall 15 28 - 28 28
+wall 15 16 - 15 27
+wall 28 16 - 28 27
+wall 7 7 - 36 7
+wall 7 36 - 36 36
+wall 7 8 - 7 35
+wall 36 8 - 36 35
+
+townHall 20 20
+eagleArtillery 16 16
+infernoTower 20 16
+infernoTower 22 16
+infernoTower 24 16
+scattershot 24 18
+scattershot 16 20
+monolith 24 21
+airDefense 16 23
+airDefense 19 24
+airDefense 22 24
+airDefense 25 24
+spellTower 26 16
+spellTower 20 18
+xBow 8 8
+xBow 12 8
+xBow 16 8
+xBow 20 8
+clanCastle 24 8
+wizardTower 27 8
+wizardTower 30 8
+wizardTower 33 8
+wizardTower 24 11
+wizardTower 27 11
+bombTower 30 11
+bombTower 33 11
+hiddenTesla 8 12
+hiddenTesla 10 12
+hiddenTesla 12 12
+hiddenTesla 14 12
+hiddenTesla 16 12
+mortar 18 12
+mortar 21 12
+mortar 8 14
+mortar 11 14
+archerTower 29 14
+archerTower 32 14
+archerTower 8 17
+archerTower 11 17
+archerTower 29 17
+archerTower 32 17
+archerTower 8 20
+archerTower 11 20
+cannon 29 20
+cannon 32 20
+cannon 8 23
+cannon 11 23
+cannon 29 23
+cannon 32 23
+cannon 8 26
+airSweeper 22 18
+airSweeper 11 26
+goldStorage 29 26
+goldStorage 32 26
+goldStorage 11 28
+goldStorage 8 29
+elixirStorage 14 29
+elixirStorage 17 29
+elixirStorage 20 29
+elixirStorage 23 29
+darkElixirStorage 26 29
+builderHut 13 26
+builderHut 16 26
+builderHut 29 29
+builderHut 31 29
+builderHut 33 29
+laboratory 0 0
+spellFactory 3 0
+darkSpellFactory 6 0
+heroHall 9 0
+blacksmith 13 0
+petHouse 16 0
+workshop 19 0
+barracks 23 0
+darkBarracks 26 0
+armyCamp 29 0
+armyCamp 33 0
+armyCamp 37 0
+armyCamp 0 3
+goldMine 41 0
+goldMine 4 3
+goldMine 13 3
+goldMine 16 3
+goldMine 23 3
+goldMine 26 3
+goldMine 41 3
+elixirCollector 7 4
+elixirCollector 10 4
+elixirCollector 19 4
+elixirCollector 29 4
+elixirCollector 32 4
+elixirCollector 35 4
+elixirCollector 38 4
+darkElixirDrill 4 6
+darkElixirDrill 41 6
+darkElixirDrill 0 7
+helperHut 37 7
+giantBomb 11 31
+giantBomb 29 31
+giantBomb 31 31
+giantBomb 33 31
+giantBomb 8 32
+giantBomb 13 32
+giantBomb 15 32
+seekingAirMine 14 14
+seekingAirMine 15 14
+seekingAirMine 16 14
+seekingAirMine 17 14
+seekingAirMine 24 14
+seekingAirMine 25 14
+seekingAirMine 26 14
+seekingAirMine 27 14
+airBomb 28 14
+airBomb 35 14
+airBomb 14 15
+airBomb 35 15
+airBomb 14 16
+airBomb 35 16
+airBomb 14 17
+springTrap 35 17
+springTrap 14 18
+springTrap 27 18
+springTrap 35 18
+springTrap 14 19
+springTrap 27 19
+springTrap 35 19
+springTrap 14 20
+springTrap 19 20
+bomb 27 20
+bomb 35 20
+bomb 14 21
+bomb 19 21
+bomb 27 21
+bomb 35 21
+bomb 14 22
+bomb 19 22

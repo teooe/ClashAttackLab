@@ -9,6 +9,7 @@ App macOS in SwiftUI per simulare e analizzare attacchi di Clash of Clans: edito
 - `ClashAttackLabMac/Pathfinding/` – A* e griglia di navigazione
 - `ClashAttackLabMac/Strategy/` – piani d'attacco, generatore, valutazione, libreria
 - `ClashAttackLabMac/AI/`, `ClashAttackLabMac/Rendering/` – selezione dei bersagli e scena di battaglia
+- `ClashAttackLabMac/Bases/` – basi reali incluse nell'app, in formato testo (vedi `Docs/importare-una-base.md`)
 - `ClashAttackLabMacTests/`, `ClashAttackLabMacUITests/` – test
 - `Tools/generate_reference_game_data.py` – rigenera `ReferenceGameData.json`
 
@@ -21,3 +22,7 @@ Apri `ClashAttackLab.xcodeproj` e usa lo schema `ClashAttackLabMac`. La CI (`.gi
 ```
 python3 Tools/generate_reference_game_data.py
 ```
+
+## Importare una base reale
+
+In modalità Reale usa **Importa base…** con un file di testo. Il formato è descritto in [`Docs/importare-una-base.md`](Docs/importare-una-base.md).

@@ -1,6 +1,7 @@
 import Foundation
 import SpriteKit
 import SwiftUI
+import UniformTypeIdentifiers
 
 struct ContentView: View {
     @StateObject private var session = AttackLabSession()
@@ -10,6 +11,8 @@ struct ContentView: View {
     @State private var showingPlanLibrary = false
     @State private var showingAttackHistory = false
     @State private var showingStrategyAnalysis = false
+    @State private var showingRealBaseImport = false
+    @State private var realBaseImportReport: RealBaseImportReport?
 
     var body: some View {
         VStack(spacing: 0) {
@@ -52,17 +55,7 @@ struct ContentView: View {
                         )
 
                         if session.isRealArena {
-                            Picker("Base", selection: Binding(
-                                get: { session.baseLayout },
-                                set: { session.applyBaseLayout($0) }
-                            )) {
-                                ForEach(PrototypeBaseLayout.allCases) { layout in
-                                    Text(layout.displayName).tag(layout)
-                                }
-                            }
-                            .pickerStyle(.menu)
-                            .fixedSize()
-                            .disabled(session.isManualPlanning)
+                            realBaseControls
                         }
                     }
                 }
@@ -299,6 +292,27 @@ struct ContentView: View {
             SpriteView(scene: session.scene)
                 .id(ObjectIdentifier(session.scene))
                 .frame(minWidth: 840, minHeight: 600)
+        }
+        .fileImporter(
+            isPresented: $showingRealBaseImport,
+            allowedContentTypes: [.plainText, .text],
+            allowsMultipleSelection: false
+        ) { result in
+            realBaseImportReport = importRealBase(from: result)
+        }
+        .alert(
+            realBaseImportReport?.imported == true
+                ? "Base importata"
+                : "Base non importata",
+            isPresented: Binding(
+                get: { realBaseImportReport != nil },
+                set: { if !$0 { realBaseImportReport = nil } }
+            ),
+            presenting: realBaseImportReport
+        ) { _ in
+            Button("OK") {}
+        } message: { report in
+            Text(report.messages.joined(separator: "\n"))
         }
         .sheet(isPresented: $showingArmyBuilder) {
             ArmyEditorView(
@@ -1058,6 +1072,70 @@ struct ContentView: View {
             }
         }
         .buttonStyle(.plain)
+    }
+
+    /// Base menu of the real mode: generated variants, then the bases
+    /// shipped with the app and the imported ones.
+    private var realBaseControls: some View {
+        HStack(spacing: 8) {
+            Picker("Base", selection: Binding(
+                get: { session.realBaseChoice },
+                set: { session.applyRealBaseChoice($0) }
+            )) {
+                ForEach(PrototypeBaseLayout.allCases) { layout in
+                    Text(layout.displayName)
+                        .tag(RealBaseChoice.generated(layout))
+                }
+                if !session.realBases.isEmpty {
+                    Divider()
+                    ForEach(session.realBases) { base in
+                        Text(base.townHall.map { "\(base.name) · M\($0)" } ?? base.name)
+                            .tag(RealBaseChoice.imported(base.id))
+                    }
+                }
+            }
+            .pickerStyle(.menu)
+            .fixedSize()
+
+            Button {
+                showingRealBaseImport = true
+            } label: {
+                Label("Importa base…", systemImage: "square.and.arrow.down")
+            }
+            .help("Importa una base reale da un file di testo (vedi Docs/importare-una-base.md).")
+
+            if
+                let id = session.selectedRealBaseID,
+                session.canRemoveRealBase(id: id)
+            {
+                Button(role: .destructive) {
+                    session.removeRealBase(id: id)
+                } label: {
+                    Label("Rimuovi base", systemImage: "trash")
+                }
+                .help("Rimuove la base importata dalla libreria.")
+            }
+        }
+        .disabled(session.isManualPlanning)
+    }
+
+    private func importRealBase(
+        from result: Result<[URL], Error>
+    ) -> RealBaseImportReport {
+        do {
+            guard let url = try result.get().first else {
+                return RealBaseImportReport(imported: false, messages: ["Nessun file scelto."])
+            }
+            let access = url.startAccessingSecurityScopedResource()
+            defer { if access { url.stopAccessingSecurityScopedResource() } }
+            let text = try String(contentsOf: url, encoding: .utf8)
+            return session.importRealBase(
+                text: text,
+                fileName: url.deletingPathExtension().lastPathComponent
+            )
+        } catch {
+            return RealBaseImportReport(imported: false, messages: [error.localizedDescription])
+        }
     }
 
     private func armySummary(for army: ArmyConfiguration) -> String {
