@@ -43,7 +43,7 @@ extension BattleEntityKind {
     /// or a spell summons them; they cannot be trained and have no
     /// catalog entry of their own.
     nonisolated static let spawnedTroops: [BattleEntityKind] = [
-        .lavaPup, .golemite, .skeleton, .bat, .battleBlimp, .flameFlinger, .siegeBarracks
+        .lavaPup, .golemite, .skeleton, .bat
     ]
 
     /// Buildings that only store or produce resources; Bats hurt them less.

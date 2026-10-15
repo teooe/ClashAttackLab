@@ -2103,8 +2103,13 @@ nonisolated final class SimulationEngine {
 
             for (center, damage, radius, targetLayer, hitsBase) in destructionEffects {
                 if hitsBase {
+                    // Measured to each building's edge, as troops reach them.
                     for target in livingIndices(with: .defense) + livingIndices(with: .building)
-                    where distance(from: entities[target].position, to: center) <= radius {
+                    where footprintDistance(
+                        from: center,
+                        toCenter: entities[target].position,
+                        footprint: definition(for: entities[target].kind).footprintSize
+                    ) <= radius {
                         damageQueue[entities[target].id, default: 0] += damage
                     }
                     continue
