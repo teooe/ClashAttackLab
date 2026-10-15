@@ -62,8 +62,11 @@ nonisolated final class SimulationEngine {
 
     var deployedTroopCount: Int {
         attackPlan.deployments.count - pendingDeployments.count +
-            releasedPayloadTroopCount
+            releasedPayloadTroopCount + summonedTroopCount
     }
+
+    /// Troops summoned by Skeleton and Bat Spells so far.
+    private(set) var summonedTroopCount = 0
 
     var livingTroopCount: Int {
         livingIndices(with: .troop).count
@@ -233,6 +236,7 @@ nonisolated final class SimulationEngine {
         garrisonReleased = [:]
         nextGarrisonRelease = [:]
         damageAuraSources = []
+        summonedTroopCount = 0
         deployedHousingSpace = 0
         timeline = []
         score = scoringSystem.calculate(
@@ -501,6 +505,9 @@ nonisolated final class SimulationEngine {
                 apply(damage)
             } else {
                 activeSpells.append(ActiveBattleSpell(id: next.id, kind: next.kind, position: next.position, remainingDuration: definition.duration))
+                if let troop = definition.summonedTroop, definition.summonCount > 0 {
+                    summon(troop, count: definition.summonCount, around: next.position, spellID: next.id)
+                }
                 if definition.encasesTroops {
                     for index in livingIndices(with: .troop) where distance(
                         from: entities[index].position,
@@ -522,6 +529,42 @@ nonisolated final class SimulationEngine {
                 "\(definition.displayName) lanciata"
             )
         }
+    }
+
+    /// Spreads summoned troops on rings around the spell's centre.
+    private func summon(
+        _ kind: BattleEntityKind,
+        count: Int,
+        around center: WorldPosition,
+        spellID: UUID
+    ) {
+        let troopDefinition = definition(for: kind)
+        for index in 0..<count {
+            let ring = Double(index / 8 + 1)
+            let angle = Double(index) * 2 * Double.pi / 8 + ring * 0.4
+            let radius = navigationGrid.cellSize * 0.5 * ring
+            let position = payloadSpawnPosition(
+                near: WorldPosition(
+                    x: center.x + cos(angle) * radius,
+                    y: center.y + sin(angle) * radius
+                ),
+                domain: troopDefinition.movementDomain
+            )
+            let key = "ClashAttackLab.summon.v1:\(spellID.uuidString):\(index)"
+            let bytes = Array(SHA256.hash(data: Data(key.utf8)))
+            entities.append(BattleEntity(
+                id: UUID(uuid: (
+                    bytes[0], bytes[1], bytes[2], bytes[3],
+                    bytes[4], bytes[5], bytes[6], bytes[7],
+                    bytes[8], bytes[9], bytes[10], bytes[11],
+                    bytes[12], bytes[13], bytes[14], bytes[15]
+                )),
+                kind: kind,
+                position: position,
+                hitPoints: troopDefinition.maxHitPoints
+            ))
+        }
+        summonedTroopCount += count
     }
 
     private func applyHealingSpells(by deltaTime: TimeInterval) {
@@ -832,6 +875,7 @@ nonisolated final class SimulationEngine {
                     for: entities[troopIndex].kind
                 )
                 return !entities[troopIndex].isUnderground &&
+                    !troopDefinition.ignoresTraps &&
                     trapDefinition.destructionTargetLayer.accepts(
                     troopDefinition.movementDomain
                 ) && distance(
@@ -1604,10 +1648,14 @@ nonisolated final class SimulationEngine {
         let isBoosted = attacker.boostedAttacksRemaining > 0 ||
             attacker.invisibleRemaining > 0
         let equipmentBonus = isBoosted ? ability?.bonusDamagePerHit ?? 0 : 0
+        let resourceMultiplier = BattleEntityKind.resourceBuildings.contains(target.kind)
+            ? attackerDefinition.resourceDamageMultiplier
+            : 1
         let attackDamage =
             (attackerDefinition.attackDamage * rampMultiplier + bonusDamage + equipmentBonus) *
             modifiers.damage *
-            wallMultiplier
+            wallMultiplier *
+            resourceMultiplier
         let splashRadius = attacker.heroAbilityIsActive
             ? max(attackerDefinition.splashRadius, ability?.splashRadius ?? 0)
             : attackerDefinition.splashRadius

@@ -134,6 +134,28 @@ nonisolated struct PrototypeGameData: GameDataProviding {
             spell.encasesTroops = true
             spell.troopDamageReduction = 0.9
             return spell
+        case .skeletonSpell:
+            var spell = SpellDefinition(
+                displayName: "Scheletri", radius: 140, duration: 0,
+                healingPerSecond: 0, instantDamage: 0,
+                damageMultiplier: 1, movementSpeedMultiplier: 1,
+                attackSpeedMultiplier: 1, disablesDefenses: false,
+                behaviorEvidence: .documented, tuningEvidence: .prototype
+            )
+            spell.summonedTroop = .skeleton
+            spell.summonCount = 19
+            return spell
+        case .batSpell:
+            var spell = SpellDefinition(
+                displayName: "Pipistrelli", radius: 140, duration: 0,
+                healingPerSecond: 0, instantDamage: 0,
+                damageMultiplier: 1, movementSpeedMultiplier: 1,
+                attackSpeedMultiplier: 1, disablesDefenses: false,
+                behaviorEvidence: .documented, tuningEvidence: .prototype
+            )
+            spell.summonedTroop = .bat
+            spell.summonCount = 22
+            return spell
         }
     }
 
@@ -679,6 +701,59 @@ nonisolated struct PrototypeGameData: GameDataProviding {
                 // Bursts into Lava Pups when it falls.
                 siegePayload: Array(repeating: .lavaPup, count: 6)
             )
+
+        case .skeleton:
+            // Stats of the summoned Skeleton, the same at every level:
+            // 30 hit points plus 30 of armour, 25 damage per second.
+            var skeleton = CombatDefinition(
+                displayName: TroopStyle.style(for: .skeleton).displayName,
+                role: .troop,
+                maxHitPoints: 60,
+                movementSpeed: 120,
+                attackDamage: 25,
+                minimumAttackRange: 0,
+                attackRange: 16,
+                attackInterval: 1,
+                canMove: true,
+                projectileKind: nil,
+                projectileSpeed: 0,
+                splashRadius: 0,
+                selfDestructsOnAttack: false,
+                attackTargetLayer: .ground,
+                targetingProfile: TargetingProfile(
+                    preference: .anyBuilding,
+                    evidence: .documented
+                )
+            )
+            skeleton.ignoresTraps = true
+            return skeleton
+
+        case .bat:
+            // Summoned Bat: flies to defenses, 30 damage per second, 40% of
+            // it against resource buildings.
+            var bat = CombatDefinition(
+                displayName: TroopStyle.style(for: .bat).displayName,
+                role: .troop,
+                maxHitPoints: 20,
+                movementSpeed: 280,
+                attackDamage: 60,
+                minimumAttackRange: 0,
+                attackRange: 32,
+                attackInterval: 2,
+                canMove: true,
+                projectileKind: nil,
+                projectileSpeed: 0,
+                splashRadius: 0,
+                selfDestructsOnAttack: false,
+                movementDomain: .air,
+                targetingProfile: TargetingProfile(
+                    preference: .defenses,
+                    evidence: .documented
+                )
+            )
+            bat.ignoresTraps = true
+            bat.resourceDamageMultiplier = 0.4
+            return bat
 
         case .lavaPup:
             return CombatDefinition(

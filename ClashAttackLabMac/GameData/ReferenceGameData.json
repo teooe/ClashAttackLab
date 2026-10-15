@@ -2773,6 +2773,60 @@
   "version": "0.18.0"
  },
  "spells": {
+  "batSpell": {
+   "housingSpace": 1,
+   "levels": [
+    {
+     "level": 1,
+     "radius": 3.5,
+     "summonCount": 7,
+     "townHall": 10
+    },
+    {
+     "level": 2,
+     "radius": 3.5,
+     "summonCount": 9,
+     "townHall": 10
+    },
+    {
+     "level": 3,
+     "radius": 3.5,
+     "summonCount": 11,
+     "townHall": 10
+    },
+    {
+     "level": 4,
+     "radius": 3.5,
+     "summonCount": 16,
+     "townHall": 11
+    },
+    {
+     "level": 5,
+     "radius": 3.5,
+     "summonCount": 21,
+     "townHall": 12
+    },
+    {
+     "level": 6,
+     "radius": 3.5,
+     "summonCount": 22,
+     "townHall": 15
+    },
+    {
+     "level": 7,
+     "radius": 3.5,
+     "summonCount": 23,
+     "townHall": 17
+    },
+    {
+     "level": 8,
+     "radius": 3.5,
+     "summonCount": 25,
+     "townHall": 17
+    }
+   ],
+   "name": "Bat Spell"
+  },
   "earthquake": {
    "housingSpace": 1,
    "levels": [
@@ -3435,6 +3489,60 @@
     }
    ],
    "name": "Rage Spell"
+  },
+  "skeletonSpell": {
+   "housingSpace": 1,
+   "levels": [
+    {
+     "level": 1,
+     "radius": 3.5,
+     "summonCount": 12,
+     "townHall": 9
+    },
+    {
+     "level": 2,
+     "radius": 3.5,
+     "summonCount": 13,
+     "townHall": 10
+    },
+    {
+     "level": 3,
+     "radius": 3.5,
+     "summonCount": 14,
+     "townHall": 10
+    },
+    {
+     "level": 4,
+     "radius": 3.5,
+     "summonCount": 15,
+     "townHall": 11
+    },
+    {
+     "level": 5,
+     "radius": 3.5,
+     "summonCount": 16,
+     "townHall": 12
+    },
+    {
+     "level": 6,
+     "radius": 3.5,
+     "summonCount": 17,
+     "townHall": 12
+    },
+    {
+     "level": 7,
+     "radius": 3.5,
+     "summonCount": 18,
+     "townHall": 13
+    },
+    {
+     "level": 8,
+     "radius": 3.5,
+     "summonCount": 19,
+     "townHall": 15
+    }
+   ],
+   "name": "Skeleton Spell"
   }
  },
  "units": {

@@ -117,6 +117,8 @@ SPELLS = {
     "poison": "spells/poison-spell.json",
     "overgrowth": "spells/overgrowth-spell.json",
     "iceBlock": "spells/ice-block-spell.json",
+    "skeletonSpell": "spells/skeleton-spell.json",
+    "batSpell": "spells/bat-spell.json",
 }
 
 
@@ -398,6 +400,10 @@ def spell_entry(key, data):
         elif key == "iceBlock":
             values["duration"] = level["spellDuration"]
             values["damageReductionPercent"] = level["incomingDamageReduction"]
+        elif key == "skeletonSpell":
+            values["summonCount"] = level["skeletonsGenerated"]
+        elif key == "batSpell":
+            values["summonCount"] = level["batsGenerated"]
         levels.append(compact(values))
 
     return {

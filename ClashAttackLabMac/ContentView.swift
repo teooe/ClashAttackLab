@@ -818,7 +818,7 @@ struct ContentView: View {
         case .stoneSlammer:
             return "Schiantapietre"
         case .hogRider, .valkyrie, .golem, .bowler, .miner, .pekka, .yeti, .rootRider, .electroDragon, .dragonRider, .lavaHound,
-             .grandWarden, .royalChampion, .lavaPup, .golemite:
+             .grandWarden, .royalChampion, .lavaPup, .golemite, .skeleton, .bat:
             return TroopStyle.style(for: kind).displayName
         case .cannon, .archerTower, .mortar, .wizardTower, .infernoTower, .bombTower, .hiddenTesla, .giantBomb, .airBomb, .airSweeper, .airDefense,
              .townHall, .goldStorage, .wall,
@@ -853,7 +853,7 @@ struct ContentView: View {
         case .stoneSlammer:
             return "SP"
         case .hogRider, .valkyrie, .golem, .bowler, .miner, .pekka, .yeti, .rootRider, .electroDragon, .dragonRider, .lavaHound,
-             .grandWarden, .royalChampion, .lavaPup, .golemite:
+             .grandWarden, .royalChampion, .lavaPup, .golemite, .skeleton, .bat:
             return TroopStyle.style(for: kind).symbol
         case .cannon, .archerTower, .mortar, .wizardTower, .infernoTower, .bombTower, .hiddenTesla, .giantBomb, .airBomb, .airSweeper, .airDefense,
              .townHall, .goldStorage, .wall,
@@ -888,7 +888,7 @@ struct ContentView: View {
         case .stoneSlammer:
             return .cyan
         case .hogRider, .valkyrie, .golem, .bowler, .miner, .pekka, .yeti, .rootRider, .electroDragon, .dragonRider, .lavaHound,
-             .grandWarden, .royalChampion, .lavaPup, .golemite:
+             .grandWarden, .royalChampion, .lavaPup, .golemite, .skeleton, .bat:
             let style = TroopStyle.style(for: kind)
             return Color(red: style.red, green: style.green, blue: style.blue)
         case .cannon, .archerTower, .mortar, .wizardTower, .infernoTower, .bombTower, .hiddenTesla, .giantBomb, .airBomb, .airSweeper, .airDefense,
@@ -911,7 +911,7 @@ struct ContentView: View {
             return "Fulmine"
         case .earthquake:
             return "Terremoto"
-        case .jump, .invisibility, .haste, .poison, .overgrowth, .iceBlock:
+        case .jump, .invisibility, .haste, .poison, .overgrowth, .iceBlock, .skeletonSpell, .batSpell:
             return SpellStyle.style(for: kind).displayName
         }
     }
@@ -928,7 +928,7 @@ struct ContentView: View {
             return "L"
         case .earthquake:
             return "E"
-        case .jump, .invisibility, .haste, .poison, .overgrowth, .iceBlock:
+        case .jump, .invisibility, .haste, .poison, .overgrowth, .iceBlock, .skeletonSpell, .batSpell:
             return SpellStyle.style(for: kind).symbol
         }
     }
@@ -945,7 +945,7 @@ struct ContentView: View {
             return .yellow
         case .earthquake:
             return .orange
-        case .jump, .invisibility, .haste, .poison, .overgrowth, .iceBlock:
+        case .jump, .invisibility, .haste, .poison, .overgrowth, .iceBlock, .skeletonSpell, .batSpell:
             let style = SpellStyle.style(for: kind)
             return Color(red: style.red, green: style.green, blue: style.blue)
         }

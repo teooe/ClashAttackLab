@@ -190,6 +190,9 @@ nonisolated struct ReferenceSpellLevel: Decodable {
 
     /// Ice Block: share of the damage the ice stops.
     let damageReductionPercent: Double?
+
+    /// Skeleton and Bat Spells: troops summoned.
+    let summonCount: Int?
 }
 
 // MARK: - Level selection
@@ -595,7 +598,7 @@ nonisolated struct ReferenceGameData: GameDataProviding {
         case .poison:
             // Real values; only the damage ramp is estimated.
             tuningEvidence = .approximation
-        case .jump, .invisibility, .overgrowth, .iceBlock:
+        case .jump, .invisibility, .overgrowth, .iceBlock, .skeletonSpell, .batSpell:
             break
         }
 
@@ -627,6 +630,8 @@ nonisolated struct ReferenceGameData: GameDataProviding {
         definition.encasesTroops = base.encasesTroops
         definition.troopDamageReduction = level.damageReductionPercent
             .map { $0 / 100 } ?? base.troopDamageReduction
+        definition.summonedTroop = base.summonedTroop
+        definition.summonCount = level.summonCount ?? base.summonCount
         return definition
     }
 
@@ -776,6 +781,8 @@ extension BattleEntityKind {
         case .royalChampion: return "royalChampion"
         case .lavaPup: return "lavaPup"
         case .golemite: return "golemite"
+        case .skeleton: return "skeleton"
+        case .bat: return "bat"
         }
     }
 }
@@ -795,6 +802,8 @@ extension BattleSpellKind {
         case .poison: return "poison"
         case .overgrowth: return "overgrowth"
         case .iceBlock: return "iceBlock"
+        case .skeletonSpell: return "skeletonSpell"
+        case .batSpell: return "batSpell"
         }
     }
 }

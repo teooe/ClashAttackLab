@@ -160,7 +160,7 @@ nonisolated struct OffensiveSpellPlanOptimizer {
                     entities: entities,
                     previousPositions: earthquakePositions
                 )
-            case .heal, .rage, .freeze, .jump, .invisibility, .haste, .poison, .overgrowth, .iceBlock:
+            case .heal, .rage, .freeze, .jump, .invisibility, .haste, .poison, .overgrowth, .iceBlock, .skeletonSpell, .batSpell:
                 proposed = nil
             }
 
@@ -191,7 +191,7 @@ nonisolated struct OffensiveSpellPlanOptimizer {
                 lightningPositions.append(selected.position)
             case .earthquake:
                 earthquakePositions.append(selected.position)
-            case .heal, .rage, .freeze, .jump, .invisibility, .haste, .poison, .overgrowth, .iceBlock:
+            case .heal, .rage, .freeze, .jump, .invisibility, .haste, .poison, .overgrowth, .iceBlock, .skeletonSpell, .batSpell:
                 break
             }
             return selected
