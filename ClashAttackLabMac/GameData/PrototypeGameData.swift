@@ -341,6 +341,254 @@ nonisolated struct PrototypeGameData: GameDataProviding {
                 ]
             )
 
+        // Advanced troops: behaviours follow the game, numbers are
+        // synthetic prototype values like the rest of this file.
+        case .hogRider:
+            var definition = CombatDefinition(
+                displayName: TroopStyle.style(for: .hogRider).displayName,
+                role: .troop,
+                maxHitPoints: 900,
+                movementSpeed: 190,
+                attackDamage: 80,
+                minimumAttackRange: 0,
+                attackRange: 24,
+                attackInterval: 1.0,
+                canMove: true,
+                projectileKind: nil,
+                projectileSpeed: 0,
+                splashRadius: 0,
+                selfDestructsOnAttack: false,
+                targetingProfile: TargetingProfile(
+                    preference: .defenses,
+                    evidence: .documented
+                )
+            )
+            definition.ignoresWalls = true
+            return definition
+
+        case .valkyrie:
+            return CombatDefinition(
+                displayName: TroopStyle.style(for: .valkyrie).displayName,
+                role: .troop,
+                maxHitPoints: 1_000,
+                movementSpeed: 150,
+                attackDamage: 140,
+                minimumAttackRange: 0,
+                attackRange: 20,
+                attackInterval: 1.8,
+                canMove: true,
+                projectileKind: nil,
+                projectileSpeed: 0,
+                splashRadius: 40,
+                selfDestructsOnAttack: false,
+                targetingProfile: TargetingProfile(
+                    preference: .anyBuilding,
+                    evidence: .documented
+                )
+            )
+
+        case .golem:
+            return CombatDefinition(
+                displayName: TroopStyle.style(for: .golem).displayName,
+                role: .troop,
+                maxHitPoints: 4_500,
+                movementSpeed: 75,
+                attackDamage: 60,
+                minimumAttackRange: 0,
+                attackRange: 40,
+                attackInterval: 2.4,
+                canMove: true,
+                projectileKind: nil,
+                projectileSpeed: 0,
+                splashRadius: 0,
+                selfDestructsOnAttack: false,
+                targetingProfile: TargetingProfile(
+                    preference: .defenses,
+                    evidence: .documented
+                )
+            )
+
+        case .bowler:
+            return CombatDefinition(
+                displayName: TroopStyle.style(for: .bowler).displayName,
+                role: .troop,
+                maxHitPoints: 380,
+                movementSpeed: 100,
+                attackDamage: 95,
+                minimumAttackRange: 0,
+                attackRange: 120,
+                attackInterval: 2.2,
+                canMove: true,
+                projectileKind: .bomb,
+                projectileSpeed: 420,
+                splashRadius: 40,
+                selfDestructsOnAttack: false,
+                targetingProfile: TargetingProfile(
+                    preference: .anyBuilding,
+                    evidence: .documented
+                )
+            )
+
+        case .miner:
+            var definition = CombatDefinition(
+                displayName: TroopStyle.style(for: .miner).displayName,
+                role: .troop,
+                maxHitPoints: 650,
+                movementSpeed: 210,
+                attackDamage: 110,
+                minimumAttackRange: 0,
+                attackRange: 20,
+                attackInterval: 1.7,
+                canMove: true,
+                projectileKind: nil,
+                projectileSpeed: 0,
+                splashRadius: 0,
+                selfDestructsOnAttack: false,
+                targetingProfile: TargetingProfile(
+                    preference: .anyBuilding,
+                    evidence: .documented
+                )
+            )
+            definition.ignoresWalls = true
+            definition.burrowsWhileMoving = true
+            return definition
+
+        case .pekka:
+            return CombatDefinition(
+                displayName: TroopStyle.style(for: .pekka).displayName,
+                role: .troop,
+                maxHitPoints: 3_000,
+                movementSpeed: 100,
+                attackDamage: 520,
+                minimumAttackRange: 0,
+                attackRange: 32,
+                attackInterval: 1.8,
+                canMove: true,
+                projectileKind: nil,
+                projectileSpeed: 0,
+                splashRadius: 0,
+                selfDestructsOnAttack: false,
+                targetingProfile: TargetingProfile(
+                    preference: .anyBuilding,
+                    evidence: .documented
+                )
+            )
+
+        case .yeti:
+            return CombatDefinition(
+                displayName: TroopStyle.style(for: .yeti).displayName,
+                role: .troop,
+                maxHitPoints: 2_000,
+                movementSpeed: 75,
+                attackDamage: 170,
+                minimumAttackRange: 0,
+                attackRange: 32,
+                attackInterval: 1.0,
+                canMove: true,
+                projectileKind: nil,
+                projectileSpeed: 0,
+                splashRadius: 0,
+                selfDestructsOnAttack: false,
+                targetingProfile: TargetingProfile(
+                    preference: .anyBuilding,
+                    evidence: .prototype
+                )
+            )
+
+        case .rootRider:
+            var definition = CombatDefinition(
+                displayName: TroopStyle.style(for: .rootRider).displayName,
+                role: .troop,
+                maxHitPoints: 3_200,
+                movementSpeed: 75,
+                attackDamage: 110,
+                minimumAttackRange: 0,
+                attackRange: 40,
+                attackInterval: 2.2,
+                canMove: true,
+                projectileKind: nil,
+                projectileSpeed: 0,
+                splashRadius: 0,
+                selfDestructsOnAttack: false,
+                targetingProfile: TargetingProfile(
+                    preference: .defenses,
+                    evidence: .documented
+                )
+            )
+            definition.ignoresWalls = true
+            return definition
+
+        case .electroDragon:
+            var definition = CombatDefinition(
+                displayName: TroopStyle.style(for: .electroDragon).displayName,
+                role: .troop,
+                maxHitPoints: 2_400,
+                movementSpeed: 85,
+                attackDamage: 420,
+                minimumAttackRange: 0,
+                attackRange: 120,
+                attackInterval: 3.5,
+                canMove: true,
+                projectileKind: .airBolt,
+                projectileSpeed: 900,
+                splashRadius: 0,
+                selfDestructsOnAttack: false,
+                movementDomain: .air,
+                targetingProfile: TargetingProfile(
+                    preference: .anyBuilding,
+                    evidence: .documented
+                )
+            )
+            // Chain lightning: five buildings, each link 80% of the last.
+            definition.chainTargetCount = 5
+            definition.chainRange = 160
+            definition.chainDamageMultiplier = 0.8
+            return definition
+
+        case .dragonRider:
+            return CombatDefinition(
+                displayName: TroopStyle.style(for: .dragonRider).displayName,
+                role: .troop,
+                maxHitPoints: 2_200,
+                movementSpeed: 125,
+                attackDamage: 220,
+                minimumAttackRange: 0,
+                attackRange: 160,
+                attackInterval: 1.2,
+                canMove: true,
+                projectileKind: .dragonFire,
+                projectileSpeed: 600,
+                splashRadius: 0,
+                selfDestructsOnAttack: false,
+                movementDomain: .air,
+                targetingProfile: TargetingProfile(
+                    preference: .defenses,
+                    evidence: .documented
+                )
+            )
+
+        case .lavaHound:
+            return CombatDefinition(
+                displayName: TroopStyle.style(for: .lavaHound).displayName,
+                role: .troop,
+                maxHitPoints: 3_800,
+                movementSpeed: 125,
+                attackDamage: 15,
+                minimumAttackRange: 0,
+                attackRange: 40,
+                attackInterval: 2.0,
+                canMove: true,
+                projectileKind: .fireball,
+                projectileSpeed: 600,
+                splashRadius: 0,
+                selfDestructsOnAttack: false,
+                movementDomain: .air,
+                targetingProfile: TargetingProfile(
+                    preference: .airDefenses,
+                    evidence: .documented
+                )
+            )
+
         case .cannon:
             return CombatDefinition(
                 displayName: "Cannone",

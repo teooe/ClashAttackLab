@@ -453,6 +453,67 @@ extension ArmyConfiguration {
     nonisolated static func realDefault(
         for rules: ArmyCapacityRules
     ) -> ArmyConfiguration {
+        filling(
+            rules: rules,
+            with: [
+                (.wallBreaker, .count(6)),
+                (.giant, .count(12)),
+                (.dragon, .share(0.45)),
+                (.balloon, .share(0.15)),
+                (.wizard, .rest),
+                (.archer, .rest)
+            ]
+        )
+    }
+
+    /// Popular high Town Hall army styles, each built around one main
+    /// troop. Styles whose main troop is still locked are left out.
+    nonisolated static func realPresets(
+        for rules: ArmyCapacityRules
+    ) -> [ArmySearchVariant] {
+        let presets: [(String, [(BattleEntityKind, ArmyFill)])] = [
+            ("Ibrido Minatori e Domatori", [
+                (.miner, .share(0.45)), (.hogRider, .share(0.4)),
+                (.wizard, .rest), (.archer, .rest)
+            ]),
+            ("Elettrodraghi", [
+                (.electroDragon, .share(0.75)), (.balloon, .share(0.2)),
+                (.archer, .rest)
+            ]),
+            ("LavaLoon", [
+                (.lavaHound, .share(0.2)), (.balloon, .share(0.65)),
+                (.archer, .rest)
+            ]),
+            ("Cavalcaradici", [
+                (.rootRider, .share(0.5)), (.valkyrie, .share(0.3)),
+                (.wizard, .rest), (.archer, .rest)
+            ]),
+            ("Yeti e Bowler", [
+                (.wallBreaker, .count(6)), (.yeti, .share(0.55)),
+                (.bowler, .share(0.2)), (.wizard, .rest), (.archer, .rest)
+            ]),
+            ("Cavalieri del drago", [
+                (.dragonRider, .share(0.6)), (.balloon, .share(0.25)),
+                (.archer, .rest)
+            ])
+        ]
+        return presets.compactMap { name, fill in
+            guard let main = fill.first?.0, rules.allows(main) else {
+                return nil
+            }
+            return ArmySearchVariant(
+                name: name,
+                configuration: filling(rules: rules, with: fill)
+            )
+        }
+    }
+
+    /// Adds troops in order until the camps are full, then the heroes, a
+    /// Wall Wrecker and as many spells as fit.
+    private nonisolated static func filling(
+        rules: ArmyCapacityRules,
+        with fill: [(BattleEntityKind, ArmyFill)]
+    ) -> ArmyConfiguration {
         var army = ArmyConfiguration(
             giants: 0,
             barbarians: 0,
@@ -464,39 +525,30 @@ extension ArmyConfiguration {
         )
         var free = rules.troopCapacity
 
-        func add(
-            _ kind: BattleEntityKind,
-            count: Int,
-            to keyPath: WritableKeyPath<ArmyConfiguration, Int>
-        ) {
+        func add(_ kind: BattleEntityKind, count: Int) {
             guard rules.allows(kind), count > 0 else {
                 return
             }
             let housing = rules.housing(for: kind)
             let affordable = housing > 0 ? min(count, free / housing) : count
-            army[keyPath: keyPath] += affordable
+            army[troop: kind] += affordable
             free -= affordable * housing
         }
 
-        add(.wallBreaker, count: 6, to: \.wallBreakers)
-        add(.giant, count: 12, to: \.giants)
-        add(
-            .dragon,
-            count: Int(Double(rules.troopCapacity) * 0.45) /
-                max(rules.housing(for: .dragon), 1),
-            to: \.dragons
-        )
-        add(
-            .balloon,
-            count: Int(Double(rules.troopCapacity) * 0.15) /
-                max(rules.housing(for: .balloon), 1),
-            to: \.balloons
-        )
-        add(.wizard, count: free / max(rules.housing(for: .wizard), 1), to: \.wizards)
-        add(.archer, count: free, to: \.archers)
-        add(.barbarianKing, count: 1, to: \.barbarianKings)
-        add(.archerQueen, count: 1, to: \.archerQueens)
-        add(.wallWrecker, count: 1, to: \.wallWreckers)
+        for (kind, amount) in fill {
+            let housing = max(rules.housing(for: kind), 1)
+            switch amount {
+            case .count(let count):
+                add(kind, count: count)
+            case .share(let share):
+                add(kind, count: Int(Double(rules.troopCapacity) * share) / housing)
+            case .rest:
+                add(kind, count: free / housing)
+            }
+        }
+        add(.barbarianKing, count: 1)
+        add(.archerQueen, count: 1)
+        add(.wallWrecker, count: 1)
 
         var spellSpace = rules.spellCapacity
         let spellOrder: [(BattleSpellKind, WritableKeyPath<ArmyConfiguration, Int>)] = [
@@ -521,6 +573,18 @@ extension ArmyConfiguration {
 
         return army
     }
+}
+
+/// How much of one troop an army recipe asks for.
+nonisolated enum ArmyFill {
+    /// A fixed number of troops.
+    case count(Int)
+
+    /// A share of the total troop capacity.
+    case share(Double)
+
+    /// Whatever capacity is still free.
+    case rest
 }
 
 // MARK: - Deployment sides

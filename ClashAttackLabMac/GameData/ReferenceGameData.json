@@ -3185,6 +3185,75 @@
    "size": 3,
    "splashRadius": 1.5
   },
+  "bowler": {
+   "attackInterval": 2.2,
+   "housingSpace": 6,
+   "levels": [
+    {
+     "damagePerHit": 132,
+     "hitpoints": 325,
+     "level": 1,
+     "townHall": 10
+    },
+    {
+     "damagePerHit": 158.4,
+     "hitpoints": 375,
+     "level": 2,
+     "townHall": 10
+    },
+    {
+     "damagePerHit": 184.8,
+     "hitpoints": 420,
+     "level": 3,
+     "townHall": 11
+    },
+    {
+     "damagePerHit": 211.2,
+     "hitpoints": 470,
+     "level": 4,
+     "townHall": 12
+    },
+    {
+     "damagePerHit": 224.4,
+     "hitpoints": 505,
+     "level": 5,
+     "townHall": 13
+    },
+    {
+     "damagePerHit": 237.6,
+     "hitpoints": 530,
+     "level": 6,
+     "townHall": 14
+    },
+    {
+     "damagePerHit": 250.8,
+     "hitpoints": 565,
+     "level": 7,
+     "townHall": 15
+    },
+    {
+     "damagePerHit": 277.2,
+     "hitpoints": 600,
+     "level": 8,
+     "townHall": 16
+    },
+    {
+     "damagePerHit": 308,
+     "hitpoints": 700,
+     "level": 9,
+     "townHall": 17
+    },
+    {
+     "damagePerHit": 343.2,
+     "hitpoints": 850,
+     "level": 10,
+     "townHall": 18
+    }
+   ],
+   "movementSpeed": 14,
+   "name": "Bowler",
+   "range": 3
+  },
   "builderHut": {
    "attackInterval": 0.4,
    "countByTownHall": [
@@ -3927,6 +3996,57 @@
    "name": "Dragon",
    "range": 3
   },
+  "dragonRider": {
+   "attackInterval": 1.2,
+   "housingSpace": 25,
+   "levels": [
+    {
+     "damagePerHit": 408,
+     "deathDamage": 700,
+     "hitpoints": 4100,
+     "level": 1,
+     "townHall": 13
+    },
+    {
+     "damagePerHit": 444,
+     "deathDamage": 800,
+     "hitpoints": 4400,
+     "level": 2,
+     "townHall": 13
+    },
+    {
+     "damagePerHit": 480,
+     "deathDamage": 900,
+     "hitpoints": 4700,
+     "level": 3,
+     "townHall": 14
+    },
+    {
+     "damagePerHit": 516,
+     "deathDamage": 1000,
+     "hitpoints": 5100,
+     "level": 4,
+     "townHall": 16
+    },
+    {
+     "damagePerHit": 564,
+     "deathDamage": 1100,
+     "hitpoints": 5600,
+     "level": 5,
+     "townHall": 17
+    },
+    {
+     "damagePerHit": 624,
+     "deathDamage": 1200,
+     "hitpoints": 6200,
+     "level": 6,
+     "townHall": 18
+    }
+   ],
+   "movementSpeed": 20,
+   "name": "Dragon Rider",
+   "range": 4
+  },
   "eagleArtillery": {
    "activationHousingSpace": 200,
    "attackInterval": 0.75,
@@ -4001,6 +4121,78 @@
    "size": 4,
    "splashRadius": 0.75,
    "timeBetweenBursts": 10
+  },
+  "electroDragon": {
+   "attackInterval": 3.5,
+   "housingSpace": 30,
+   "levels": [
+    {
+     "damagePerHit": 910,
+     "deathDamage": 65,
+     "hitpoints": 3400,
+     "level": 1,
+     "townHall": 11
+    },
+    {
+     "damagePerHit": 1015,
+     "deathDamage": 75,
+     "hitpoints": 3900,
+     "level": 2,
+     "townHall": 11
+    },
+    {
+     "damagePerHit": 1120,
+     "deathDamage": 85,
+     "hitpoints": 4400,
+     "level": 3,
+     "townHall": 12
+    },
+    {
+     "damagePerHit": 1225,
+     "deathDamage": 95,
+     "hitpoints": 4700,
+     "level": 4,
+     "townHall": 13
+    },
+    {
+     "damagePerHit": 1330,
+     "deathDamage": 105,
+     "hitpoints": 5000,
+     "level": 5,
+     "townHall": 14
+    },
+    {
+     "damagePerHit": 1435,
+     "deathDamage": 115,
+     "hitpoints": 5400,
+     "level": 6,
+     "townHall": 15
+    },
+    {
+     "damagePerHit": 1540,
+     "deathDamage": 125,
+     "hitpoints": 5700,
+     "level": 7,
+     "townHall": 16
+    },
+    {
+     "damagePerHit": 1610,
+     "deathDamage": 135,
+     "hitpoints": 6200,
+     "level": 8,
+     "townHall": 17
+    },
+    {
+     "damagePerHit": 1750,
+     "deathDamage": 145,
+     "hitpoints": 6700,
+     "level": 9,
+     "townHall": 18
+    }
+   ],
+   "movementSpeed": 13,
+   "name": "Electro Dragon",
+   "range": 3
   },
   "elixirCollector": {
    "countByTownHall": [
@@ -4658,6 +4850,120 @@
    "name": "Gold Storage",
    "size": 3
   },
+  "golem": {
+   "attackInterval": 2.4,
+   "housingSpace": 30,
+   "levels": [
+    {
+     "damagePerHit": 84,
+     "deathDamage": 350,
+     "hitpoints": 5100,
+     "level": 1,
+     "townHall": 8
+    },
+    {
+     "damagePerHit": 96,
+     "deathDamage": 400,
+     "hitpoints": 5400,
+     "level": 2,
+     "townHall": 8
+    },
+    {
+     "damagePerHit": 108,
+     "deathDamage": 450,
+     "hitpoints": 5700,
+     "level": 3,
+     "townHall": 9
+    },
+    {
+     "damagePerHit": 120,
+     "deathDamage": 500,
+     "hitpoints": 6000,
+     "level": 4,
+     "townHall": 9
+    },
+    {
+     "damagePerHit": 132,
+     "deathDamage": 550,
+     "hitpoints": 6300,
+     "level": 5,
+     "townHall": 10
+    },
+    {
+     "damagePerHit": 144,
+     "deathDamage": 600,
+     "hitpoints": 6600,
+     "level": 6,
+     "townHall": 11
+    },
+    {
+     "damagePerHit": 156,
+     "deathDamage": 650,
+     "hitpoints": 7000,
+     "level": 7,
+     "townHall": 11
+    },
+    {
+     "damagePerHit": 168,
+     "deathDamage": 700,
+     "hitpoints": 7500,
+     "level": 8,
+     "townHall": 12
+    },
+    {
+     "damagePerHit": 180,
+     "deathDamage": 750,
+     "hitpoints": 7900,
+     "level": 9,
+     "townHall": 12
+    },
+    {
+     "damagePerHit": 192,
+     "deathDamage": 800,
+     "hitpoints": 8200,
+     "level": 10,
+     "townHall": 13
+    },
+    {
+     "damagePerHit": 204,
+     "deathDamage": 850,
+     "hitpoints": 8500,
+     "level": 11,
+     "townHall": 14
+    },
+    {
+     "damagePerHit": 216,
+     "deathDamage": 900,
+     "hitpoints": 8800,
+     "level": 12,
+     "townHall": 15
+    },
+    {
+     "damagePerHit": 228,
+     "deathDamage": 950,
+     "hitpoints": 9200,
+     "level": 13,
+     "townHall": 16
+    },
+    {
+     "damagePerHit": 240,
+     "deathDamage": 1000,
+     "hitpoints": 9600,
+     "level": 14,
+     "townHall": 17
+    },
+    {
+     "damagePerHit": 288,
+     "deathDamage": 1050,
+     "hitpoints": 10600,
+     "level": 15,
+     "townHall": 18
+    }
+   ],
+   "movementSpeed": 12,
+   "name": "Golem",
+   "range": 1
+  },
   "helperHut": {
    "countByTownHall": [
     0,
@@ -4905,6 +5211,105 @@
    "range": 7,
    "size": 2,
    "triggerRadius": 6
+  },
+  "hogRider": {
+   "attackInterval": 1,
+   "housingSpace": 5,
+   "levels": [
+    {
+     "damagePerHit": 60,
+     "hitpoints": 270,
+     "level": 1,
+     "townHall": 7
+    },
+    {
+     "damagePerHit": 70,
+     "hitpoints": 312,
+     "level": 2,
+     "townHall": 7
+    },
+    {
+     "damagePerHit": 80,
+     "hitpoints": 370,
+     "level": 3,
+     "townHall": 8
+    },
+    {
+     "damagePerHit": 92,
+     "hitpoints": 430,
+     "level": 4,
+     "townHall": 8
+    },
+    {
+     "damagePerHit": 105,
+     "hitpoints": 500,
+     "level": 5,
+     "townHall": 9
+    },
+    {
+     "damagePerHit": 118,
+     "hitpoints": 590,
+     "level": 6,
+     "townHall": 10
+    },
+    {
+     "damagePerHit": 140,
+     "hitpoints": 700,
+     "level": 7,
+     "townHall": 11
+    },
+    {
+     "damagePerHit": 155,
+     "hitpoints": 810,
+     "level": 8,
+     "townHall": 12
+    },
+    {
+     "damagePerHit": 165,
+     "hitpoints": 890,
+     "level": 9,
+     "townHall": 12
+    },
+    {
+     "damagePerHit": 176,
+     "hitpoints": 970,
+     "level": 10,
+     "townHall": 13
+    },
+    {
+     "damagePerHit": 187,
+     "hitpoints": 1080,
+     "level": 11,
+     "townHall": 14
+    },
+    {
+     "damagePerHit": 200,
+     "hitpoints": 1230,
+     "level": 12,
+     "townHall": 15
+    },
+    {
+     "damagePerHit": 213,
+     "hitpoints": 1380,
+     "level": 13,
+     "townHall": 16
+    },
+    {
+     "damagePerHit": 225,
+     "hitpoints": 1500,
+     "level": 14,
+     "townHall": 17
+    },
+    {
+     "damagePerHit": 250,
+     "hitpoints": 1750,
+     "level": 15,
+     "townHall": 18
+    }
+   ],
+   "movementSpeed": 24,
+   "name": "Hog Rider",
+   "range": 0.6
   },
   "infernoTower": {
    "attackInterval": 0.128,
@@ -5172,6 +5577,152 @@
    "name": "Laboratory",
    "size": 3
   },
+  "lavaHound": {
+   "attackInterval": 2,
+   "housingSpace": 30,
+   "levels": [
+    {
+     "damagePerHit": 20,
+     "deathDamage": 100,
+     "hitpoints": 6100,
+     "level": 1,
+     "townHall": 9
+    },
+    {
+     "damagePerHit": 24,
+     "deathDamage": 150,
+     "hitpoints": 6500,
+     "level": 2,
+     "townHall": 9
+    },
+    {
+     "damagePerHit": 28,
+     "deathDamage": 200,
+     "hitpoints": 6800,
+     "level": 3,
+     "townHall": 10
+    },
+    {
+     "damagePerHit": 32,
+     "deathDamage": 250,
+     "hitpoints": 7200,
+     "level": 4,
+     "townHall": 11
+    },
+    {
+     "damagePerHit": 36,
+     "deathDamage": 300,
+     "hitpoints": 7600,
+     "level": 5,
+     "townHall": 12
+    },
+    {
+     "damagePerHit": 40,
+     "deathDamage": 350,
+     "hitpoints": 8000,
+     "level": 6,
+     "townHall": 13
+    },
+    {
+     "damagePerHit": 44,
+     "deathDamage": 400,
+     "hitpoints": 8500,
+     "level": 7,
+     "townHall": 16
+    },
+    {
+     "damagePerHit": 48,
+     "deathDamage": 450,
+     "hitpoints": 9500,
+     "level": 8,
+     "townHall": 18
+    }
+   ],
+   "movementSpeed": 20,
+   "name": "Lava Hound",
+   "range": 1
+  },
+  "miner": {
+   "attackInterval": 1.7,
+   "housingSpace": 6,
+   "levels": [
+    {
+     "damagePerHit": 136,
+     "hitpoints": 550,
+     "level": 1,
+     "townHall": 10
+    },
+    {
+     "damagePerHit": 149.6,
+     "hitpoints": 610,
+     "level": 2,
+     "townHall": 10
+    },
+    {
+     "damagePerHit": 163.2,
+     "hitpoints": 670,
+     "level": 3,
+     "townHall": 10
+    },
+    {
+     "damagePerHit": 176.8,
+     "hitpoints": 730,
+     "level": 4,
+     "townHall": 11
+    },
+    {
+     "damagePerHit": 190.4,
+     "hitpoints": 800,
+     "level": 5,
+     "townHall": 11
+    },
+    {
+     "damagePerHit": 204,
+     "hitpoints": 900,
+     "level": 6,
+     "townHall": 12
+    },
+    {
+     "damagePerHit": 217.6,
+     "hitpoints": 1000,
+     "level": 7,
+     "townHall": 13
+    },
+    {
+     "damagePerHit": 231.2,
+     "hitpoints": 1150,
+     "level": 8,
+     "townHall": 14
+    },
+    {
+     "damagePerHit": 244.8,
+     "hitpoints": 1350,
+     "level": 9,
+     "townHall": 15
+    },
+    {
+     "damagePerHit": 272,
+     "hitpoints": 1550,
+     "level": 10,
+     "townHall": 16
+    },
+    {
+     "damagePerHit": 297.5,
+     "hitpoints": 1750,
+     "level": 11,
+     "townHall": 17
+    },
+    {
+     "damagePerHit": 331.5,
+     "hitpoints": 2050,
+     "level": 12,
+     "townHall": 18
+    }
+   ],
+   "movementSpeed": 32,
+   "name": "Miner",
+   "range": 0.5
+  },
   "monolith": {
    "attackInterval": 1.5,
    "countByTownHall": [
@@ -5372,6 +5923,93 @@
    "size": 3,
    "splashRadius": 1.5
   },
+  "pekka": {
+   "attackInterval": 1.8,
+   "housingSpace": 25,
+   "levels": [
+    {
+     "damagePerHit": 468,
+     "hitpoints": 3000,
+     "level": 1,
+     "townHall": 8
+    },
+    {
+     "damagePerHit": 522,
+     "hitpoints": 3500,
+     "level": 2,
+     "townHall": 8
+    },
+    {
+     "damagePerHit": 576,
+     "hitpoints": 4000,
+     "level": 3,
+     "townHall": 8
+    },
+    {
+     "damagePerHit": 648,
+     "hitpoints": 4500,
+     "level": 4,
+     "townHall": 9
+    },
+    {
+     "damagePerHit": 738,
+     "hitpoints": 5000,
+     "level": 5,
+     "townHall": 10
+    },
+    {
+     "damagePerHit": 846,
+     "hitpoints": 5500,
+     "level": 6,
+     "townHall": 10
+    },
+    {
+     "damagePerHit": 972,
+     "hitpoints": 5900,
+     "level": 7,
+     "townHall": 11
+    },
+    {
+     "damagePerHit": 1098,
+     "hitpoints": 6300,
+     "level": 8,
+     "townHall": 12
+    },
+    {
+     "damagePerHit": 1224,
+     "hitpoints": 6700,
+     "level": 9,
+     "townHall": 13
+    },
+    {
+     "damagePerHit": 1350,
+     "hitpoints": 7200,
+     "level": 10,
+     "townHall": 15
+    },
+    {
+     "damagePerHit": 1458,
+     "hitpoints": 7700,
+     "level": 11,
+     "townHall": 16
+    },
+    {
+     "damagePerHit": 1566,
+     "hitpoints": 8200,
+     "level": 12,
+     "townHall": 17
+    },
+    {
+     "damagePerHit": 1692,
+     "hitpoints": 8800,
+     "level": 13,
+     "townHall": 18
+    }
+   ],
+   "movementSpeed": 16,
+   "name": "P.E.K.K.A",
+   "range": 0.8
+  },
   "petHouse": {
    "countByTownHall": [
     0,
@@ -5457,6 +6095,39 @@
    ],
    "name": "Pet House",
    "size": 3
+  },
+  "rootRider": {
+   "attackInterval": 2.2,
+   "housingSpace": 20,
+   "levels": [
+    {
+     "damagePerHit": 209,
+     "hitpoints": 6200,
+     "level": 1,
+     "townHall": 15
+    },
+    {
+     "damagePerHit": 231,
+     "hitpoints": 6350,
+     "level": 2,
+     "townHall": 15
+    },
+    {
+     "damagePerHit": 253,
+     "hitpoints": 6500,
+     "level": 3,
+     "townHall": 16
+    },
+    {
+     "damagePerHit": 275,
+     "hitpoints": 6700,
+     "level": 4,
+     "townHall": 18
+    }
+   ],
+   "movementSpeed": 12,
+   "name": "Root Rider",
+   "range": 1
   },
   "scattershot": {
    "attackInterval": 3.2,
@@ -5963,6 +6634,87 @@
    ],
    "name": "Town Hall",
    "size": 4
+  },
+  "valkyrie": {
+   "attackInterval": 1.8,
+   "housingSpace": 8,
+   "levels": [
+    {
+     "damagePerHit": 169.2,
+     "hitpoints": 750,
+     "level": 1,
+     "townHall": 8
+    },
+    {
+     "damagePerHit": 190.8,
+     "hitpoints": 850,
+     "level": 2,
+     "townHall": 8
+    },
+    {
+     "damagePerHit": 214.2,
+     "hitpoints": 950,
+     "level": 3,
+     "townHall": 9
+    },
+    {
+     "damagePerHit": 239.4,
+     "hitpoints": 1050,
+     "level": 4,
+     "townHall": 9
+    },
+    {
+     "damagePerHit": 266.4,
+     "hitpoints": 1300,
+     "level": 5,
+     "townHall": 10
+    },
+    {
+     "damagePerHit": 300.6,
+     "hitpoints": 1500,
+     "level": 6,
+     "townHall": 11
+    },
+    {
+     "damagePerHit": 333,
+     "hitpoints": 1650,
+     "level": 7,
+     "townHall": 12
+    },
+    {
+     "damagePerHit": 352.8,
+     "hitpoints": 1800,
+     "level": 8,
+     "townHall": 13
+    },
+    {
+     "damagePerHit": 374.4,
+     "hitpoints": 2000,
+     "level": 9,
+     "townHall": 14
+    },
+    {
+     "damagePerHit": 401.4,
+     "hitpoints": 2400,
+     "level": 10,
+     "townHall": 15
+    },
+    {
+     "damagePerHit": 428.4,
+     "hitpoints": 2600,
+     "level": 11,
+     "townHall": 16
+    },
+    {
+     "damagePerHit": 459,
+     "hitpoints": 2900,
+     "level": 12,
+     "townHall": 17
+    }
+   ],
+   "movementSpeed": 24,
+   "name": "Valkyrie",
+   "range": 0.5
   },
   "wall": {
    "countByTownHall": [
@@ -6642,6 +7394,63 @@
    "name": "X-Bow",
    "range": 11.5,
    "size": 4
+  },
+  "yeti": {
+   "attackInterval": 1,
+   "housingSpace": 18,
+   "levels": [
+    {
+     "damagePerHit": 230,
+     "hitpoints": 2900,
+     "level": 1,
+     "townHall": 12
+    },
+    {
+     "damagePerHit": 250,
+     "hitpoints": 3200,
+     "level": 2,
+     "townHall": 12
+    },
+    {
+     "damagePerHit": 270,
+     "hitpoints": 3500,
+     "level": 3,
+     "townHall": 13
+    },
+    {
+     "damagePerHit": 290,
+     "hitpoints": 3700,
+     "level": 4,
+     "townHall": 14
+    },
+    {
+     "damagePerHit": 310,
+     "hitpoints": 3900,
+     "level": 5,
+     "townHall": 15
+    },
+    {
+     "damagePerHit": 330,
+     "hitpoints": 4100,
+     "level": 6,
+     "townHall": 16
+    },
+    {
+     "damagePerHit": 350,
+     "hitpoints": 4300,
+     "level": 7,
+     "townHall": 17
+    },
+    {
+     "damagePerHit": 380,
+     "hitpoints": 4650,
+     "level": 8,
+     "townHall": 18
+    }
+   ],
+   "movementSpeed": 12,
+   "name": "Yeti",
+   "range": 0.8
   }
  }
 }

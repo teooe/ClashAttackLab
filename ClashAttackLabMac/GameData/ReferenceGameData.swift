@@ -445,6 +445,11 @@ nonisolated struct ReferenceGameData: GameDataProviding {
         definition.activationDeployedHousing = activationHousing
         definition.targetMaxHitPointDamageFraction = bonusFraction
         definition.trapEffect = trapEffect
+        definition.ignoresWalls = base.ignoresWalls
+        definition.burrowsWhileMoving = base.burrowsWhileMoving
+        definition.chainTargetCount = base.chainTargetCount
+        definition.chainRange = base.chainRange
+        definition.chainDamageMultiplier = base.chainDamageMultiplier
         return definition
     }
 
@@ -637,6 +642,17 @@ extension BattleEntityKind {
         case .bomb: return "bomb"
         case .springTrap: return "springTrap"
         case .seekingAirMine: return "seekingAirMine"
+        case .hogRider: return "hogRider"
+        case .valkyrie: return "valkyrie"
+        case .golem: return "golem"
+        case .bowler: return "bowler"
+        case .miner: return "miner"
+        case .pekka: return "pekka"
+        case .yeti: return "yeti"
+        case .rootRider: return "rootRider"
+        case .electroDragon: return "electroDragon"
+        case .dragonRider: return "dragonRider"
+        case .lavaHound: return "lavaHound"
         }
     }
 }

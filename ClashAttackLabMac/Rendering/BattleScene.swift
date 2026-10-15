@@ -1152,6 +1152,9 @@ final class BattleScene: SKScene {
             return .systemBrown
         case .stoneSlammer:
             return .systemCyan
+        case .hogRider, .valkyrie, .golem, .bowler, .miner, .pekka, .yeti, .rootRider, .electroDragon, .dragonRider, .lavaHound:
+            let style = TroopStyle.style(for: kind)
+            return SKColor(red: style.red, green: style.green, blue: style.blue, alpha: 1)
         case .cannon, .archerTower, .mortar, .wizardTower, .infernoTower, .bombTower, .hiddenTesla, .giantBomb, .airBomb, .airSweeper, .airDefense,
              .townHall, .goldStorage, .wall,
              .goldMine, .elixirCollector, .darkElixirDrill, .elixirStorage, .darkElixirStorage, .clanCastle, .armyCamp, .barracks, .darkBarracks, .laboratory, .spellFactory, .darkSpellFactory, .workshop, .heroHall, .petHouse, .blacksmith, .builderHut, .helperHut,
@@ -1184,6 +1187,8 @@ final class BattleScene: SKScene {
             return "AR"
         case .stoneSlammer:
             return "SP"
+        case .hogRider, .valkyrie, .golem, .bowler, .miner, .pekka, .yeti, .rootRider, .electroDragon, .dragonRider, .lavaHound:
+            return TroopStyle.style(for: kind).symbol
         case .cannon:
             return "C"
         case .archerTower:
@@ -1310,6 +1315,19 @@ final class BattleScene: SKScene {
                 radius: 35,
                 color: .systemCyan,
                 text: "SP"
+            )
+
+        case .hogRider, .valkyrie, .golem, .bowler, .miner, .pekka, .yeti, .rootRider, .electroDragon, .dragonRider, .lavaHound:
+            let style = TroopStyle.style(for: kind)
+            return makeLabeledCircle(
+                radius: CGFloat(style.radius),
+                color: SKColor(
+                    red: style.red,
+                    green: style.green,
+                    blue: style.blue,
+                    alpha: 1
+                ),
+                text: style.symbol
             )
 
         case .cannon:

@@ -765,6 +765,8 @@ struct ContentView: View {
             return "Ariete da guerra"
         case .stoneSlammer:
             return "Schiantapietre"
+        case .hogRider, .valkyrie, .golem, .bowler, .miner, .pekka, .yeti, .rootRider, .electroDragon, .dragonRider, .lavaHound:
+            return TroopStyle.style(for: kind).displayName
         case .cannon, .archerTower, .mortar, .wizardTower, .infernoTower, .bombTower, .hiddenTesla, .giantBomb, .airBomb, .airSweeper, .airDefense,
              .townHall, .goldStorage, .wall,
              .goldMine, .elixirCollector, .darkElixirDrill, .elixirStorage, .darkElixirStorage, .clanCastle, .armyCamp, .barracks, .darkBarracks, .laboratory, .spellFactory, .darkSpellFactory, .workshop, .heroHall, .petHouse, .blacksmith, .builderHut, .helperHut,
@@ -797,6 +799,8 @@ struct ContentView: View {
             return "AR"
         case .stoneSlammer:
             return "SP"
+        case .hogRider, .valkyrie, .golem, .bowler, .miner, .pekka, .yeti, .rootRider, .electroDragon, .dragonRider, .lavaHound:
+            return TroopStyle.style(for: kind).symbol
         case .cannon, .archerTower, .mortar, .wizardTower, .infernoTower, .bombTower, .hiddenTesla, .giantBomb, .airBomb, .airSweeper, .airDefense,
              .townHall, .goldStorage, .wall,
              .goldMine, .elixirCollector, .darkElixirDrill, .elixirStorage, .darkElixirStorage, .clanCastle, .armyCamp, .barracks, .darkBarracks, .laboratory, .spellFactory, .darkSpellFactory, .workshop, .heroHall, .petHouse, .blacksmith, .builderHut, .helperHut,
@@ -829,6 +833,9 @@ struct ContentView: View {
             return .brown
         case .stoneSlammer:
             return .cyan
+        case .hogRider, .valkyrie, .golem, .bowler, .miner, .pekka, .yeti, .rootRider, .electroDragon, .dragonRider, .lavaHound:
+            let style = TroopStyle.style(for: kind)
+            return Color(red: style.red, green: style.green, blue: style.blue)
         case .cannon, .archerTower, .mortar, .wizardTower, .infernoTower, .bombTower, .hiddenTesla, .giantBomb, .airBomb, .airSweeper, .airDefense,
              .townHall, .goldStorage, .wall,
              .goldMine, .elixirCollector, .darkElixirDrill, .elixirStorage, .darkElixirStorage, .clanCastle, .armyCamp, .barracks, .darkBarracks, .laboratory, .spellFactory, .darkSpellFactory, .workshop, .heroHall, .petHouse, .blacksmith, .builderHut, .helperHut,
@@ -1036,7 +1043,9 @@ struct ContentView: View {
             ("BL", army.balloons), ("DR", army.dragons),
             ("BK", army.barbarianKings), ("AQ", army.archerQueens),
             ("AR", army.wallWreckers), ("SP", army.stoneSlammers)
-        ]
+        ] + BattleEntityKind.advancedTroops.map {
+            (TroopStyle.style(for: $0).symbol, army[troop: $0])
+        }
         let units = counts.filter { $0.1 > 0 }.map { "\($0.0)×\($0.1)" }
         return units.joined(separator: " · ")
     }

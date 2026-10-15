@@ -341,6 +341,14 @@ nonisolated struct AttackPlanGenerator {
             offset = 0
         case .stoneSlammer:
             offset = direction * 2
+        case .hogRider, .miner, .rootRider:
+            offset = direction
+        case .valkyrie, .pekka, .yeti, .bowler:
+            offset = -direction
+        case .golem:
+            offset = 0
+        case .electroDragon, .dragonRider, .lavaHound:
+            offset = direction * 3
         case .cannon, .archerTower, .mortar, .wizardTower, .infernoTower, .bombTower, .hiddenTesla, .giantBomb, .airBomb, .airSweeper, .airDefense,
              .townHall, .goldStorage, .wall,
              .goldMine, .elixirCollector, .darkElixirDrill, .elixirStorage, .darkElixirStorage, .clanCastle, .armyCamp, .barracks, .darkBarracks, .laboratory, .spellFactory, .darkSpellFactory, .workshop, .heroHall, .petHouse, .blacksmith, .builderHut, .helperHut,
@@ -368,6 +376,12 @@ nonisolated struct AttackPlanGenerator {
         case .wallWrecker:
             return 2
         case .stoneSlammer:
+            return 0
+        case .golem, .lavaHound, .rootRider, .yeti, .pekka:
+            return 2
+        case .hogRider, .miner, .valkyrie, .bowler:
+            return 1
+        case .electroDragon, .dragonRider:
             return 0
         case .cannon, .archerTower, .mortar, .wizardTower, .infernoTower, .bombTower, .hiddenTesla, .giantBomb, .airBomb, .airSweeper, .airDefense,
              .townHall, .goldStorage, .wall,

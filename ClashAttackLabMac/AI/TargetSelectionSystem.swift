@@ -61,7 +61,7 @@ nonisolated struct TargetSelectionSystem {
             )
         }
 
-        if troopDefinition.movementDomain == .air {
+        if troopDefinition.movementDomain == .air || troopDefinition.ignoresWalls {
             return directFlightDecision(
                 from: troop,
                 among: eligibleIndices,
@@ -215,6 +215,13 @@ nonisolated struct TargetSelectionSystem {
             }
 
             return townHalls.isEmpty ? buildings : townHalls
+
+        case .airDefenses:
+            let airDefenses = buildings.filter {
+                entities[$0].kind == .airDefense
+            }
+
+            return airDefenses.isEmpty ? buildings : airDefenses
         }
     }
 

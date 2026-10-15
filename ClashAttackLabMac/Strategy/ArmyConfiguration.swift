@@ -25,6 +25,10 @@ nonisolated struct ArmyConfiguration: Equatable {
     var lightningSpells: Int
     var earthquakeSpells: Int
 
+    /// Counts of the advanced troops, keyed by kind. Zero counts are not
+    /// stored, so equal armies compare equal.
+    private(set) var advancedTroops: [BattleEntityKind: Int] = [:]
+
     init(
         giants: Int,
         barbarians: Int,
@@ -81,15 +85,40 @@ nonisolated struct ArmyConfiguration: Equatable {
     )
 
     var totalTroops: Int {
-        giants + barbarians + archers + wallBreakers + wizards +
-            balloons + dragons + barbarianKings + archerQueens +
-            wallWreckers + stoneSlammers
+        Self.troopKinds.reduce(0) { $0 + troopCount(for: $1) }
     }
 
     static let troopKinds: [BattleEntityKind] = [
         .giant, .barbarian, .archer, .wallBreaker, .wizard, .balloon,
         .dragon, .barbarianKing, .archerQueen, .wallWrecker, .stoneSlammer
-    ]
+    ] + BattleEntityKind.advancedTroops
+
+    /// Count of one troop kind; settable for every kind in `troopKinds`.
+    subscript(troop kind: BattleEntityKind) -> Int {
+        get {
+            troopCount(for: kind)
+        }
+        set {
+            switch kind {
+            case .giant: giants = newValue
+            case .barbarian: barbarians = newValue
+            case .archer: archers = newValue
+            case .wallBreaker: wallBreakers = newValue
+            case .wizard: wizards = newValue
+            case .balloon: balloons = newValue
+            case .dragon: dragons = newValue
+            case .barbarianKing: barbarianKings = newValue
+            case .archerQueen: archerQueens = newValue
+            case .wallWrecker: wallWreckers = newValue
+            case .stoneSlammer: stoneSlammers = newValue
+            default:
+                guard kind.isAdvancedTroop else {
+                    return
+                }
+                advancedTroops[kind] = newValue == 0 ? nil : newValue
+            }
+        }
+    }
 
     static let spellKinds: [BattleSpellKind] = [
         .heal, .rage, .freeze, .lightning, .earthquake
@@ -116,19 +145,7 @@ nonisolated struct ArmyConfiguration: Equatable {
     }
 
     var distinctTroopKindCount: Int {
-        [
-            giants,
-            barbarians,
-            archers,
-            wallBreakers,
-            wizards,
-            balloons,
-            dragons,
-            barbarianKings,
-            archerQueens,
-            wallWreckers,
-            stoneSlammers
-        ].filter { $0 > 0 }.count
+        Self.troopKinds.filter { troopCount(for: $0) > 0 }.count
     }
 
     var isValid: Bool {
@@ -207,6 +224,8 @@ nonisolated struct ArmyConfiguration: Equatable {
             return wallWreckers
         case .stoneSlammer:
             return stoneSlammers
+        case .hogRider, .valkyrie, .golem, .bowler, .miner, .pekka, .yeti, .rootRider, .electroDragon, .dragonRider, .lavaHound:
+            return advancedTroops[kind, default: 0]
         case .cannon, .archerTower, .mortar, .wizardTower, .infernoTower, .bombTower, .hiddenTesla, .giantBomb, .airBomb, .airSweeper, .airDefense,
              .townHall, .goldStorage, .wall,
              .goldMine, .elixirCollector, .darkElixirDrill, .elixirStorage, .darkElixirStorage, .clanCastle, .armyCamp, .barracks, .darkBarracks, .laboratory, .spellFactory, .darkSpellFactory, .workshop, .heroHall, .petHouse, .blacksmith, .builderHut, .helperHut,
@@ -231,32 +250,35 @@ nonisolated struct ArmyConfiguration: Equatable {
     }
 
     var deploymentSequence: [BattleEntityKind] {
-        var remaining: [BattleEntityKind: Int] = [
-            .wallBreaker: wallBreakers,
-            .giant: giants,
-            .barbarian: barbarians,
-            .archer: archers,
-            .wizard: wizards,
-            .balloon: balloons,
-            .dragon: dragons,
-            .barbarianKing: barbarianKings,
-            .archerQueen: archerQueens,
-            .wallWrecker: wallWreckers,
-            .stoneSlammer: stoneSlammers
-        ]
+        // Tanks and wall breakers lead; heroes and siege machines follow
+        // the main army, as in the original order.
         let preferredOrder: [BattleEntityKind] = [
             .wallBreaker,
+            .golem,
+            .lavaHound,
             .giant,
+            .yeti,
+            .rootRider,
+            .pekka,
+            .hogRider,
+            .miner,
+            .valkyrie,
+            .bowler,
             .barbarian,
             .archer,
             .wizard,
             .balloon,
             .dragon,
+            .electroDragon,
+            .dragonRider,
             .barbarianKing,
             .archerQueen,
             .wallWrecker,
             .stoneSlammer
         ]
+        var remaining = Dictionary(
+            uniqueKeysWithValues: preferredOrder.map { ($0, troopCount(for: $0)) }
+        )
         var result: [BattleEntityKind] = []
 
         while remaining.values.contains(where: { $0 > 0 }) {
@@ -279,18 +301,7 @@ nonisolated struct ArmyConfiguration: Equatable {
     }
 
     private var allCountsAreNonnegative: Bool {
-        [
-            giants,
-            barbarians,
-            archers,
-            wallBreakers,
-            wizards,
-            balloons,
-            dragons,
-            barbarianKings,
-            archerQueens,
-            wallWreckers,
-            stoneSlammers,
+        Self.troopKinds.allSatisfy { troopCount(for: $0) >= 0 } && [
             healSpells,
             rageSpells,
             freezeSpells,
@@ -321,7 +332,10 @@ nonisolated struct ArmyCapacityRules: Equatable {
         spellCapacity: ArmyConfiguration.maximumSpellCapacity,
         troopHousing: [
             .giant: 5, .barbarian: 1, .archer: 1, .wallBreaker: 2,
-            .wizard: 4, .balloon: 3, .dragon: 2
+            .wizard: 4, .balloon: 3, .dragon: 2,
+            .hogRider: 5, .valkyrie: 8, .golem: 30, .bowler: 6, .miner: 6,
+            .pekka: 25, .yeti: 18, .rootRider: 20, .electroDragon: 30,
+            .dragonRider: 25, .lavaHound: 30
         ],
         spellHousing: [
             .heal: 1, .rage: 1, .freeze: 1, .lightning: 1, .earthquake: 1
@@ -398,6 +412,15 @@ nonisolated enum ArmyCompositionSearch {
         }
         if source.balloons > 0 {
             append("Mongolfiera → tre Barbari") { $0.balloons -= 1; $0.barbarians += 3 }
+        }
+        // Real rules also compare the popular high Town Hall army styles.
+        if rules.unlockedTroops != nil {
+            for preset in ArmyConfiguration.realPresets(for: rules)
+            where preset.configuration.isValid(under: rules) &&
+                !result.contains(where: { $0.configuration == preset.configuration })
+            {
+                result.append(preset)
+            }
         }
         return result
     }

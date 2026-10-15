@@ -40,6 +40,9 @@ nonisolated enum TargetPreference: Hashable {
     case anyBuilding
     case walls
     case townHall
+
+    /// Air Defenses first, then any building (Lava Hound).
+    case airDefenses
 }
 
 /// How a trap hurts troops once it goes off.
@@ -151,6 +154,21 @@ nonisolated struct CombatDefinition {
     var targetMaxHitPointDamageFraction: Double = 0
 
     var trapEffect: TrapEffect = .explosion
+
+    /// Ground troops that cross walls without breaking them (Hog Rider,
+    /// Miner, Root Rider) move straight to their target like air troops.
+    var ignoresWalls = false
+
+    /// Travels underground: defenses and traps ignore the troop until it
+    /// surfaces to attack (Miner).
+    var burrowsWhileMoving = false
+
+    /// Chain attacks hit up to `chainTargetCount` buildings in total, each
+    /// within `chainRange` of the previous one, every link dealing
+    /// `chainDamageMultiplier` times the damage of the link before.
+    var chainTargetCount = 1
+    var chainRange: Double = 0
+    var chainDamageMultiplier: Double = 1
 
     init(
         displayName: String,

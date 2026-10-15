@@ -554,7 +554,8 @@ nonisolated final class SimulationEngine {
                 let troopDefinition = definition(
                     for: entities[troopIndex].kind
                 )
-                return trapDefinition.destructionTargetLayer.accepts(
+                return !entities[troopIndex].isUnderground &&
+                    trapDefinition.destructionTargetLayer.accepts(
                     troopDefinition.movementDomain
                 ) && distance(
                     from: entities[troopIndex].position,
@@ -724,6 +725,7 @@ nonisolated final class SimulationEngine {
 
         if objectiveDistance <= effectiveAttackRange {
             movementPaths[entities[troopIndex].id] = []
+            entities[troopIndex].isUnderground = false
             performAttackIfPossible(
                 attackerIndex: troopIndex,
                 targetIndex: objectiveIndex,
@@ -732,7 +734,10 @@ nonisolated final class SimulationEngine {
             return
         }
 
-        if troopDefinition.movementDomain == .air {
+        entities[troopIndex].isUnderground =
+            troopDefinition.burrowsWhileMoving
+
+        if troopDefinition.movementDomain == .air || troopDefinition.ignoresWalls {
             movementPaths[entities[troopIndex].id] = [
                 entities[objectiveIndex].position
             ]
@@ -869,6 +874,7 @@ nonisolated final class SimulationEngine {
         let defensePosition = entities[defenseIndex].position
         let layerCandidates = candidateIndices.filter { index in
             entities.indices.contains(index) &&
+                !entities[index].isUnderground &&
                 targetLayer.accepts(
                     definition(for: entities[index].kind).movementDomain
                 )
@@ -1111,6 +1117,15 @@ nonisolated final class SimulationEngine {
             pendingDamage[target.id, default: 0] += attackDamage
         }
 
+        if attackerDefinition.chainTargetCount > 1 {
+            queueChainDamage(
+                from: targetIndex,
+                firstDamage: attackDamage,
+                definition: attackerDefinition,
+                pendingDamage: &pendingDamage
+            )
+        }
+
         if attackerDefinition.pushbackDistance > 0 {
             applyPushback(
                 to: targetIndex,
@@ -1143,6 +1158,42 @@ nonisolated final class SimulationEngine {
         entities[attackerIndex].consecutiveAttacksOnTarget =
             repeatedAttackIndex + 1
         attackCounts[attackerDefinition.role, default: 0] += 1
+    }
+
+    /// Bounces a chain attack from its first target to the nearest other
+    /// buildings, weakening at every link.
+    private func queueChainDamage(
+        from firstTargetIndex: Int,
+        firstDamage: Double,
+        definition attackerDefinition: CombatDefinition,
+        pendingDamage: inout [UUID: Double]
+    ) {
+        guard definition(for: entities[firstTargetIndex].kind).countsForDestruction else {
+            return
+        }
+
+        var hitIDs: Set<UUID> = [entities[firstTargetIndex].id]
+        var linkPosition = entities[firstTargetIndex].position
+        var damage = firstDamage
+        for _ in 1..<attackerDefinition.chainTargetCount {
+            let candidates = entities.indices.filter { index in
+                entities[index].isAlive &&
+                    !hitIDs.contains(entities[index].id) &&
+                    definition(for: entities[index].kind).countsForDestruction &&
+                    distance(
+                        from: entities[index].position,
+                        to: linkPosition
+                    ) <= attackerDefinition.chainRange
+            }
+            guard !candidates.isEmpty else {
+                return
+            }
+            let next = nearest(candidates, to: linkPosition)
+            damage *= attackerDefinition.chainDamageMultiplier
+            pendingDamage[entities[next].id, default: 0] += damage
+            hitIDs.insert(entities[next].id)
+            linkPosition = entities[next].position
+        }
     }
 
     private func applyPushback(

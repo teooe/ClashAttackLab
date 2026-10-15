@@ -399,7 +399,7 @@ nonisolated struct ManualAttackPlan: Identifiable {
 extension AttackPlan {
     /// Army represented by the orders, independent of the current UI selection.
     nonisolated var armyConfiguration: ArmyConfiguration {
-        ArmyConfiguration(
+        var army = ArmyConfiguration(
             giants: deploymentCount(for: .giant),
             barbarians: deploymentCount(for: .barbarian),
             archers: deploymentCount(for: .archer),
@@ -417,5 +417,9 @@ extension AttackPlan {
             wallWreckers: deploymentCount(for: .wallWrecker),
             stoneSlammers: deploymentCount(for: .stoneSlammer)
         )
+        for kind in BattleEntityKind.advancedTroops {
+            army[troop: kind] = deploymentCount(for: kind)
+        }
+        return army
     }
 }
