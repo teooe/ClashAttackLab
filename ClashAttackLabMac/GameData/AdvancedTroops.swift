@@ -25,10 +25,17 @@ extension BattleEntityKind {
         Self.heroKinds.contains(self)
     }
 
-    /// Troops that only appear when another one dies (Lava Hound, Golem);
-    /// they cannot be trained and have no catalog entry of their own.
+    /// Troops that only appear when another one dies (Lava Hound, Golem)
+    /// or a spell summons them; they cannot be trained and have no
+    /// catalog entry of their own.
     nonisolated static let spawnedTroops: [BattleEntityKind] = [
-        .lavaPup, .golemite
+        .lavaPup, .golemite, .skeleton, .bat
+    ]
+
+    /// Buildings that only store or produce resources; Bats hurt them less.
+    nonisolated static let resourceBuildings: Set<BattleEntityKind> = [
+        .goldStorage, .elixirStorage, .darkElixirStorage,
+        .goldMine, .elixirCollector, .darkElixirDrill
     ]
 }
 
@@ -76,6 +83,10 @@ nonisolated struct TroopStyle {
             return TroopStyle(displayName: "Cucciolo lavico", symbol: "lp", red: 0.95, green: 0.45, blue: 0.15, radius: 14)
         case .golemite:
             return TroopStyle(displayName: "Golemita", symbol: "gm", red: 0.55, green: 0.52, blue: 0.48, radius: 20)
+        case .skeleton:
+            return TroopStyle(displayName: "Scheletro", symbol: "sk", red: 0.85, green: 0.85, blue: 0.80, radius: 12)
+        case .bat:
+            return TroopStyle(displayName: "Pipistrello", symbol: "bt", red: 0.35, green: 0.25, blue: 0.45, radius: 10)
         default:
             return TroopStyle(displayName: "Truppa", symbol: "?", red: 0.5, green: 0.5, blue: 0.5, radius: 22)
         }
@@ -104,6 +115,10 @@ nonisolated struct SpellStyle {
             return SpellStyle(displayName: "Rampicante", symbol: "O", red: 0.30, green: 0.55, blue: 0.20)
         case .iceBlock:
             return SpellStyle(displayName: "Blocco di ghiaccio", symbol: "IB", red: 0.65, green: 0.85, blue: 1.0)
+        case .skeletonSpell:
+            return SpellStyle(displayName: "Scheletri", symbol: "SK", red: 0.80, green: 0.80, blue: 0.75)
+        case .batSpell:
+            return SpellStyle(displayName: "Pipistrelli", symbol: "BT", red: 0.40, green: 0.30, blue: 0.55)
         case .heal:
             return SpellStyle(displayName: "Cura", symbol: "H", red: 0.2, green: 0.8, blue: 0.3)
         case .rage:

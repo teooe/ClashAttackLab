@@ -223,6 +223,12 @@ nonisolated struct CombatDefinition {
     var garrison: [BattleEntityKind] = []
     var garrisonTriggerRadius: Double = 0
 
+    /// Traps never go off for this troop (summoned Skeletons and Bats).
+    var ignoresTraps = false
+
+    /// Damage multiplier against `BattleEntityKind.resourceBuildings`.
+    var resourceDamageMultiplier: Double = 1
+
     // Passive hero equipment effects.
 
     /// Hit points healed on every attack (Vampstache).

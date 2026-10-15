@@ -13,6 +13,8 @@ nonisolated enum BattleSpellKind: Hashable, Codable, CaseIterable {
     case poison
     case overgrowth
     case iceBlock
+    case skeletonSpell
+    case batSpell
 }
 
 /// Separates documented spell behavior from temporary tuning values.
@@ -60,6 +62,10 @@ nonisolated struct SpellDefinition {
     /// (Ice Block Spell).
     var encasesTroops = false
     var troopDamageReduction: Double = 0
+
+    /// Troops summoned where the spell lands (Skeleton and Bat Spells).
+    var summonedTroop: BattleEntityKind?
+    var summonCount = 0
 
     /// Seconds the cloud takes to reach its full damage.
     var defenderDamageRampTime: TimeInterval = 0
