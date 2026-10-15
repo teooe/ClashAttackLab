@@ -454,6 +454,120 @@
    ],
    "name": "Lightning Spell"
   },
+  "poison": {
+   "housingSpace": 1,
+   "levels": [
+    {
+     "attackRateDecreasePercent": 35,
+     "damagePerSecond": 90,
+     "duration": 16,
+     "level": 1,
+     "radius": 4,
+     "speedDecreasePercent": 26,
+     "townHall": 8
+    },
+    {
+     "attackRateDecreasePercent": 40,
+     "damagePerSecond": 115,
+     "duration": 16,
+     "level": 2,
+     "radius": 4,
+     "speedDecreasePercent": 30,
+     "townHall": 8
+    },
+    {
+     "attackRateDecreasePercent": 45,
+     "damagePerSecond": 145,
+     "duration": 16,
+     "level": 3,
+     "radius": 4,
+     "speedDecreasePercent": 34,
+     "townHall": 9
+    },
+    {
+     "attackRateDecreasePercent": 50,
+     "damagePerSecond": 180,
+     "duration": 16,
+     "level": 4,
+     "radius": 4,
+     "speedDecreasePercent": 38,
+     "townHall": 10
+    },
+    {
+     "attackRateDecreasePercent": 55,
+     "damagePerSecond": 220,
+     "duration": 16,
+     "level": 5,
+     "radius": 4,
+     "speedDecreasePercent": 40,
+     "townHall": 11
+    },
+    {
+     "attackRateDecreasePercent": 60,
+     "damagePerSecond": 260,
+     "duration": 16,
+     "level": 6,
+     "radius": 4,
+     "speedDecreasePercent": 42,
+     "townHall": 12
+    },
+    {
+     "attackRateDecreasePercent": 65,
+     "damagePerSecond": 280,
+     "duration": 16,
+     "level": 7,
+     "radius": 4,
+     "speedDecreasePercent": 44,
+     "townHall": 13
+    },
+    {
+     "attackRateDecreasePercent": 68,
+     "damagePerSecond": 300,
+     "duration": 16,
+     "level": 8,
+     "radius": 4,
+     "speedDecreasePercent": 46,
+     "townHall": 14
+    },
+    {
+     "attackRateDecreasePercent": 70,
+     "damagePerSecond": 320,
+     "duration": 16,
+     "level": 9,
+     "radius": 4,
+     "speedDecreasePercent": 48,
+     "townHall": 15
+    },
+    {
+     "attackRateDecreasePercent": 72,
+     "damagePerSecond": 340,
+     "duration": 16,
+     "level": 10,
+     "radius": 4,
+     "speedDecreasePercent": 50,
+     "townHall": 16
+    },
+    {
+     "attackRateDecreasePercent": 73,
+     "damagePerSecond": 360,
+     "duration": 16,
+     "level": 11,
+     "radius": 4,
+     "speedDecreasePercent": 51,
+     "townHall": 17
+    },
+    {
+     "attackRateDecreasePercent": 74,
+     "damagePerSecond": 380,
+     "duration": 16,
+     "level": 12,
+     "radius": 4,
+     "speedDecreasePercent": 52,
+     "townHall": 17
+    }
+   ],
+   "name": "Poison Spell"
+  },
   "rage": {
    "housingSpace": 2,
    "levels": [
@@ -3629,72 +3743,86 @@
     {
      "hitpoints": 600,
      "level": 1,
-     "townHall": 3
+     "townHall": 3,
+     "troopCapacity": 10
     },
     {
      "hitpoints": 1200,
      "level": 2,
-     "townHall": 4
+     "townHall": 4,
+     "troopCapacity": 15
     },
     {
      "hitpoints": 1800,
      "level": 3,
-     "townHall": 6
+     "townHall": 6,
+     "troopCapacity": 20
     },
     {
      "hitpoints": 2600,
      "level": 4,
-     "townHall": 8
+     "townHall": 8,
+     "troopCapacity": 25
     },
     {
      "hitpoints": 3000,
      "level": 5,
-     "townHall": 9
+     "townHall": 9,
+     "troopCapacity": 30
     },
     {
      "hitpoints": 3400,
      "level": 6,
-     "townHall": 10
+     "townHall": 10,
+     "troopCapacity": 35
     },
     {
      "hitpoints": 4000,
      "level": 7,
-     "townHall": 11
+     "townHall": 11,
+     "troopCapacity": 35
     },
     {
      "hitpoints": 4400,
      "level": 8,
-     "townHall": 12
+     "townHall": 12,
+     "troopCapacity": 40
     },
     {
      "hitpoints": 4800,
      "level": 9,
-     "townHall": 13
+     "townHall": 13,
+     "troopCapacity": 45
     },
     {
      "hitpoints": 5200,
      "level": 10,
-     "townHall": 14
+     "townHall": 14,
+     "troopCapacity": 45
     },
     {
      "hitpoints": 5400,
      "level": 11,
-     "townHall": 15
+     "townHall": 15,
+     "troopCapacity": 50
     },
     {
      "hitpoints": 5600,
      "level": 12,
-     "townHall": 16
+     "townHall": 16,
+     "troopCapacity": 50
     },
     {
      "hitpoints": 5800,
      "level": 13,
-     "townHall": 17
+     "townHall": 17,
+     "troopCapacity": 55
     },
     {
      "hitpoints": 6000,
      "level": 14,
-     "townHall": 18
+     "townHall": 18,
+     "troopCapacity": 55
     }
    ],
    "name": "Clan Castle",

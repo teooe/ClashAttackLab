@@ -186,6 +186,12 @@ nonisolated struct CombatDefinition {
     var auraRadius: Double = 0
     var auraDamageReduction: Double = 0
 
+    /// Defending troops that come out of a Clan Castle once an attacker
+    /// walks within `garrisonTriggerRadius`, or all at once when the
+    /// castle falls.
+    var garrison: [BattleEntityKind] = []
+    var garrisonTriggerRadius: Double = 0
+
     init(
         displayName: String,
         role: BattleEntityRole,

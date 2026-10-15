@@ -99,6 +99,20 @@ nonisolated struct PrototypeGameData: GameDataProviding {
             )
             spell.movementSpeedBonus = 140
             return spell
+        case .poison:
+            // Hurts and slows only the Clan Castle reinforcements.
+            var spell = SpellDefinition(
+                displayName: "Veleno", radius: 160, duration: 16,
+                healingPerSecond: 0, instantDamage: 0,
+                damageMultiplier: 1, movementSpeedMultiplier: 1,
+                attackSpeedMultiplier: 1, disablesDefenses: false,
+                behaviorEvidence: .documented, tuningEvidence: .prototype
+            )
+            spell.defenderDamagePerSecond = 320
+            spell.defenderSpeedMultiplier = 0.52
+            spell.defenderAttackSpeedMultiplier = 0.3
+            spell.defenderDamageRampTime = SpellDefinition.poisonRampTime
+            return spell
         }
     }
 

@@ -618,6 +618,15 @@ final class BattleScene: SKScene {
         } else if definition.role == .troop {
             body.setScale(troopBodyScale)
         }
+        if entity.isDefender {
+            // Clan Castle reinforcements stand on a red disc.
+            let marker = SKShapeNode(circleOfRadius: 46 * troopBodyScale)
+            marker.fillColor = .systemRed.withAlphaComponent(0.28)
+            marker.strokeColor = .systemRed
+            marker.lineWidth = 2
+            marker.zPosition = -1
+            root.addChild(marker)
+        }
         root.addChild(body)
         addRangeRings(for: definition, to: root)
 
@@ -664,7 +673,9 @@ final class BattleScene: SKScene {
         var targetLine: SKShapeNode?
         if definition.role == .troop || definition.role == .defense {
             let line = SKShapeNode()
-            if definition.role == .troop {
+            if entity.isDefender {
+                line.strokeColor = .systemRed
+            } else if definition.role == .troop {
                 line.strokeColor =
                     definition.movementDomain == .air
                         ? .systemCyan
@@ -1108,7 +1119,7 @@ final class BattleScene: SKScene {
             return .systemYellow
         case .earthquake:
             return .systemOrange
-        case .jump, .invisibility, .haste:
+        case .jump, .invisibility, .haste, .poison:
             let style = SpellStyle.style(for: kind)
             return SKColor(red: style.red, green: style.green, blue: style.blue, alpha: 1)
         }
@@ -1126,7 +1137,7 @@ final class BattleScene: SKScene {
             return "L"
         case .earthquake:
             return "E"
-        case .jump, .invisibility, .haste:
+        case .jump, .invisibility, .haste, .poison:
             return SpellStyle.style(for: kind).symbol
         }
     }

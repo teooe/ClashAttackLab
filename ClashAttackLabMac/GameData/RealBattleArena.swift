@@ -13,6 +13,10 @@ nonisolated struct BattleArena {
     let defaultArmy: ArmyConfiguration
     let sceneSize: CGSize
 
+    /// Reinforcements chosen for the Clan Castle; nil keeps the default
+    /// filling.
+    let clanCastleTroops: [BattleEntityKind]?
+
     private let catalog: ReferenceGameCatalog?
 
     static var prototype: BattleArena {
@@ -23,12 +27,14 @@ nonisolated struct BattleArena {
             armyRules: .prototype,
             defaultArmy: .prototypeDefault,
             sceneSize: CGSize(width: 1_100, height: 760),
+            clanCastleTroops: nil,
             catalog: nil
         )
     }
 
     static func make(
         for source: GameDataSource,
+        clanCastleTroops: [BattleEntityKind]? = nil,
         catalog: () throws -> ReferenceGameCatalog = ReferenceGameCatalog.loadBundled
     ) throws -> BattleArena {
         switch source {
@@ -42,19 +48,20 @@ nonisolated struct BattleArena {
                 townHall: townHall,
                 catalog: catalog
             )
+            var data = ReferenceGameData(
+                catalog: catalog,
+                profile: ReferenceLevelProfile(townHall: townHall),
+                tileSize: grid.cellSize
+            )
+            data.clanCastleTroops = clanCastleTroops
             return BattleArena(
                 source: source,
                 navigationGrid: grid,
-                gameData: PrecomputedGameData(
-                    ReferenceGameData(
-                        catalog: catalog,
-                        profile: ReferenceLevelProfile(townHall: townHall),
-                        tileSize: grid.cellSize
-                    )
-                ),
+                gameData: PrecomputedGameData(data),
                 armyRules: rules,
                 defaultArmy: ArmyConfiguration.realDefault(for: rules),
                 sceneSize: RealBattleMap.sceneSize,
+                clanCastleTroops: clanCastleTroops,
                 catalog: catalog
             )
         }
@@ -529,7 +536,7 @@ extension ArmyConfiguration {
     }
 
     /// Adds troops in order until the camps are full, then the heroes, a
-    /// Wall Wrecker and as many spells as fit.
+    /// Wall Wrecker, a Poison and as many other spells as fit.
     private nonisolated static func filling(
         rules: ArmyCapacityRules,
         with fill: [(BattleEntityKind, ArmyFill)]
@@ -572,6 +579,11 @@ extension ArmyConfiguration {
         add(.wallWrecker, count: 1)
 
         var spellSpace = rules.spellCapacity
+        // One Poison for the Clan Castle reinforcements every real base has.
+        if rules.allows(.poison), rules.housing(for: .poison) <= spellSpace {
+            army[spell: .poison] = 1
+            spellSpace -= max(rules.housing(for: .poison), 1)
+        }
         let spellOrder: [(BattleSpellKind, WritableKeyPath<ArmyConfiguration, Int>)] = [
             (.rage, \.rageSpells),
             (.heal, \.healSpells),

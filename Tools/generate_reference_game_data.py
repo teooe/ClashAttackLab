@@ -114,6 +114,7 @@ SPELLS = {
     "jump": "spells/jump-spell.json",
     "invisibility": "spells/invisibility-spell.json",
     "haste": "spells/haste-spell.json",
+    "poison": "spells/poison-spell.json",
 }
 
 
@@ -259,6 +260,9 @@ def unit_entry(key, data, hero_halls):
                 "golemitesSpawned", level.get("pupsOnOffense")
             ),
             "rampDamagePerHit": ramp,
+            "troopCapacity": (
+                level.get("troopCapacity") if key == "clanCastle" else None
+            ),
         }))
 
     entry["levels"] = levels
@@ -296,6 +300,11 @@ def spell_entry(key, data):
         elif key == "haste":
             values["duration"] = level["spellDuration"]
             values["speedIncrease"] = level["speedIncrease"]
+        elif key == "poison":
+            values["duration"] = data["spellDuration"]
+            values["damagePerSecond"] = level["maxDamagePerSecond"]
+            values["speedDecreasePercent"] = level["speedDecrease"]
+            values["attackRateDecreasePercent"] = level["attackRateDecrease"]
         levels.append(compact(values))
 
     return {

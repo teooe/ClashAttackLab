@@ -98,6 +98,8 @@ nonisolated struct SpellStyle {
             return SpellStyle(displayName: "Invisibilità", symbol: "I", red: 0.70, green: 0.70, blue: 0.90)
         case .haste:
             return SpellStyle(displayName: "Velocità", symbol: "V", red: 0.95, green: 0.55, blue: 0.75)
+        case .poison:
+            return SpellStyle(displayName: "Veleno", symbol: "P", red: 0.55, green: 0.25, blue: 0.65)
         case .heal:
             return SpellStyle(displayName: "Cura", symbol: "H", red: 0.2, green: 0.8, blue: 0.3)
         case .rage:

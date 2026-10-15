@@ -23,6 +23,11 @@ nonisolated struct BattleProjectile: Identifiable {
     let damage: Double
     let splashRadius: Double
 
+    /// Side of the shooter and of the target when they are troops: splash
+    /// only hits troops on the target's side.
+    var sourceIsDefender = false
+    var targetIsDefender = false
+
     init(
         id: UUID = UUID(),
         kind: ProjectileKind,

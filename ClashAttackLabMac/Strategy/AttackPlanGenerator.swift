@@ -268,6 +268,9 @@ nonisolated struct AttackPlanGenerator {
                     previousPositions: previousEarthquakePositions
                 ) ?? fallback
                 previousEarthquakePositions.append(position)
+            } else if kind == .poison {
+                // Reinforcements gather around their Clan Castle.
+                position = baseEntities.first { $0.kind == .clanCastle }?.position ?? fallback
             } else {
                 position = fallback
             }
@@ -313,6 +316,8 @@ nonisolated struct AttackPlanGenerator {
             return 15
         case .haste:
             return 11
+        case .poison:
+            return 16
         }
     }
 

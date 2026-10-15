@@ -107,6 +107,10 @@ nonisolated struct BattleEntity: Identifiable {
     /// traps, until they surface to attack.
     var isUnderground = false
 
+    /// Clan Castle reinforcement fighting for the base. Defenders are
+    /// troops by kind but are never part of the attacking army.
+    var isDefender = false
+
     /// Hidden defenses cannot attack or be targeted before activation.
     var isRevealed: Bool
 

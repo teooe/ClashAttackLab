@@ -126,6 +126,9 @@ nonisolated struct ReferenceUnitLevel: Decodable {
 
     /// Inferno Tower damage per hit for its three heat stages.
     let rampDamagePerHit: [Double]?
+
+    /// Housing space of the reinforcements a Clan Castle holds.
+    let troopCapacity: Int?
 }
 
 nonisolated struct ReferenceSpell: Decodable {
@@ -177,6 +180,11 @@ nonisolated struct ReferenceSpellLevel: Decodable {
     let damageIncreasePercent: Double?
     let speedIncrease: Double?
     let buildingDamagePercent: Double?
+
+    /// Poison: full damage per second and slowdowns of the reinforcements.
+    let damagePerSecond: Double?
+    let speedDecreasePercent: Double?
+    let attackRateDecreasePercent: Double?
 }
 
 // MARK: - Level selection
@@ -254,6 +262,16 @@ nonisolated struct ReferenceGameData: GameDataProviding {
     let profile: ReferenceLevelProfile
     let fallback: any GameDataProviding
     let tileSize: Double
+
+    /// Reinforcements waiting in the Clan Castle; nil fills the castle
+    /// with `defaultGarrison(capacity:)`.
+    var clanCastleTroops: [BattleEntityKind]?
+
+    /// Common defensive filling: Dragons, then Wizards, then Archers for
+    /// the space left.
+    static let defaultGarrisonRules: [(kind: BattleEntityKind, limit: Int)] = [
+        (.dragon, 2), (.wizard, 2), (.archer, Int.max)
+    ]
 
     init(
         catalog: ReferenceGameCatalog,
@@ -468,7 +486,32 @@ nonisolated struct ReferenceGameData: GameDataProviding {
         definition.chainDamageMultiplier = base.chainDamageMultiplier
         definition.auraRadius = base.auraRadius
         definition.auraDamageReduction = base.auraDamageReduction
+        if kind == .clanCastle {
+            definition.garrison = clanCastleTroops ??
+                defaultGarrison(capacity: level.troopCapacity ?? 0)
+            definition.garrisonTriggerRadius =
+                (unit.triggerRadius ?? 0) * tileSize
+        }
         return definition
+    }
+
+    /// Fills `capacity` housing space following `defaultGarrisonRules`.
+    func defaultGarrison(capacity: Int) -> [BattleEntityKind] {
+        var remaining = capacity
+        var troops: [BattleEntityKind] = []
+        for rule in Self.defaultGarrisonRules {
+            let housing = definition(for: rule.kind).housingSpace
+            guard housing > 0 else {
+                continue
+            }
+            var added = 0
+            while added < rule.limit, housing <= remaining {
+                troops.append(rule.kind)
+                remaining -= housing
+                added += 1
+            }
+        }
+        return troops
     }
 
     /// Golemites are not in the catalog: each one takes a fifth of the
@@ -537,6 +580,9 @@ nonisolated struct ReferenceGameData: GameDataProviding {
         case .haste:
             movementSpeedBonus = (level.speedIncrease ?? 0) /
                 Self.movementSpeedPerTileSecond * tileSize
+        case .poison:
+            // Real values; only the damage ramp is estimated.
+            tuningEvidence = .approximation
         case .jump, .invisibility:
             break
         }
@@ -558,6 +604,13 @@ nonisolated struct ReferenceGameData: GameDataProviding {
         )
         definition.letsTroopsJumpWalls = base.letsTroopsJumpWalls
         definition.hidesDefenses = base.hidesDefenses
+        definition.defenderDamagePerSecond =
+            level.damagePerSecond ?? base.defenderDamagePerSecond
+        definition.defenderSpeedMultiplier = level.speedDecreasePercent
+            .map { 1 - $0 / 100 } ?? base.defenderSpeedMultiplier
+        definition.defenderAttackSpeedMultiplier = level.attackRateDecreasePercent
+            .map { 1 - $0 / 100 } ?? base.defenderAttackSpeedMultiplier
+        definition.defenderDamageRampTime = base.defenderDamageRampTime
         return definition
     }
 
@@ -723,6 +776,7 @@ extension BattleSpellKind {
         case .jump: return "jump"
         case .invisibility: return "invisibility"
         case .haste: return "haste"
+        case .poison: return "poison"
         }
     }
 }

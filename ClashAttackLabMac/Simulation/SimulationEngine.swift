@@ -25,6 +25,22 @@ nonisolated final class SimulationEngine {
     private var releasedSiegeMachineIDs: Set<UUID> = []
     private(set) var releasedPayloadTroopCount = 0
 
+    /// Seconds between two reinforcements leaving a triggered Clan Castle.
+    static let garrisonReleaseInterval: TimeInterval = 0.4
+
+    /// Attackers fight reinforcements this far beyond their own range.
+    static let defenderEngagementTiles = 4.0
+
+    /// Reinforcements already out of each Clan Castle, and when the next
+    /// one leaves; a castle is triggered once it has an entry here.
+    private var garrisonReleased: [UUID: Int] = [:]
+    private var nextGarrisonRelease: [UUID: TimeInterval] = [:]
+
+    /// Clan Castle reinforcements that have come out so far.
+    var releasedDefenderCount: Int {
+        garrisonReleased.values.reduce(0, +)
+    }
+
     /// Housing space deployed so far; wakes the Eagle Artillery.
     private(set) var deployedHousingSpace = 0
 
@@ -214,6 +230,8 @@ nonisolated final class SimulationEngine {
             attackPlan.orderedSpellDeployments
         releasedSiegeMachineIDs = []
         releasedPayloadTroopCount = 0
+        garrisonReleased = [:]
+        nextGarrisonRelease = [:]
         deployedHousingSpace = 0
         timeline = []
         score = scoringSystem.calculate(
@@ -250,10 +268,11 @@ nonisolated final class SimulationEngine {
     }
 
     func isDefenseDisabled(_ entityID: UUID) -> Bool {
+        // Freeze stops defenses and Clan Castle reinforcements alike.
         guard let defense = entities.first(where: {
             $0.id == entityID &&
                 $0.isAlive &&
-                definition(for: $0.kind).role == .defense
+                (definition(for: $0.kind).role == .defense || $0.isDefender)
         }) else {
             return false
         }
@@ -302,6 +321,7 @@ nonisolated final class SimulationEngine {
         deployScheduledTroops()
         deployScheduledSpells()
         applyHealingSpells(by: deltaTime)
+        applyPoisonSpells(by: deltaTime)
 
         defer {
             advanceActiveSpells(by: deltaTime)
@@ -325,6 +345,7 @@ nonisolated final class SimulationEngine {
         apply(pendingDamage)
         pendingDamage.removeAll(keepingCapacity: true)
         triggerHiddenTraps()
+        releaseGarrisons()
         clearInvalidTargets()
 
         score = scoringSystem.calculate(
@@ -373,7 +394,25 @@ nonisolated final class SimulationEngine {
             )
         }
 
+        let defenderIndices = livingDefenderIndices()
+        for defenderIndex in defenderIndices {
+            actDefender(
+                at: defenderIndex,
+                possibleTargets: troopIndices,
+                deltaTime: deltaTime,
+                pendingDamage: &pendingDamage
+            )
+        }
+
         for troopIndex in troopIndices {
+            if engageDefender(
+                troopIndex: troopIndex,
+                defenderIndices: defenderIndices,
+                deltaTime: deltaTime,
+                pendingDamage: &pendingDamage
+            ) {
+                continue
+            }
             actTroop(
                 at: troopIndex,
                 possibleObjectives: troopTargetIndices,
@@ -483,6 +522,36 @@ nonisolated final class SimulationEngine {
                 maximum,
                 entities[troopIndex].hitPoints + healing
             )
+        }
+    }
+
+    /// Poison clouds hurt the Clan Castle reinforcements inside them,
+    /// harder as the cloud grows.
+    private func applyPoisonSpells(by deltaTime: TimeInterval) {
+        let clouds = activeSpells.filter {
+            spellDefinition(for: $0.kind).defenderDamagePerSecond > 0
+        }
+        guard !clouds.isEmpty else {
+            return
+        }
+
+        var damage: [UUID: Double] = [:]
+        for defenderIndex in livingDefenderIndices() {
+            for spell in clouds {
+                let spellData = spellDefinition(for: spell.kind)
+                guard distance(
+                    from: entities[defenderIndex].position,
+                    to: spell.position
+                ) <= spellData.radius else {
+                    continue
+                }
+                let age = spellData.duration - spell.remainingDuration
+                damage[entities[defenderIndex].id, default: 0] +=
+                    spellData.defenderDamagePerSecond(atAge: age) * deltaTime
+            }
+        }
+        if !damage.isEmpty {
+            apply(damage)
         }
     }
 
@@ -677,7 +746,10 @@ nonisolated final class SimulationEngine {
 
     /// Damage taken by a troop standing in a friendly aura; 1 elsewhere.
     private func auraDamageMultiplier(for index: Int, sources: [Int]) -> Double {
-        guard definition(for: entities[index].kind).role == .troop else {
+        guard
+            definition(for: entities[index].kind).role == .troop,
+            !entities[index].isDefender
+        else {
             return 1
         }
         var reduction = 0.0
@@ -883,6 +955,213 @@ nonisolated final class SimulationEngine {
             )
         }
     }
+
+    // MARK: Clan Castle reinforcements
+
+    /// Opens every Clan Castle an attacker has come close to, or that has
+    /// fallen, and lets its reinforcements out one at a time (all at once
+    /// from a destroyed castle).
+    private func releaseGarrisons() {
+        for castleIndex in entities.indices {
+            let castle = entities[castleIndex]
+            let castleDefinition = definition(for: castle.kind)
+            let garrison = castleDefinition.garrison
+            var released = garrisonReleased[castle.id, default: 0]
+            guard !garrison.isEmpty, released < garrison.count else {
+                continue
+            }
+
+            if nextGarrisonRelease[castle.id] == nil {
+                let triggered = !castle.isAlive || livingIndices(with: .troop).contains {
+                    !entities[$0].isUnderground &&
+                        distance(
+                            from: entities[$0].position,
+                            to: castle.position
+                        ) <= castleDefinition.garrisonTriggerRadius
+                }
+                guard triggered else {
+                    continue
+                }
+                nextGarrisonRelease[castle.id] = elapsedTime
+                recordEvent(
+                    .clanCastleReinforcements,
+                    "\(castleDefinition.displayName): escono \(garrison.count) rinforzi"
+                )
+            }
+
+            while
+                released < garrison.count,
+                !castle.isAlive ||
+                    nextGarrisonRelease[castle.id, default: .infinity] <= elapsedTime
+            {
+                spawnDefender(garrison[released], index: released, from: castle)
+                released += 1
+                nextGarrisonRelease[castle.id] =
+                    elapsedTime + Self.garrisonReleaseInterval
+            }
+            garrisonReleased[castle.id] = released
+        }
+    }
+
+    private func spawnDefender(
+        _ kind: BattleEntityKind,
+        index: Int,
+        from castle: BattleEntity
+    ) {
+        let defenderDefinition = definition(for: kind)
+        let angle = Double(index) * 2.4
+        let radius = navigationGrid.cellSize * 0.6
+        let position = payloadSpawnPosition(
+            near: WorldPosition(
+                x: castle.position.x + cos(angle) * radius,
+                y: castle.position.y + sin(angle) * radius
+            ),
+            domain: defenderDefinition.movementDomain
+        )
+        var defender = BattleEntity(
+            id: garrisonEntityID(castleID: castle.id, index: index),
+            kind: kind,
+            position: position,
+            hitPoints: defenderDefinition.maxHitPoints
+        )
+        defender.isDefender = true
+        entities.append(defender)
+    }
+
+    private func garrisonEntityID(castleID: UUID, index: Int) -> UUID {
+        let key = "ClashAttackLab.garrison.v1:\(castleID.uuidString):\(index)"
+        let bytes = Array(SHA256.hash(data: Data(key.utf8)))
+        return UUID(uuid: (
+            bytes[0], bytes[1], bytes[2], bytes[3],
+            bytes[4], bytes[5], bytes[6], bytes[7],
+            bytes[8], bytes[9], bytes[10], bytes[11],
+            bytes[12], bytes[13], bytes[14], bytes[15]
+        ))
+    }
+
+    private func livingDefenderIndices() -> [Int] {
+        entities.indices.filter {
+            entities[$0].isAlive && entities[$0].isDefender
+        }
+    }
+
+    /// Reinforcements chase the nearest attacker they can hit, flying or
+    /// walking straight at it.
+    private func actDefender(
+        at index: Int,
+        possibleTargets: [Int],
+        deltaTime: TimeInterval,
+        pendingDamage: inout [UUID: Double]
+    ) {
+        guard !isDefenseDisabled(entities[index].id) else {
+            return
+        }
+        let defenderDefinition = definition(for: entities[index].kind)
+        let candidates = possibleTargets.filter {
+            !entities[$0].isUnderground &&
+                defenderDefinition.attackTargetLayer.accepts(
+                    definition(for: entities[$0].kind).movementDomain
+                )
+        }
+        let locked = candidates.first {
+            entities[$0].id == entities[index].currentTargetID
+        }
+        guard
+            let targetIndex = locked ??
+                (candidates.isEmpty ? nil : nearest(candidates, to: entities[index].position))
+        else {
+            entities[index].currentTargetID = nil
+            return
+        }
+        entities[index].currentTargetID = entities[targetIndex].id
+        fight(
+            attackerIndex: index,
+            targetIndex: targetIndex,
+            deltaTime: deltaTime,
+            pendingDamage: &pendingDamage
+        )
+    }
+
+    /// Troops that hit anything turn on a reinforcement close to them
+    /// before going back to buildings. Returns true when the troop fought.
+    private func engageDefender(
+        troopIndex: Int,
+        defenderIndices: [Int],
+        deltaTime: TimeInterval,
+        pendingDamage: inout [UUID: Double]
+    ) -> Bool {
+        guard !defenderIndices.isEmpty else {
+            return false
+        }
+        let troopDefinition = definition(for: entities[troopIndex].kind)
+        let preference = troopDefinition.targetingProfile?.preference
+        guard
+            preference == nil || preference == .anyBuilding,
+            !troopDefinition.selfDestructsOnAttack,
+            troopDefinition.attackDamage > 0
+        else {
+            return false
+        }
+        let engagement = troopDefinition.attackRange +
+            Self.defenderEngagementTiles * navigationGrid.cellSize
+        let reachable = defenderIndices.filter {
+            entities[$0].isAlive &&
+                troopDefinition.attackTargetLayer.accepts(
+                    definition(for: entities[$0].kind).movementDomain
+                ) &&
+                distance(
+                    from: entities[troopIndex].position,
+                    to: entities[$0].position
+                ) <= engagement
+        }
+        guard !reachable.isEmpty else {
+            return false
+        }
+        let defenderIndex = nearest(reachable, to: entities[troopIndex].position)
+        // The route to the building is planned again after the fight.
+        movementPaths[entities[troopIndex].id] = []
+        entities[troopIndex].isUnderground = false
+        fight(
+            attackerIndex: troopIndex,
+            targetIndex: defenderIndex,
+            deltaTime: deltaTime,
+            pendingDamage: &pendingDamage
+        )
+        return true
+    }
+
+    /// Attacks a troop in range, or closes in on it.
+    private func fight(
+        attackerIndex: Int,
+        targetIndex: Int,
+        deltaTime: TimeInterval,
+        pendingDamage: inout [UUID: Double]
+    ) {
+        let range = definition(for: entities[attackerIndex].kind).attackRange *
+            combatModifiers(for: entities[attackerIndex]).attackRange
+        let gap = distance(
+            from: entities[attackerIndex].position,
+            to: entities[targetIndex].position
+        )
+        if gap <= range + Self.troopReachTolerance {
+            performAttackIfPossible(
+                attackerIndex: attackerIndex,
+                targetIndex: targetIndex,
+                pendingDamage: &pendingDamage
+            )
+        } else {
+            moveDirectly(
+                entityAt: attackerIndex,
+                toward: entities[targetIndex].position,
+                stoppingAt: range,
+                deltaTime: deltaTime
+            )
+        }
+    }
+
+    /// Slack on troop-to-troop reach so a troop that stopped exactly at
+    /// its range still attacks.
+    static let troopReachTolerance = 1.0
 
     private func handleBlockingWall(
         troopIndex: Int,
@@ -1188,25 +1467,27 @@ nonisolated final class SimulationEngine {
             let projectileKind = attackerDefinition.projectileKind,
             attackerDefinition.projectileSpeed > 0
         {
-            projectiles.append(
-                BattleProjectile(
-                    kind: projectileKind,
-                    sourceEntityID: attacker.id,
-                    sourceRole: attackerDefinition.role,
-                    targetEntityID: target.id,
-                    targetRole: targetDefinition.role,
-                    position: attacker.position,
-                    destination: target.position,
-                    speed: attackerDefinition.projectileSpeed,
-                    damage: attackDamage,
-                    splashRadius: attackerDefinition.splashRadius
-                )
+            var projectile = BattleProjectile(
+                kind: projectileKind,
+                sourceEntityID: attacker.id,
+                sourceRole: attackerDefinition.role,
+                targetEntityID: target.id,
+                targetRole: targetDefinition.role,
+                position: attacker.position,
+                destination: target.position,
+                speed: attackerDefinition.projectileSpeed,
+                damage: attackDamage,
+                splashRadius: attackerDefinition.splashRadius
             )
+            projectile.sourceIsDefender = attacker.isDefender
+            projectile.targetIsDefender = target.isDefender
+            projectiles.append(projectile)
         } else if attackerDefinition.splashRadius > 0 {
             let targetRole = definition(for: target.kind).role
             queueAreaDamage(
                 centeredAt: target.position,
                 targetRole: targetRole,
+                targetIsDefender: target.isDefender,
                 damage: attackDamage,
                 radius: attackerDefinition.splashRadius,
                 pendingDamage: &pendingDamage
@@ -1255,7 +1536,8 @@ nonisolated final class SimulationEngine {
         entities[attackerIndex].lastAttackedTargetID = target.id
         entities[attackerIndex].consecutiveAttacksOnTarget =
             repeatedAttackIndex + 1
-        attackCounts[attackerDefinition.role, default: 0] += 1
+        let side: BattleEntityRole = attacker.isDefender ? .defense : attackerDefinition.role
+        attackCounts[side, default: 0] += 1
     }
 
     /// Bounces a chain attack from its first target to the nearest other
@@ -1383,6 +1665,7 @@ nonisolated final class SimulationEngine {
             queueAreaDamage(
                 centeredAt: projectile.destination,
                 targetRole: projectile.targetRole,
+                targetIsDefender: projectile.targetIsDefender,
                 damage: projectile.damage,
                 radius: projectile.splashRadius,
                 pendingDamage: &pendingDamage
@@ -1406,6 +1689,7 @@ nonisolated final class SimulationEngine {
     private func queueAreaDamage(
         centeredAt center: WorldPosition,
         targetRole: BattleEntityRole,
+        targetIsDefender: Bool = false,
         damage: Double,
         radius: Double,
         pendingDamage: inout [UUID: Double]
@@ -1415,6 +1699,8 @@ nonisolated final class SimulationEngine {
 
             guard
                 entityRole == targetRole,
+                entityRole != .troop ||
+                    entities[index].isDefender == targetIsDefender,
                 distance(
                     from: entities[index].position,
                     to: center
@@ -1499,7 +1785,9 @@ nonisolated final class SimulationEngine {
                 switch entityDefinition.role {
                 case .troop:
                     eventKind = .troopDefeated
-                    suffix = "eliminato"
+                    suffix = entities[index].isDefender
+                        ? "del Castello eliminato"
+                        : "eliminato"
                 case .trap:
                     eventKind = .trapTriggered
                     suffix = "attivata"
@@ -1512,7 +1800,10 @@ nonisolated final class SimulationEngine {
                     "\(entityDefinition.displayName) \(suffix)"
                 )
 
-                let payload = entityDefinition.siegePayload
+                // Reinforcements never add troops to the attacking army.
+                let payload = entities[index].isDefender
+                    ? []
+                    : entityDefinition.siegePayload
                 if
                     !payload.isEmpty,
                     !releasedSiegeMachineIDs.contains(entityID)
@@ -1526,6 +1817,7 @@ nonisolated final class SimulationEngine {
                 }
 
                 if
+                    !entities[index].isDefender,
                     entityDefinition.destructionDamage > 0,
                     entityDefinition.destructionRadius > 0,
                     !resolvedDestructionEffects.contains(entityID)
@@ -1692,9 +1984,12 @@ nonisolated final class SimulationEngine {
         }
     }
 
+    /// Living entities of one role; `.troop` means the attacking army and
+    /// leaves Clan Castle reinforcements out.
     private func livingIndices(with role: BattleEntityRole) -> [Int] {
         entities.indices.filter { index in
             entities[index].isAlive &&
+                !entities[index].isDefender &&
                 definition(for: entities[index].kind).role == role
         }
     }
@@ -1805,7 +2100,7 @@ nonisolated final class SimulationEngine {
     }
 
     private var hasAttackerProjectiles: Bool {
-        projectiles.contains { $0.sourceRole == .troop }
+        projectiles.contains { $0.sourceRole == .troop && !$0.sourceIsDefender }
     }
 
     private func finishIfNeeded() {
@@ -1905,7 +2200,9 @@ nonisolated final class SimulationEngine {
             )
 
             if entityDefinition.role == .troop {
-                hitPointsLostByArmy += lostHitPoints
+                if !entity.isDefender {
+                    hitPointsLostByArmy += lostHitPoints
+                }
             } else {
                 damageToBase += lostHitPoints
             }
@@ -1932,6 +2229,9 @@ nonisolated final class SimulationEngine {
     ) -> CombatModifiers {
         guard definition(for: entity.kind).role == .troop else {
             return .neutral
+        }
+        if entity.isDefender {
+            return defenderModifiers(for: entity)
         }
 
         var damage = 1.0
@@ -1988,6 +2288,30 @@ nonisolated final class SimulationEngine {
             movementSpeed: movementSpeed,
             attackSpeed: attackSpeed,
             attackRange: attackRange
+        )
+    }
+
+    /// Reinforcements slowed by the strongest cloud they stand in; spells
+    /// that help the army never help them.
+    private func defenderModifiers(for entity: BattleEntity) -> CombatModifiers {
+        var movementSpeed = 1.0
+        var attackSpeed = 1.0
+        for spell in activeSpells {
+            let spellData = spellDefinition(for: spell.kind)
+            guard
+                spellData.affectsDefenders,
+                distance(from: entity.position, to: spell.position) <= spellData.radius
+            else {
+                continue
+            }
+            movementSpeed = min(movementSpeed, spellData.defenderSpeedMultiplier)
+            attackSpeed = min(attackSpeed, spellData.defenderAttackSpeedMultiplier)
+        }
+        return CombatModifiers(
+            damage: 1,
+            movementSpeed: movementSpeed,
+            attackSpeed: attackSpeed,
+            attackRange: 1
         )
     }
 

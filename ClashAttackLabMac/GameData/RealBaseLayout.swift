@@ -14,16 +14,22 @@ nonisolated struct RealBaseLayout: Identifiable, Codable, Equatable {
 
     var buildings: [RealBaseBuilding]
 
+    /// Troops in the Clan Castle, when the file lists them; nil uses the
+    /// default filling for the Town Hall.
+    var clanCastleTroops: [BattleEntityKind]?
+
     init(
         id: UUID = UUID(),
         name: String,
         townHall: Int? = nil,
-        buildings: [RealBaseBuilding]
+        buildings: [RealBaseBuilding],
+        clanCastleTroops: [BattleEntityKind]? = nil
     ) {
         self.id = id
         self.name = name
         self.townHall = townHall
         self.buildings = buildings
+        self.clanCastleTroops = clanCastleTroops
     }
 }
 
@@ -131,6 +137,8 @@ extension RealBaseLayout {
             }
         }
 
+        issues += reinforcementIssues(catalog: catalog)
+
         if let townHall {
             let counts = Dictionary(grouping: buildings, by: \.kind).mapValues(\.count)
             for (kind, count) in counts.sorted(by: { $0.key.referenceKey < $1.key.referenceKey }) {
@@ -155,6 +163,43 @@ extension RealBaseLayout {
             ))
         }
 
+        return issues
+    }
+
+    /// Only trainable troops fit in the Clan Castle; filling it beyond its
+    /// capacity is only a warning.
+    private func reinforcementIssues(catalog: ReferenceGameCatalog) -> [RealBaseIssue] {
+        guard let clanCastleTroops else {
+            return []
+        }
+        var issues: [RealBaseIssue] = []
+        let prototype = PrototypeGameData()
+        let invalid = Set(clanCastleTroops.filter {
+            prototype.definition(for: $0).role != .troop ||
+                BattleEntityKind.spawnedTroops.contains($0) ||
+                $0.isHero
+        })
+        for kind in invalid.sorted(by: { $0.referenceKey < $1.referenceKey }) {
+            issues.append(RealBaseIssue(
+                isError: true,
+                text: "\(prototype.definition(for: kind).displayName) non può stare nel Castello del clan."
+            ))
+        }
+
+        let housing = clanCastleTroops.reduce(0) {
+            $0 + (catalog.unit(for: $1)?.housingSpace ?? 0)
+        }
+        if
+            let townHall,
+            let capacity = catalog.unit(for: .clanCastle)?
+                .level(forTownHall: townHall)?.troopCapacity,
+            housing > capacity
+        {
+            issues.append(RealBaseIssue(
+                isError: false,
+                text: "Rinforzi da \(housing) posti: al Municipio \(townHall) il Castello ne contiene \(capacity)."
+            ))
+        }
         return issues
     }
 
@@ -222,6 +267,7 @@ nonisolated enum RealBaseLayoutText {
         var name = defaultName
         var townHall: Int?
         var buildings: [RealBaseBuilding] = []
+        var clanCastleTroops: [BattleEntityKind]?
 
         for (offset, rawLine) in text.components(separatedBy: .newlines).enumerated() {
             let lineNumber = offset + 1
@@ -248,6 +294,13 @@ nonisolated enum RealBaseLayoutText {
                     throw RealBaseParseError(line: lineNumber, message: "scrivi il livello così: livello 15.")
                 }
                 townHall = level
+                continue
+            }
+            if reinforcementKeywords.contains(keyword) {
+                clanCastleTroops = try parseReinforcements(
+                    Array(words.dropFirst()),
+                    line: lineNumber
+                )
                 continue
             }
 
@@ -290,7 +343,52 @@ nonisolated enum RealBaseLayoutText {
         guard !buildings.isEmpty else {
             throw RealBaseParseError(line: 0, message: "il file non contiene edifici.")
         }
-        return RealBaseLayout(name: name, townHall: townHall, buildings: buildings)
+        return RealBaseLayout(
+            name: name,
+            townHall: townHall,
+            buildings: buildings,
+            clanCastleTroops: clanCastleTroops
+        )
+    }
+
+    private static let reinforcementKeywords: Set<String> = [
+        "rinforzi", "castello", "reinforcements", "cc"
+    ]
+
+    private static let emptyCastleWords: Set<String> = [
+        "nessuno", "vuoto", "none", "empty"
+    ]
+
+    /// `rinforzi drago 2 stregone 2 arciere` lists troops, each followed
+    /// by an optional count; `rinforzi nessuno` leaves the castle empty.
+    private static func parseReinforcements(
+        _ words: [String],
+        line: Int
+    ) throws -> [BattleEntityKind] {
+        if words.count == 1, emptyCastleWords.contains(normalized(words[0])) {
+            return []
+        }
+        guard !words.isEmpty else {
+            throw RealBaseParseError(line: line, message: "scrivi le truppe così: rinforzi dragon 2 wizard 2.")
+        }
+        var troops: [BattleEntityKind] = []
+        var index = 0
+        while index < words.count {
+            guard let kind = kind(named: words[index]) else {
+                throw RealBaseParseError(line: line, message: "truppa sconosciuta «\(words[index])».")
+            }
+            var count = 1
+            if index + 1 < words.count, let number = Int(words[index + 1]) {
+                guard (1...50).contains(number) else {
+                    throw RealBaseParseError(line: line, message: "il numero di \(words[index]) deve essere tra 1 e 50.")
+                }
+                count = number
+                index += 1
+            }
+            troops += Array(repeating: kind, count: count)
+            index += 1
+        }
+        return troops
     }
 
     /// Writes a layout back in the same format, one building per line.
@@ -298,6 +396,19 @@ nonisolated enum RealBaseLayoutText {
         var lines = ["nome \(layout.name)"]
         if let townHall = layout.townHall {
             lines.append("livello \(townHall)")
+        }
+        if let troops = layout.clanCastleTroops {
+            var groups: [(BattleEntityKind, Int)] = []
+            for kind in troops {
+                if let last = groups.last, last.0 == kind {
+                    groups[groups.count - 1].1 += 1
+                } else {
+                    groups.append((kind, 1))
+                }
+            }
+            lines.append(groups.isEmpty
+                ? "rinforzi nessuno"
+                : "rinforzi " + groups.map { "\($0.0.referenceKey) \($0.1)" }.joined(separator: " "))
         }
         lines += layout.buildings.map {
             "\($0.kind.referenceKey) \($0.column) \($0.row)"
@@ -335,7 +446,10 @@ nonisolated enum RealBaseLayoutText {
         "scattershot": .scattershot,
         "deposito": .goldStorage,
         "depositooro": .goldStorage,
-        "capanna": .builderHut
+        "capanna": .builderHut,
+        "stregone": .wizard,
+        "arciere": .archer,
+        "castellodelclan": .clanCastle
     ]
 
     static func normalized(_ word: String) -> String {

@@ -890,7 +890,7 @@ struct ContentView: View {
             return "Fulmine"
         case .earthquake:
             return "Terremoto"
-        case .jump, .invisibility, .haste:
+        case .jump, .invisibility, .haste, .poison:
             return SpellStyle.style(for: kind).displayName
         }
     }
@@ -907,7 +907,7 @@ struct ContentView: View {
             return "L"
         case .earthquake:
             return "E"
-        case .jump, .invisibility, .haste:
+        case .jump, .invisibility, .haste, .poison:
             return SpellStyle.style(for: kind).symbol
         }
     }
@@ -924,7 +924,7 @@ struct ContentView: View {
             return .yellow
         case .earthquake:
             return .orange
-        case .jump, .invisibility, .haste:
+        case .jump, .invisibility, .haste, .poison:
             let style = SpellStyle.style(for: kind)
             return Color(red: style.red, green: style.green, blue: style.blue)
         }
