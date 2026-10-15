@@ -242,7 +242,8 @@ nonisolated struct EvolutionaryAttackSearch {
                 }
             case 2:
                 // Faster or slower tempo for the whole army.
-                let tempo = [0.75, 0.85, 1.15, 1.3].randomElement(using: &random) ?? 1
+                let tempos: [Double] = [0.75, 0.85, 1.15, 1.3]
+                let tempo = tempos.randomElement(using: &random) ?? 1
                 deployments = deployments.map { retimed($0, to: $0.deploymentTime * tempo) }
             case 3:
                 // Move one spell.
