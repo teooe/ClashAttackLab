@@ -352,7 +352,7 @@ nonisolated struct AttackPlanGenerator {
             offset = direction
         case .valkyrie, .pekka, .yeti, .bowler:
             offset = -direction
-        case .golem, .royalChampion:
+        case .golem, .royalChampion, .lavaPup, .golemite:
             offset = 0
         case .grandWarden:
             offset = -direction
@@ -386,8 +386,10 @@ nonisolated struct AttackPlanGenerator {
             return 2
         case .stoneSlammer:
             return 0
-        case .golem, .lavaHound, .rootRider, .yeti, .pekka, .royalChampion:
+        case .golem, .lavaHound, .rootRider, .yeti, .pekka, .royalChampion, .golemite:
             return 2
+        case .lavaPup:
+            return 0
         case .grandWarden:
             return 1
         case .hogRider, .miner, .valkyrie, .bowler:

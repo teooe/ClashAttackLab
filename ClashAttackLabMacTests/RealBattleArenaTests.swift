@@ -373,7 +373,8 @@ struct RealBattleArenaTests {
     @Test
     func catalogCoversEveryEntityKind() throws {
         let catalog = try ReferenceGameCatalog.loadBundled()
-        for kind in BattleEntityKind.allCases {
+        // Lava Pups and Golemites come from their parent's data.
+        for kind in BattleEntityKind.allCases where !BattleEntityKind.spawnedTroops.contains(kind) {
             #expect(catalog.unit(for: kind) != nil, "\(kind) missing from the catalog")
         }
     }

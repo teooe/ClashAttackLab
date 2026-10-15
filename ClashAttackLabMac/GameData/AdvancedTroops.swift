@@ -24,6 +24,12 @@ extension BattleEntityKind {
     nonisolated var isHero: Bool {
         Self.heroKinds.contains(self)
     }
+
+    /// Troops that only appear when another one dies (Lava Hound, Golem);
+    /// they cannot be trained and have no catalog entry of their own.
+    nonisolated static let spawnedTroops: [BattleEntityKind] = [
+        .lavaPup, .golemite
+    ]
 }
 
 /// Name, map symbol, colour and body size shared by every view that draws
@@ -66,6 +72,10 @@ nonisolated struct TroopStyle {
             return TroopStyle(displayName: "Gran Sorvegliante", symbol: "GW", red: 0.95, green: 0.80, blue: 0.45, radius: 32)
         case .royalChampion:
             return TroopStyle(displayName: "Campionessa reale", symbol: "RC", red: 0.20, green: 0.70, blue: 0.75, radius: 32)
+        case .lavaPup:
+            return TroopStyle(displayName: "Cucciolo lavico", symbol: "lp", red: 0.95, green: 0.45, blue: 0.15, radius: 14)
+        case .golemite:
+            return TroopStyle(displayName: "Golemita", symbol: "gm", red: 0.55, green: 0.52, blue: 0.48, radius: 20)
         default:
             return TroopStyle(displayName: "Truppa", symbol: "?", red: 0.5, green: 0.5, blue: 0.5, radius: 22)
         }

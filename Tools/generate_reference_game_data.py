@@ -255,6 +255,9 @@ def unit_entry(key, data, hero_halls):
             "abilityHealing": level.get("healthRecovery"),
             "bonusDamagePercent": stats.get("bonusDamagePercent"),
             "springCapacity": level.get("springCapacity"),
+            "spawnCount": level.get(
+                "golemitesSpawned", level.get("pupsOnOffense")
+            ),
             "rampDamagePerHit": ramp,
         }))
 

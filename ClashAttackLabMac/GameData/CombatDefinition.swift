@@ -181,6 +181,11 @@ nonisolated struct CombatDefinition {
     var chainRange: Double = 0
     var chainDamageMultiplier: Double = 1
 
+    /// Other troops within `auraRadius` take `auraDamageReduction` less
+    /// damage (Grand Warden's Life Aura, modeled as damage reduction).
+    var auraRadius: Double = 0
+    var auraDamageReduction: Double = 0
+
     init(
         displayName: String,
         role: BattleEntityRole,
