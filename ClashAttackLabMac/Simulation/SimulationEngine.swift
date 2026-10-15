@@ -355,6 +355,7 @@ nonisolated final class SimulationEngine {
         activateHeroAbilities()
 
         var pendingDamage: [UUID: Double] = [:]
+        applyHitPointDecay(by: deltaTime)
         applyHeroEquipment(by: deltaTime, pendingDamage: &pendingDamage)
         advanceProjectiles(
             by: deltaTime,
@@ -476,6 +477,14 @@ nonisolated final class SimulationEngine {
                 .deployment,
                 "\(definition.displayName) schierato"
             )
+            if definition.releasesPayloadOnDeploy, !definition.siegePayload.isEmpty {
+                releasedSiegeMachineIDs.insert(next.entityID)
+                releaseSiegePayload(
+                    definition.siegePayload,
+                    at: next.position,
+                    sourceID: next.entityID
+                )
+            }
         }
     }
 
@@ -813,6 +822,21 @@ nonisolated final class SimulationEngine {
                 pendingDamage[entities[target].id, default: 0] +=
                     hero.buildingAuraDamagePerSecond * deltaTime
             }
+        }
+    }
+
+    /// Siege machines that wear out lose hit points every second; nothing
+    /// shields them from it.
+    private func applyHitPointDecay(by deltaTime: TimeInterval) {
+        var decay: [UUID: Double] = [:]
+        for index in livingIndices(with: .troop) {
+            let rate = definition(for: entities[index].kind).hitPointDecayPerSecond
+            if rate > 0 {
+                decay[entities[index].id] = rate * deltaTime
+            }
+        }
+        if !decay.isEmpty {
+            apply(decay, unprotected: Set(decay.keys))
         }
     }
 
@@ -1973,7 +1997,7 @@ nonisolated final class SimulationEngine {
             let damageWave = damageQueue
             damageQueue.removeAll(keepingCapacity: true)
             var destructionEffects: [
-                (WorldPosition, Double, Double, AttackTargetLayer)
+                (WorldPosition, Double, Double, AttackTargetLayer, Bool)
             ] = []
 
             for index in entities.indices {
@@ -2070,12 +2094,26 @@ nonisolated final class SimulationEngine {
                         entities[index].position,
                         entityDefinition.destructionDamage,
                         entityDefinition.destructionRadius,
-                        entityDefinition.destructionTargetLayer
+                        entityDefinition.destructionTargetLayer,
+                        // A falling attacker bursts on the base.
+                        entityDefinition.role == .troop
                     ))
                 }
             }
 
-            for (center, damage, radius, targetLayer) in destructionEffects {
+            for (center, damage, radius, targetLayer, hitsBase) in destructionEffects {
+                if hitsBase {
+                    // Measured to each building's edge, as troops reach them.
+                    for target in livingIndices(with: .defense) + livingIndices(with: .building)
+                    where footprintDistance(
+                        from: center,
+                        toCenter: entities[target].position,
+                        footprint: definition(for: entities[target].kind).footprintSize
+                    ) <= radius {
+                        damageQueue[entities[target].id, default: 0] += damage
+                    }
+                    continue
+                }
                 queueDestructionDamage(
                     centeredAt: center,
                     damage: damage,

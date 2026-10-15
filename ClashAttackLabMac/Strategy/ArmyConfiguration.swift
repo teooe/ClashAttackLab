@@ -94,7 +94,8 @@ nonisolated struct ArmyConfiguration: Equatable {
     static let troopKinds: [BattleEntityKind] = [
         .giant, .barbarian, .archer, .wallBreaker, .wizard, .balloon,
         .dragon, .barbarianKing, .archerQueen, .wallWrecker, .stoneSlammer
-    ] + BattleEntityKind.advancedTroops + BattleEntityKind.advancedHeroes
+    ] + BattleEntityKind.advancedTroops + BattleEntityKind.advancedHeroes +
+        BattleEntityKind.advancedSiegeMachines
 
     /// Spells added for the real mode; their counts live in
     /// `advancedSpells`.
@@ -121,7 +122,7 @@ nonisolated struct ArmyConfiguration: Equatable {
             case .wallWrecker: wallWreckers = newValue
             case .stoneSlammer: stoneSlammers = newValue
             default:
-                guard kind.isAdvancedTroop || kind.isHero else {
+                guard kind.isAdvancedTroop || kind.isHero || kind.isSiegeMachine else {
                     return
                 }
                 advancedTroops[kind] = newValue == 0 ? nil : newValue
@@ -204,7 +205,7 @@ nonisolated struct ArmyConfiguration: Equatable {
             return "Puoi usare un solo esemplare per ciascun eroe."
         }
 
-        if wallWreckers + stoneSlammers > 1 {
+        if BattleEntityKind.siegeMachineKinds.reduce(0, { $0 + troopCount(for: $1) }) > 1 {
             return "Puoi usare una sola macchina d’assedio."
         }
 
@@ -252,7 +253,7 @@ nonisolated struct ArmyConfiguration: Equatable {
         case .stoneSlammer:
             return stoneSlammers
         case .hogRider, .valkyrie, .golem, .bowler, .miner, .pekka, .yeti, .rootRider, .electroDragon, .dragonRider, .lavaHound,
-             .grandWarden, .royalChampion, .lavaPup, .golemite, .skeleton, .bat:
+             .grandWarden, .royalChampion, .lavaPup, .golemite, .skeleton, .bat, .battleBlimp, .flameFlinger, .siegeBarracks:
             return advancedTroops[kind, default: 0]
         case .cannon, .archerTower, .mortar, .wizardTower, .infernoTower, .bombTower, .hiddenTesla, .giantBomb, .airBomb, .airSweeper, .airDefense,
              .townHall, .goldStorage, .wall,
@@ -306,7 +307,10 @@ nonisolated struct ArmyConfiguration: Equatable {
             .grandWarden,
             .royalChampion,
             .wallWrecker,
-            .stoneSlammer
+            .stoneSlammer,
+            .battleBlimp,
+            .flameFlinger,
+            .siegeBarracks
         ]
         var remaining = Dictionary(
             uniqueKeysWithValues: preferredOrder.map { ($0, troopCount(for: $0)) }

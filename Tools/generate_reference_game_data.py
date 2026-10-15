@@ -44,6 +44,9 @@ UNITS = {
     "archerQueen": "heroes/archer-queen.json",
     "wallWrecker": "siege-machines/wall-wrecker.json",
     "stoneSlammer": "siege-machines/stone-slammer.json",
+    "battleBlimp": "siege-machines/battle-blimp.json",
+    "flameFlinger": "siege-machines/flame-flinger.json",
+    "siegeBarracks": "siege-machines/siege-barracks.json",
     "cannon": "defenses/cannon.json",
     "archerTower": "defenses/archer-tower.json",
     "mortar": "defenses/mortar.json",
@@ -301,6 +304,8 @@ def unit_entry(key, data, hero_halls):
         "size": footprint(data.get("size")),
         "housingSpace": data.get("housingSpace"),
         "countByTownHall": counts_by_town_hall(data),
+        "hitpointDecayPerSecond": data.get("hpDecayPerSecond"),
+        "lifetime": data.get("lifetime"),
     })
 
     levels = []
@@ -318,7 +323,10 @@ def unit_entry(key, data, hero_halls):
             stats.get("damagePerShot", level.get("damage")),
         )
         wall_damage = level.get("damageVsWalls")
-        death_damage = level.get("deathDamage", stats.get("deathDamage"))
+        death_damage = level.get(
+            "deathDamage",
+            stats.get("deathDamage", level.get("damageWhenDestroyed")),
+        )
         if key == "stoneSlammer":
             death_damage = level.get("damageWhenDestroyedHitbox2")
 
@@ -349,6 +357,8 @@ def unit_entry(key, data, hero_halls):
             "spawnCount": level.get(
                 "golemitesSpawned", level.get("pupsOnOffense")
             ),
+            "pekkasSpawned": level.get("pekkasSpawned"),
+            "wizardsSpawned": level.get("wizardsSpawned"),
             "rampDamagePerHit": ramp,
             "troopCapacity": (
                 level.get("troopCapacity") if key == "clanCastle" else None

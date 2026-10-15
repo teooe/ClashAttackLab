@@ -75,6 +75,9 @@ nonisolated enum BattleEntityKind: Hashable, Codable, CaseIterable {
     case golemite
     case skeleton
     case bat
+    case battleBlimp
+    case flameFlinger
+    case siegeBarracks
 
     var isTrap: Bool {
         switch self {

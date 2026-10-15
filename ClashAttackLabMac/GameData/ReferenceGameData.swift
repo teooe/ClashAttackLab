@@ -80,6 +80,11 @@ nonisolated struct ReferenceUnit: Decodable {
     /// Buildings allowed at Town Hall 1…18 (index = Town Hall − 1).
     let countByTownHall: [Int]?
 
+    /// Siege machines that wear out: hit points lost per second, or the
+    /// seconds they last.
+    let hitpointDecayPerSecond: Double?
+    let lifetime: Double?
+
     let levels: [ReferenceUnitLevel]
 
     /// Number of copies a base may hold at the given Town Hall.
@@ -125,6 +130,10 @@ nonisolated struct ReferenceUnitLevel: Decodable {
 
     /// Troops released when this one dies (Golemites, Lava Pups).
     let spawnCount: Int?
+
+    /// Troops a Siege Barracks lets out.
+    let pekkasSpawned: Int?
+    let wizardsSpawned: Int?
 
     /// Inferno Tower damage per hit for its three heat stages.
     let rampDamagePerHit: [Double]?
@@ -356,6 +365,10 @@ nonisolated struct ReferenceGameData: GameDataProviding {
         if let count = level.spawnCount, let spawned = base.siegePayload.first {
             payload = Array(repeating: spawned, count: count)
         }
+        if level.pekkasSpawned != nil || level.wizardsSpawned != nil {
+            payload = Array(repeating: .pekka, count: level.pekkasSpawned ?? 0) +
+                Array(repeating: .wizard, count: level.wizardsSpawned ?? 0)
+        }
         var burstShotCount = base.burstShotCount
         var burstReloadTime = base.burstReloadTime
         var activationHousing = base.activationDeployedHousing
@@ -374,6 +387,10 @@ nonisolated struct ReferenceGameData: GameDataProviding {
             }
             if base.heroAbility != nil {
                 housingSpace = Self.heroHousingWeight
+            }
+            // Burst on the buildings around a falling Golem or Blimp.
+            if base.destructionRadius > 0, let deathDamage = level.deathDamage {
+                destructionDamage = deathDamage
             }
             if let ability = base.heroAbility, let healing = level.abilityHealing {
                 var realAbility = HeroAbilityDefinition(
@@ -501,6 +518,16 @@ nonisolated struct ReferenceGameData: GameDataProviding {
         definition.chainDamageMultiplier = base.chainDamageMultiplier
         definition.auraRadius = base.auraRadius
         definition.auraDamageReduction = base.auraDamageReduction
+        definition.releasesPayloadOnDeploy = base.releasesPayloadOnDeploy
+        definition.ignoresTraps = base.ignoresTraps
+        definition.resourceDamageMultiplier = base.resourceDamageMultiplier
+        if let decay = unit.hitpointDecayPerSecond {
+            definition.hitPointDecayPerSecond = decay
+        } else if let lifetime = unit.lifetime, lifetime > 0 {
+            definition.hitPointDecayPerSecond = definition.maxHitPoints / lifetime
+        } else {
+            definition.hitPointDecayPerSecond = base.hitPointDecayPerSecond
+        }
         if kind == .clanCastle {
             definition.garrison = clanCastleTroops ??
                 defaultGarrison(capacity: level.troopCapacity ?? 0)
@@ -786,6 +813,9 @@ extension BattleEntityKind {
         case .golemite: return "golemite"
         case .skeleton: return "skeleton"
         case .bat: return "bat"
+        case .battleBlimp: return "battleBlimp"
+        case .flameFlinger: return "flameFlinger"
+        case .siegeBarracks: return "siegeBarracks"
         }
     }
 }

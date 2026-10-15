@@ -226,6 +226,14 @@ nonisolated struct CombatDefinition {
     /// Traps never go off for this troop (summoned Skeletons and Bats).
     var ignoresTraps = false
 
+    /// Hit points lost every second, for siege machines that wear out
+    /// (Flame Flinger, Siege Barracks).
+    var hitPointDecayPerSecond: Double = 0
+
+    /// Lets `siegePayload` out as soon as it is deployed instead of when
+    /// it falls (Siege Barracks).
+    var releasesPayloadOnDeploy = false
+
     /// Damage multiplier against `BattleEntityKind.resourceBuildings`.
     var resourceDamageMultiplier: Double = 1
 
