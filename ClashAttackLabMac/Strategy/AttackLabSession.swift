@@ -98,6 +98,12 @@ final class AttackLabSession: ObservableObject {
     @Published private(set) var baseReconnaissance: BaseReconnaissance?
     @Published private(set) var armyEntryAdvice: ArmyEntryAdvice?
     @Published private(set) var savedBases: [BaseSnapshot] = []
+
+    /// Real bases shipped with the app followed by the imported ones.
+    @Published private(set) var realBases: [RealBaseLayout] = []
+
+    /// Imported real base under attack; nil for a generated variant.
+    @Published private(set) var selectedRealBaseID: UUID?
     @Published private(set) var savedBasePlanAnalysis: SavedBasePlanAnalysis?
     @Published private(set) var savedBasePlanRankings:
         [SavedBasePlanRobustnessAnalysis] = []
@@ -199,6 +205,8 @@ final class AttackLabSession: ObservableObject {
     private let planLibrary = AttackPlanLibrary()
     private let historyStore = AttackHistoryStore()
     private let baseLibrary = BaseSnapshotLibrary()
+    private let realBaseLibrary = RealBaseLibrary()
+    private let bundledRealBases = RealBaseLayout.bundled()
     private let baseStrategyLibrary = BaseStrategyLibrary()
 
     init() {
@@ -250,6 +258,7 @@ final class AttackLabSession: ObservableObject {
         self.savedPlans = planLibrary.plans
         self.attackHistory = historyStore.entries
         self.savedBases = baseLibrary.bases
+        self.realBases = bundledRealBases + realBaseLibrary.bases
         self.savedBaseStrategies = baseStrategyLibrary.records
         self.armyEntryAdvice = initialEntryAdvice
         installSimulationFinishedHandler()
@@ -1280,6 +1289,7 @@ final class AttackLabSession: ObservableObject {
         let entities = newArena.makeBaseEntities(layout: baseLayout)
 
         arena = newArena
+        selectedRealBaseID = nil
         gameData = newArena.gameData
         navigationGrid = newArena.navigationGrid
         gameDataSource = source
@@ -1343,6 +1353,7 @@ final class AttackLabSession: ObservableObject {
         }
 
         finishManualMode(restoreActivePlan: false)
+        selectedRealBaseID = nil
         baseLayout = layout
         activeBaseSnapshot = arena.makeBaseSnapshot(layout: layout)
         baseEntities = entities
@@ -1380,8 +1391,17 @@ final class AttackLabSession: ObservableObject {
         let entities = snapshot.makeEntities(
             navigationGrid: navigationGrid
         )
+        loadBase(entities: entities, snapshot: snapshot)
+    }
+
+    /// Replaces the base under attack and regenerates the candidate plans.
+    @discardableResult
+    private func loadBase(
+        entities: [BattleEntity],
+        snapshot: BaseSnapshot
+    ) -> Bool {
         guard !entities.isEmpty else {
-            return
+            return false
         }
 
         let guidance = makeGuidedCandidatePlans(
@@ -1390,7 +1410,7 @@ final class AttackLabSession: ObservableObject {
             baseName: snapshot.name
         )
         guard let initialPlan = guidance.plans.first else {
-            return
+            return false
         }
 
         finishManualMode(restoreActivePlan: false)
@@ -1416,6 +1436,124 @@ final class AttackLabSession: ObservableObject {
             entities: entities,
             attackPlan: initialPlan
         )
+        return true
+    }
+
+    // MARK: Real bases
+
+    /// Picks a generated variant or an imported real base.
+    func applyRealBaseChoice(_ choice: RealBaseChoice) {
+        switch choice {
+        case .generated(let layout):
+            applyBaseLayout(layout)
+        case .imported(let id):
+            if let layout = realBases.first(where: { $0.id == id }) {
+                applyRealBase(layout)
+            }
+        }
+    }
+
+    var realBaseChoice: RealBaseChoice {
+        selectedRealBaseID.map { .imported($0) } ?? .generated(baseLayout)
+    }
+
+    /// Bases shipped with the app cannot be removed.
+    func canRemoveRealBase(id: UUID) -> Bool {
+        realBaseLibrary.bases.contains { $0.id == id }
+    }
+
+    /// Reads a text base, keeps it in the library and attacks it.
+    func importRealBase(text: String, fileName: String) -> RealBaseImportReport {
+        let layout: RealBaseLayout
+        do {
+            layout = try RealBaseLayoutText.parse(text, defaultName: fileName)
+        } catch let error as RealBaseParseError {
+            return RealBaseImportReport(imported: false, messages: [error.description])
+        } catch {
+            return RealBaseImportReport(imported: false, messages: [error.localizedDescription])
+        }
+
+        guard let issues = issues(for: layout) else {
+            return RealBaseImportReport(
+                imported: false,
+                messages: ["Dati reali non disponibili."]
+            )
+        }
+        let errors = issues.filter(\.isError).map(\.text)
+        let warnings = issues.filter { !$0.isError }.map(\.text)
+        guard errors.isEmpty else {
+            return RealBaseImportReport(imported: false, messages: errors + warnings)
+        }
+
+        realBaseLibrary.save(layout)
+        refreshRealBases()
+        let applied = applyRealBase(layout)
+        return RealBaseImportReport(
+            imported: applied,
+            messages: applied
+                ? ["\(layout.name): \(layout.buildings.count) elementi importati."] + warnings
+                : ["La base è stata salvata ma non contiene obiettivi da attaccare."] + warnings
+        )
+    }
+
+    /// Attacks a real base, switching to its Town Hall level first.
+    @discardableResult
+    func applyRealBase(_ layout: RealBaseLayout) -> Bool {
+        cancelSearch()
+        guard !isManualPlanning else {
+            return false
+        }
+
+        let townHall = layout.townHall ?? arena.townHall ?? 15
+        if gameDataSource != .reference(townHall: townHall) {
+            applyGameDataSource(.reference(townHall: townHall))
+        }
+        guard
+            arena.isReal,
+            let issues = arena.issues(for: layout),
+            !issues.contains(where: \.isError)
+        else {
+            return false
+        }
+
+        let entities = arena.makeEntities(for: layout)
+        let loaded = loadBase(
+            entities: entities,
+            snapshot: BaseSnapshot.make(
+                named: layout.name,
+                entities: entities,
+                navigationGrid: navigationGrid
+            )
+        )
+        if loaded {
+            selectedRealBaseID = layout.id
+        }
+        return loaded
+    }
+
+    func removeRealBase(id: UUID) {
+        guard canRemoveRealBase(id: id) else {
+            return
+        }
+        realBaseLibrary.delete(id: id)
+        refreshRealBases()
+        if selectedRealBaseID == id {
+            applyBaseLayout(baseLayout)
+        }
+    }
+
+    private func refreshRealBases() {
+        realBases = bundledRealBases + realBaseLibrary.bases
+    }
+
+    /// Validates against the current Town Hall, or the base's own one.
+    private func issues(for layout: RealBaseLayout) -> [RealBaseIssue]? {
+        if let townHall = layout.townHall ?? arena.townHall {
+            return (try? BattleArena.make(for: .reference(townHall: townHall)))?
+                .issues(for: layout)
+        }
+        return (try? BattleArena.make(for: .reference(townHall: 15)))?
+            .issues(for: layout)
     }
 
     func saveBaseSnapshot(_ snapshot: BaseSnapshot) {

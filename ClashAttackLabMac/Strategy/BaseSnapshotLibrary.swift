@@ -133,3 +133,48 @@ final class BaseStrategyLibrary {
         UserDefaults.standard.set(data, forKey: storageKey)
     }
 }
+
+/// Persistent local library for real bases imported from text files.
+final class RealBaseLibrary {
+    private(set) var bases: [RealBaseLayout] = []
+
+    private let storageKey: String
+
+    init(storageKey: String = "clashAttackLab.realBaseLibrary") {
+        self.storageKey = storageKey
+
+        guard
+            let data = UserDefaults.standard.data(forKey: storageKey),
+            let decoded = try? JSONDecoder().decode(
+                [RealBaseLayout].self,
+                from: data
+            )
+        else {
+            return
+        }
+
+        bases = decoded
+    }
+
+    func save(_ layout: RealBaseLayout) {
+        if let index = bases.firstIndex(where: { $0.id == layout.id }) {
+            bases[index] = layout
+        } else {
+            bases.insert(layout, at: 0)
+        }
+        persist()
+    }
+
+    func delete(id: UUID) {
+        bases.removeAll { $0.id == id }
+        persist()
+    }
+
+    private func persist() {
+        guard let data = try? JSONEncoder().encode(bases) else {
+            return
+        }
+
+        UserDefaults.standard.set(data, forKey: storageKey)
+    }
+}
