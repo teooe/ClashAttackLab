@@ -364,6 +364,9 @@ struct ContentView: View {
                 Button("Confronta anche altri eserciti") {
                     session.findBestArmyAndAttack()
                 }
+                Button("Ricerca evolutiva · più lenta, più precisa") {
+                    session.evolveBestAttack()
+                }
             } label: {
                 Label("Trova attacco", systemImage: "wand.and.stars")
             }
@@ -976,6 +979,19 @@ struct ContentView: View {
                 Text("Seleziona un risultato oppure premi Avvia per rivedere quello caricato")
                     .font(.caption2)
                     .foregroundStyle(.secondary)
+            }
+
+            if
+                let first = session.evolutionReport.first,
+                let last = session.evolutionReport.last
+            {
+                Text(
+                    "Evoluzione in \(last.generation) generazioni, \(last.evaluatedPlans) piani simulati: " +
+                        "\(first.bestStars)★ \(Int(first.bestDestruction.rounded()))% → " +
+                        "\(last.bestStars)★ \(Int(last.bestDestruction.rounded()))%"
+                )
+                .font(.caption2)
+                .foregroundStyle(.secondary)
             }
 
             ScrollView(.horizontal, showsIndicators: false) {

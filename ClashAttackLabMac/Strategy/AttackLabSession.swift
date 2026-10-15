@@ -76,7 +76,13 @@ final class AttackLabSession: ObservableObject {
         }
     }
 
-    @Published private(set) var evaluations: [AttackPlanEvaluation] = []
+    @Published private(set) var evaluations: [AttackPlanEvaluation] = [] {
+        // Any other search or base change makes the report stale.
+        didSet { evolutionReport = [] }
+    }
+
+    /// Best plan of every generation of the last evolutionary search.
+    @Published private(set) var evolutionReport: [EvolutionGenerationSummary] = []
     @Published private(set) var selectedPlanID: UUID?
     @Published private(set) var armyConfiguration: ArmyConfiguration
     @Published private(set) var baseLayout: PrototypeBaseLayout
@@ -1148,6 +1154,39 @@ final class AttackLabSession: ObservableObject {
             try Task.checkCancellation()
             self.evaluations = results
             if let best = results.first {
+                self.applyEvaluationSelection(best)
+            }
+        }
+    }
+
+    /// Breeds better plans from the current candidates with a genetic
+    /// search: the army stays the same, deployment, timing, spells and
+    /// hero abilities evolve against the active base.
+    func evolveBestAttack(
+        parameters: EvolutionaryAttackSearch.Parameters = .standard
+    ) {
+        guard !isManualPlanning else { return }
+        let seeds = [activePlan] + candidatePlans.filter { $0.id != activePlan.id }
+        let evaluator = self.evaluator
+        let search = EvolutionaryAttackSearch(
+            navigationGrid: navigationGrid,
+            latestOrderTime: latestOrderTime,
+            parameters: parameters
+        )
+        startSearch(
+            title: "Ricerca evolutiva",
+            total: seeds.count + parameters.generations * parameters.offspringPerGeneration
+        ) { [weak self] in
+            guard let self else { return }
+            let outcome = try await search.run(
+                seeds: seeds,
+                evaluate: { try await evaluator.evaluateAsync($0) },
+                progress: { self.searchCompleted = $0 }
+            )
+            try Task.checkCancellation()
+            self.evaluations = Array(outcome.ranking.prefix(24))
+            self.evolutionReport = outcome.generations
+            if let best = outcome.ranking.first {
                 self.applyEvaluationSelection(best)
             }
         }
