@@ -41,6 +41,2728 @@
    352
   ]
  },
+ "equipment": {
+  "electroBoots": {
+   "ability": {
+    "auraAttackSpeed": 0.4,
+    "auraRadius": 5
+   },
+   "active": false,
+   "hero": "royalChampion",
+   "levels": [
+    {
+     "auraDamagePerHit": 52.8,
+     "auraDps": 132,
+     "blacksmith": 1,
+     "hitpointIncrease": 50,
+     "level": 1,
+     "selfHealingPerSecond": 6
+    },
+    {
+     "auraDamagePerHit": 52.8,
+     "auraDps": 132,
+     "blacksmith": 1,
+     "hitpointIncrease": 75,
+     "level": 2,
+     "selfHealingPerSecond": 8
+    },
+    {
+     "auraDamagePerHit": 56,
+     "auraDps": 140,
+     "blacksmith": 1,
+     "hitpointIncrease": 100,
+     "level": 3,
+     "selfHealingPerSecond": 10
+    },
+    {
+     "auraDamagePerHit": 56,
+     "auraDps": 140,
+     "blacksmith": 1,
+     "hitpointIncrease": 125,
+     "level": 4,
+     "selfHealingPerSecond": 12
+    },
+    {
+     "auraDamagePerHit": 56,
+     "auraDps": 140,
+     "blacksmith": 1,
+     "hitpointIncrease": 150,
+     "level": 5,
+     "selfHealingPerSecond": 14
+    },
+    {
+     "auraDamagePerHit": 58.8,
+     "auraDps": 147,
+     "blacksmith": 1,
+     "hitpointIncrease": 175,
+     "level": 6,
+     "selfHealingPerSecond": 16
+    },
+    {
+     "auraDamagePerHit": 58.8,
+     "auraDps": 147,
+     "blacksmith": 1,
+     "hitpointIncrease": 200,
+     "level": 7,
+     "selfHealingPerSecond": 18
+    },
+    {
+     "auraDamagePerHit": 58.8,
+     "auraDps": 147,
+     "blacksmith": 1,
+     "hitpointIncrease": 225,
+     "level": 8,
+     "selfHealingPerSecond": 20
+    },
+    {
+     "auraDamagePerHit": 62,
+     "auraDps": 155,
+     "blacksmith": 1,
+     "hitpointIncrease": 250,
+     "level": 9,
+     "selfHealingPerSecond": 22
+    },
+    {
+     "auraDamagePerHit": 62,
+     "auraDps": 155,
+     "blacksmith": 1,
+     "hitpointIncrease": 275,
+     "level": 10,
+     "selfHealingPerSecond": 24
+    },
+    {
+     "auraDamagePerHit": 62,
+     "auraDps": 155,
+     "blacksmith": 1,
+     "hitpointIncrease": 300,
+     "level": 11,
+     "selfHealingPerSecond": 26
+    },
+    {
+     "auraDamagePerHit": 64.8,
+     "auraDps": 162,
+     "blacksmith": 1,
+     "hitpointIncrease": 325,
+     "level": 12,
+     "selfHealingPerSecond": 28
+    },
+    {
+     "auraDamagePerHit": 64.8,
+     "auraDps": 162,
+     "blacksmith": 3,
+     "hitpointIncrease": 350,
+     "level": 13,
+     "selfHealingPerSecond": 30
+    },
+    {
+     "auraDamagePerHit": 64.8,
+     "auraDps": 162,
+     "blacksmith": 3,
+     "hitpointIncrease": 375,
+     "level": 14,
+     "selfHealingPerSecond": 32
+    },
+    {
+     "auraDamagePerHit": 68,
+     "auraDps": 170,
+     "blacksmith": 3,
+     "hitpointIncrease": 400,
+     "level": 15,
+     "selfHealingPerSecond": 33
+    },
+    {
+     "auraDamagePerHit": 68,
+     "auraDps": 170,
+     "blacksmith": 5,
+     "hitpointIncrease": 425,
+     "level": 16,
+     "selfHealingPerSecond": 34
+    },
+    {
+     "auraDamagePerHit": 68,
+     "auraDps": 170,
+     "blacksmith": 5,
+     "hitpointIncrease": 450,
+     "level": 17,
+     "selfHealingPerSecond": 35
+    },
+    {
+     "auraDamagePerHit": 70.8,
+     "auraDps": 177,
+     "blacksmith": 5,
+     "hitpointIncrease": 475,
+     "level": 18,
+     "selfHealingPerSecond": 36
+    },
+    {
+     "auraDamagePerHit": 70.8,
+     "auraDps": 177,
+     "blacksmith": 7,
+     "hitpointIncrease": 500,
+     "level": 19,
+     "selfHealingPerSecond": 37
+    },
+    {
+     "auraDamagePerHit": 70.8,
+     "auraDps": 177,
+     "blacksmith": 7,
+     "hitpointIncrease": 525,
+     "level": 20,
+     "selfHealingPerSecond": 38
+    },
+    {
+     "auraDamagePerHit": 74,
+     "auraDps": 185,
+     "blacksmith": 7,
+     "hitpointIncrease": 550,
+     "level": 21,
+     "selfHealingPerSecond": 39
+    },
+    {
+     "auraDamagePerHit": 74,
+     "auraDps": 185,
+     "blacksmith": 8,
+     "hitpointIncrease": 575,
+     "level": 22,
+     "selfHealingPerSecond": 40
+    },
+    {
+     "auraDamagePerHit": 74,
+     "auraDps": 185,
+     "blacksmith": 8,
+     "hitpointIncrease": 600,
+     "level": 23,
+     "selfHealingPerSecond": 41
+    },
+    {
+     "auraDamagePerHit": 76.8,
+     "auraDps": 192,
+     "blacksmith": 8,
+     "hitpointIncrease": 625,
+     "level": 24,
+     "selfHealingPerSecond": 42
+    },
+    {
+     "auraDamagePerHit": 76.8,
+     "auraDps": 192,
+     "blacksmith": 9,
+     "hitpointIncrease": 650,
+     "level": 25,
+     "selfHealingPerSecond": 43
+    },
+    {
+     "auraDamagePerHit": 76.8,
+     "auraDps": 192,
+     "blacksmith": 9,
+     "hitpointIncrease": 675,
+     "level": 26,
+     "selfHealingPerSecond": 44
+    },
+    {
+     "auraDamagePerHit": 80,
+     "auraDps": 200,
+     "blacksmith": 9,
+     "hitpointIncrease": 700,
+     "level": 27,
+     "selfHealingPerSecond": 45
+    }
+   ],
+   "name": "Electro Boots",
+   "rarity": "epic"
+  },
+  "eternalTome": {
+   "ability": {},
+   "active": true,
+   "hero": "grandWarden",
+   "levels": [
+    {
+     "abilityDuration": 3.2,
+     "blacksmith": 0,
+     "level": 1
+    },
+    {
+     "abilityDuration": 3.5,
+     "blacksmith": 1,
+     "level": 2
+    },
+    {
+     "abilityDuration": 4.2,
+     "blacksmith": 1,
+     "level": 3
+    },
+    {
+     "abilityDuration": 4.5,
+     "blacksmith": 1,
+     "level": 4
+    },
+    {
+     "abilityDuration": 4.7,
+     "blacksmith": 1,
+     "level": 5
+    },
+    {
+     "abilityDuration": 5.5,
+     "blacksmith": 1,
+     "level": 6
+    },
+    {
+     "abilityDuration": 5.7,
+     "blacksmith": 1,
+     "level": 7
+    },
+    {
+     "abilityDuration": 6,
+     "blacksmith": 1,
+     "level": 8
+    },
+    {
+     "abilityDuration": 6.7,
+     "blacksmith": 1,
+     "level": 9
+    },
+    {
+     "abilityDuration": 6.8,
+     "blacksmith": 3,
+     "level": 10
+    },
+    {
+     "abilityDuration": 6.9,
+     "blacksmith": 3,
+     "level": 11
+    },
+    {
+     "abilityDuration": 7.2,
+     "blacksmith": 3,
+     "level": 12
+    },
+    {
+     "abilityDuration": 7.3,
+     "blacksmith": 5,
+     "level": 13
+    },
+    {
+     "abilityDuration": 7.4,
+     "blacksmith": 5,
+     "level": 14
+    },
+    {
+     "abilityDuration": 7.7,
+     "blacksmith": 5,
+     "level": 15
+    },
+    {
+     "abilityDuration": 7.8,
+     "blacksmith": 7,
+     "level": 16
+    },
+    {
+     "abilityDuration": 7.9,
+     "blacksmith": 7,
+     "level": 17
+    },
+    {
+     "abilityDuration": 8.2,
+     "blacksmith": 7,
+     "level": 18
+    }
+   ],
+   "name": "Eternal Tome",
+   "rarity": "common"
+  },
+  "fireball": {
+   "ability": {},
+   "active": true,
+   "hero": "grandWarden",
+   "levels": [
+    {
+     "blacksmith": 1,
+     "damageRadius": 4,
+     "dpsIncrease": 21,
+     "level": 1,
+     "projectileDamage": 1500
+    },
+    {
+     "blacksmith": 1,
+     "damageRadius": 4,
+     "dpsIncrease": 24,
+     "level": 2,
+     "projectileDamage": 1500
+    },
+    {
+     "blacksmith": 1,
+     "damageRadius": 4,
+     "dpsIncrease": 27,
+     "level": 3,
+     "projectileDamage": 1700
+    },
+    {
+     "blacksmith": 1,
+     "damageRadius": 4,
+     "dpsIncrease": 30,
+     "level": 4,
+     "projectileDamage": 1700
+    },
+    {
+     "blacksmith": 1,
+     "damageRadius": 4,
+     "dpsIncrease": 33,
+     "level": 5,
+     "projectileDamage": 1800
+    },
+    {
+     "blacksmith": 1,
+     "damageRadius": 4,
+     "dpsIncrease": 36,
+     "level": 6,
+     "projectileDamage": 1950
+    },
+    {
+     "blacksmith": 1,
+     "damageRadius": 4,
+     "dpsIncrease": 40,
+     "level": 7,
+     "projectileDamage": 1950
+    },
+    {
+     "blacksmith": 1,
+     "damageRadius": 4,
+     "dpsIncrease": 44,
+     "level": 8,
+     "projectileDamage": 2050
+    },
+    {
+     "blacksmith": 1,
+     "damageRadius": 5,
+     "dpsIncrease": 47,
+     "level": 9,
+     "projectileDamage": 2200
+    },
+    {
+     "blacksmith": 1,
+     "damageRadius": 5,
+     "dpsIncrease": 51,
+     "level": 10,
+     "projectileDamage": 2200
+    },
+    {
+     "blacksmith": 1,
+     "damageRadius": 5,
+     "dpsIncrease": 56,
+     "level": 11,
+     "projectileDamage": 2350
+    },
+    {
+     "blacksmith": 1,
+     "damageRadius": 5,
+     "dpsIncrease": 60,
+     "level": 12,
+     "projectileDamage": 2650
+    },
+    {
+     "blacksmith": 3,
+     "damageRadius": 5,
+     "dpsIncrease": 63,
+     "level": 13,
+     "projectileDamage": 2650
+    },
+    {
+     "blacksmith": 3,
+     "damageRadius": 5,
+     "dpsIncrease": 67,
+     "level": 14,
+     "projectileDamage": 2750
+    },
+    {
+     "blacksmith": 3,
+     "damageRadius": 5,
+     "dpsIncrease": 71,
+     "level": 15,
+     "projectileDamage": 3100
+    },
+    {
+     "blacksmith": 5,
+     "damageRadius": 5,
+     "dpsIncrease": 74,
+     "level": 16,
+     "projectileDamage": 3100
+    },
+    {
+     "blacksmith": 5,
+     "damageRadius": 5,
+     "dpsIncrease": 77,
+     "level": 17,
+     "projectileDamage": 3250
+    },
+    {
+     "blacksmith": 5,
+     "damageRadius": 5,
+     "dpsIncrease": 80,
+     "level": 18,
+     "projectileDamage": 3400
+    },
+    {
+     "blacksmith": 7,
+     "damageRadius": 5,
+     "dpsIncrease": 82,
+     "level": 19,
+     "projectileDamage": 3400
+    },
+    {
+     "blacksmith": 7,
+     "damageRadius": 5,
+     "dpsIncrease": 84,
+     "level": 20,
+     "projectileDamage": 3500
+    },
+    {
+     "blacksmith": 7,
+     "damageRadius": 5,
+     "dpsIncrease": 87,
+     "level": 21,
+     "projectileDamage": 3650
+    },
+    {
+     "blacksmith": 8,
+     "damageRadius": 5,
+     "dpsIncrease": 89,
+     "level": 22,
+     "projectileDamage": 3650
+    },
+    {
+     "blacksmith": 8,
+     "damageRadius": 5,
+     "dpsIncrease": 92,
+     "level": 23,
+     "projectileDamage": 3750
+    },
+    {
+     "blacksmith": 8,
+     "damageRadius": 6,
+     "dpsIncrease": 94,
+     "level": 24,
+     "projectileDamage": 3900
+    },
+    {
+     "blacksmith": 9,
+     "damageRadius": 6,
+     "dpsIncrease": 96,
+     "level": 25,
+     "projectileDamage": 3900
+    },
+    {
+     "blacksmith": 9,
+     "damageRadius": 6,
+     "dpsIncrease": 99,
+     "level": 26,
+     "projectileDamage": 3950
+    },
+    {
+     "blacksmith": 9,
+     "damageRadius": 6,
+     "dpsIncrease": 101,
+     "level": 27,
+     "projectileDamage": 4100
+    }
+   ],
+   "name": "Fireball",
+   "rarity": "epic"
+  },
+  "frozenArrow": {
+   "ability": {},
+   "active": false,
+   "hero": "archerQueen",
+   "levels": [
+    {
+     "blacksmith": 1,
+     "dpsIncrease": 35,
+     "level": 1,
+     "slowDown": 25,
+     "slowDownDuration": 0.75
+    },
+    {
+     "blacksmith": 1,
+     "dpsIncrease": 40,
+     "level": 2,
+     "slowDown": 25,
+     "slowDownDuration": 1
+    },
+    {
+     "blacksmith": 1,
+     "dpsIncrease": 45,
+     "level": 3,
+     "slowDown": 30,
+     "slowDownDuration": 1
+    },
+    {
+     "blacksmith": 1,
+     "dpsIncrease": 50,
+     "level": 4,
+     "slowDown": 30,
+     "slowDownDuration": 1
+    },
+    {
+     "blacksmith": 1,
+     "dpsIncrease": 55,
+     "level": 5,
+     "slowDown": 30,
+     "slowDownDuration": 1.25
+    },
+    {
+     "blacksmith": 1,
+     "dpsIncrease": 60,
+     "level": 6,
+     "slowDown": 35,
+     "slowDownDuration": 1.25
+    },
+    {
+     "blacksmith": 1,
+     "dpsIncrease": 66,
+     "level": 7,
+     "slowDown": 35,
+     "slowDownDuration": 1.25
+    },
+    {
+     "blacksmith": 1,
+     "dpsIncrease": 72,
+     "level": 8,
+     "slowDown": 35,
+     "slowDownDuration": 1.5
+    },
+    {
+     "blacksmith": 1,
+     "dpsIncrease": 78,
+     "level": 9,
+     "slowDown": 37,
+     "slowDownDuration": 1.5
+    },
+    {
+     "blacksmith": 1,
+     "dpsIncrease": 85,
+     "level": 10,
+     "slowDown": 37,
+     "slowDownDuration": 1.5
+    },
+    {
+     "blacksmith": 1,
+     "dpsIncrease": 92,
+     "level": 11,
+     "slowDown": 37,
+     "slowDownDuration": 1.75
+    },
+    {
+     "blacksmith": 1,
+     "dpsIncrease": 99,
+     "level": 12,
+     "slowDown": 40,
+     "slowDownDuration": 1.75
+    },
+    {
+     "blacksmith": 3,
+     "dpsIncrease": 105,
+     "level": 13,
+     "slowDown": 40,
+     "slowDownDuration": 1.75
+    },
+    {
+     "blacksmith": 3,
+     "dpsIncrease": 111,
+     "level": 14,
+     "slowDown": 40,
+     "slowDownDuration": 2
+    },
+    {
+     "blacksmith": 3,
+     "dpsIncrease": 117,
+     "level": 15,
+     "slowDown": 45,
+     "slowDownDuration": 2
+    },
+    {
+     "blacksmith": 5,
+     "dpsIncrease": 122,
+     "level": 16,
+     "slowDown": 45,
+     "slowDownDuration": 2
+    },
+    {
+     "blacksmith": 5,
+     "dpsIncrease": 127,
+     "level": 17,
+     "slowDown": 45,
+     "slowDownDuration": 2.25
+    },
+    {
+     "blacksmith": 5,
+     "dpsIncrease": 132,
+     "level": 18,
+     "slowDown": 50,
+     "slowDownDuration": 2.25
+    },
+    {
+     "blacksmith": 7,
+     "dpsIncrease": 136,
+     "level": 19,
+     "slowDown": 50,
+     "slowDownDuration": 2.25
+    },
+    {
+     "blacksmith": 7,
+     "dpsIncrease": 140,
+     "level": 20,
+     "slowDown": 50,
+     "slowDownDuration": 2.5
+    },
+    {
+     "blacksmith": 7,
+     "dpsIncrease": 144,
+     "level": 21,
+     "slowDown": 55,
+     "slowDownDuration": 2.5
+    },
+    {
+     "blacksmith": 8,
+     "dpsIncrease": 148,
+     "level": 22,
+     "slowDown": 55,
+     "slowDownDuration": 2.5
+    },
+    {
+     "blacksmith": 8,
+     "dpsIncrease": 152,
+     "level": 23,
+     "slowDown": 55,
+     "slowDownDuration": 2.75
+    },
+    {
+     "blacksmith": 8,
+     "dpsIncrease": 156,
+     "level": 24,
+     "slowDown": 60,
+     "slowDownDuration": 2.75
+    },
+    {
+     "blacksmith": 9,
+     "dpsIncrease": 160,
+     "level": 25,
+     "slowDown": 60,
+     "slowDownDuration": 2.75
+    },
+    {
+     "blacksmith": 9,
+     "dpsIncrease": 164,
+     "level": 26,
+     "slowDown": 60,
+     "slowDownDuration": 3
+    },
+    {
+     "blacksmith": 9,
+     "dpsIncrease": 168,
+     "level": 27,
+     "slowDown": 65,
+     "slowDownDuration": 3
+    }
+   ],
+   "name": "Frozen Arrow",
+   "rarity": "epic"
+  },
+  "giantArrow": {
+   "ability": {
+    "damageRadius": 1
+   },
+   "active": true,
+   "hero": "archerQueen",
+   "levels": [
+    {
+     "blacksmith": 2,
+     "dpsIncrease": 20,
+     "hitpointIncrease": 80,
+     "level": 1,
+     "projectileDamage": 750
+    },
+    {
+     "blacksmith": 2,
+     "dpsIncrease": 23,
+     "hitpointIncrease": 93,
+     "level": 2,
+     "projectileDamage": 750
+    },
+    {
+     "blacksmith": 2,
+     "dpsIncrease": 27,
+     "hitpointIncrease": 106,
+     "level": 3,
+     "projectileDamage": 850
+    },
+    {
+     "blacksmith": 2,
+     "dpsIncrease": 30,
+     "hitpointIncrease": 119,
+     "level": 4,
+     "projectileDamage": 850
+    },
+    {
+     "blacksmith": 2,
+     "dpsIncrease": 33,
+     "hitpointIncrease": 133,
+     "level": 5,
+     "projectileDamage": 850
+    },
+    {
+     "blacksmith": 2,
+     "dpsIncrease": 37,
+     "hitpointIncrease": 146,
+     "level": 6,
+     "projectileDamage": 1000
+    },
+    {
+     "blacksmith": 2,
+     "dpsIncrease": 40,
+     "hitpointIncrease": 159,
+     "level": 7,
+     "projectileDamage": 1000
+    },
+    {
+     "blacksmith": 2,
+     "dpsIncrease": 43,
+     "hitpointIncrease": 172,
+     "level": 8,
+     "projectileDamage": 1000
+    },
+    {
+     "blacksmith": 2,
+     "dpsIncrease": 50,
+     "hitpointIncrease": 199,
+     "level": 9,
+     "projectileDamage": 1200
+    },
+    {
+     "blacksmith": 3,
+     "dpsIncrease": 59,
+     "hitpointIncrease": 241,
+     "level": 10,
+     "projectileDamage": 1200
+    },
+    {
+     "blacksmith": 3,
+     "dpsIncrease": 68,
+     "hitpointIncrease": 284,
+     "level": 11,
+     "projectileDamage": 1200
+    },
+    {
+     "blacksmith": 3,
+     "dpsIncrease": 77,
+     "hitpointIncrease": 326,
+     "level": 12,
+     "projectileDamage": 1500
+    },
+    {
+     "blacksmith": 5,
+     "dpsIncrease": 86,
+     "hitpointIncrease": 369,
+     "level": 13,
+     "projectileDamage": 1500
+    },
+    {
+     "blacksmith": 5,
+     "dpsIncrease": 96,
+     "hitpointIncrease": 411,
+     "level": 14,
+     "projectileDamage": 1500
+    },
+    {
+     "blacksmith": 5,
+     "dpsIncrease": 105,
+     "hitpointIncrease": 454,
+     "level": 15,
+     "projectileDamage": 1750
+    },
+    {
+     "blacksmith": 7,
+     "dpsIncrease": 114,
+     "hitpointIncrease": 496,
+     "level": 16,
+     "projectileDamage": 1750
+    },
+    {
+     "blacksmith": 7,
+     "dpsIncrease": 123,
+     "hitpointIncrease": 539,
+     "level": 17,
+     "projectileDamage": 1750
+    },
+    {
+     "blacksmith": 7,
+     "dpsIncrease": 132,
+     "hitpointIncrease": 581,
+     "level": 18,
+     "projectileDamage": 2000
+    }
+   ],
+   "name": "Giant Arrow",
+   "rarity": "common"
+  },
+  "giantGauntlet": {
+   "ability": {
+    "areaDamageRadius": 2.5
+   },
+   "active": true,
+   "hero": "barbarianKing",
+   "levels": [
+    {
+     "abilityDuration": 14,
+     "blacksmith": 1,
+     "dpsIncrease": 17,
+     "incomingDamageReduction": 20,
+     "level": 1,
+     "selfHealingPerSecond": 6
+    },
+    {
+     "abilityDuration": 14,
+     "blacksmith": 1,
+     "dpsIncrease": 20,
+     "incomingDamageReduction": 20,
+     "level": 2,
+     "selfHealingPerSecond": 8
+    },
+    {
+     "abilityDuration": 14.5,
+     "blacksmith": 1,
+     "dpsIncrease": 23,
+     "incomingDamageReduction": 25,
+     "level": 3,
+     "selfHealingPerSecond": 10
+    },
+    {
+     "abilityDuration": 14.5,
+     "blacksmith": 1,
+     "dpsIncrease": 26,
+     "incomingDamageReduction": 25,
+     "level": 4,
+     "selfHealingPerSecond": 12
+    },
+    {
+     "abilityDuration": 14.5,
+     "blacksmith": 1,
+     "dpsIncrease": 29,
+     "incomingDamageReduction": 25,
+     "level": 5,
+     "selfHealingPerSecond": 14
+    },
+    {
+     "abilityDuration": 15,
+     "blacksmith": 1,
+     "dpsIncrease": 32,
+     "incomingDamageReduction": 30,
+     "level": 6,
+     "selfHealingPerSecond": 16
+    },
+    {
+     "abilityDuration": 15,
+     "blacksmith": 1,
+     "dpsIncrease": 34,
+     "incomingDamageReduction": 30,
+     "level": 7,
+     "selfHealingPerSecond": 18
+    },
+    {
+     "abilityDuration": 15,
+     "blacksmith": 1,
+     "dpsIncrease": 37,
+     "incomingDamageReduction": 30,
+     "level": 8,
+     "selfHealingPerSecond": 20
+    },
+    {
+     "abilityDuration": 15.5,
+     "blacksmith": 1,
+     "dpsIncrease": 43,
+     "incomingDamageReduction": 35,
+     "level": 9,
+     "selfHealingPerSecond": 22
+    },
+    {
+     "abilityDuration": 15.5,
+     "blacksmith": 1,
+     "dpsIncrease": 53,
+     "incomingDamageReduction": 35,
+     "level": 10,
+     "selfHealingPerSecond": 24
+    },
+    {
+     "abilityDuration": 15.5,
+     "blacksmith": 1,
+     "dpsIncrease": 63,
+     "incomingDamageReduction": 35,
+     "level": 11,
+     "selfHealingPerSecond": 26
+    },
+    {
+     "abilityDuration": 16,
+     "blacksmith": 1,
+     "dpsIncrease": 74,
+     "incomingDamageReduction": 40,
+     "level": 12,
+     "selfHealingPerSecond": 28
+    },
+    {
+     "abilityDuration": 16,
+     "blacksmith": 3,
+     "dpsIncrease": 84,
+     "incomingDamageReduction": 40,
+     "level": 13,
+     "selfHealingPerSecond": 30
+    },
+    {
+     "abilityDuration": 16,
+     "blacksmith": 3,
+     "dpsIncrease": 94,
+     "incomingDamageReduction": 40,
+     "level": 14,
+     "selfHealingPerSecond": 31
+    },
+    {
+     "abilityDuration": 16.5,
+     "blacksmith": 3,
+     "dpsIncrease": 104,
+     "incomingDamageReduction": 45,
+     "level": 15,
+     "selfHealingPerSecond": 32
+    },
+    {
+     "abilityDuration": 16.5,
+     "blacksmith": 5,
+     "dpsIncrease": 115,
+     "incomingDamageReduction": 45,
+     "level": 16,
+     "selfHealingPerSecond": 33
+    },
+    {
+     "abilityDuration": 16.5,
+     "blacksmith": 5,
+     "dpsIncrease": 125,
+     "incomingDamageReduction": 45,
+     "level": 17,
+     "selfHealingPerSecond": 34
+    },
+    {
+     "abilityDuration": 17,
+     "blacksmith": 5,
+     "dpsIncrease": 135,
+     "incomingDamageReduction": 50,
+     "level": 18,
+     "selfHealingPerSecond": 35
+    },
+    {
+     "abilityDuration": 17,
+     "blacksmith": 7,
+     "dpsIncrease": 137,
+     "incomingDamageReduction": 50,
+     "level": 19,
+     "selfHealingPerSecond": 36
+    },
+    {
+     "abilityDuration": 17,
+     "blacksmith": 7,
+     "dpsIncrease": 140,
+     "incomingDamageReduction": 50,
+     "level": 20,
+     "selfHealingPerSecond": 36
+    },
+    {
+     "abilityDuration": 17.5,
+     "blacksmith": 7,
+     "dpsIncrease": 142,
+     "incomingDamageReduction": 50,
+     "level": 21,
+     "selfHealingPerSecond": 37
+    },
+    {
+     "abilityDuration": 17.5,
+     "blacksmith": 8,
+     "dpsIncrease": 145,
+     "incomingDamageReduction": 50,
+     "level": 22,
+     "selfHealingPerSecond": 37
+    },
+    {
+     "abilityDuration": 17.5,
+     "blacksmith": 8,
+     "dpsIncrease": 147,
+     "incomingDamageReduction": 50,
+     "level": 23,
+     "selfHealingPerSecond": 38
+    },
+    {
+     "abilityDuration": 18,
+     "blacksmith": 8,
+     "dpsIncrease": 150,
+     "incomingDamageReduction": 55,
+     "level": 24,
+     "selfHealingPerSecond": 38
+    },
+    {
+     "abilityDuration": 18,
+     "blacksmith": 9,
+     "dpsIncrease": 152,
+     "incomingDamageReduction": 55,
+     "level": 25,
+     "selfHealingPerSecond": 39
+    },
+    {
+     "abilityDuration": 18,
+     "blacksmith": 9,
+     "dpsIncrease": 155,
+     "incomingDamageReduction": 55,
+     "level": 26,
+     "selfHealingPerSecond": 39
+    },
+    {
+     "abilityDuration": 19,
+     "blacksmith": 9,
+     "dpsIncrease": 160,
+     "incomingDamageReduction": 60,
+     "level": 27,
+     "selfHealingPerSecond": 40
+    }
+   ],
+   "name": "Giant Gauntlet",
+   "rarity": "epic"
+  },
+  "hasteVial": {
+   "ability": {},
+   "active": true,
+   "hero": "royalChampion",
+   "levels": [
+    {
+     "abilityAttackSpeedIncrease": 60,
+     "abilityDuration": 7,
+     "attackSpeedIncrease": 5,
+     "blacksmith": 8,
+     "dpsIncrease": 20,
+     "level": 1,
+     "speedIncrease": 18
+    },
+    {
+     "abilityAttackSpeedIncrease": 60,
+     "abilityDuration": 7,
+     "attackSpeedIncrease": 6,
+     "blacksmith": 8,
+     "dpsIncrease": 24,
+     "level": 2,
+     "speedIncrease": 18
+    },
+    {
+     "abilityAttackSpeedIncrease": 60,
+     "abilityDuration": 7.5,
+     "attackSpeedIncrease": 6,
+     "blacksmith": 8,
+     "dpsIncrease": 28,
+     "level": 3,
+     "speedIncrease": 22.3
+    },
+    {
+     "abilityAttackSpeedIncrease": 60,
+     "abilityDuration": 7.5,
+     "attackSpeedIncrease": 7,
+     "blacksmith": 8,
+     "dpsIncrease": 32,
+     "level": 4,
+     "speedIncrease": 22.3
+    },
+    {
+     "abilityAttackSpeedIncrease": 60,
+     "abilityDuration": 7.5,
+     "attackSpeedIncrease": 8,
+     "blacksmith": 8,
+     "dpsIncrease": 36,
+     "level": 5,
+     "speedIncrease": 22.3
+    },
+    {
+     "abilityAttackSpeedIncrease": 80,
+     "abilityDuration": 8,
+     "attackSpeedIncrease": 8,
+     "blacksmith": 8,
+     "dpsIncrease": 40,
+     "level": 6,
+     "speedIncrease": 25.5
+    },
+    {
+     "abilityAttackSpeedIncrease": 80,
+     "abilityDuration": 8,
+     "attackSpeedIncrease": 9,
+     "blacksmith": 8,
+     "dpsIncrease": 44,
+     "level": 7,
+     "speedIncrease": 25.5
+    },
+    {
+     "abilityAttackSpeedIncrease": 80,
+     "abilityDuration": 8,
+     "attackSpeedIncrease": 10,
+     "blacksmith": 8,
+     "dpsIncrease": 48,
+     "level": 8,
+     "speedIncrease": 25.5
+    },
+    {
+     "abilityAttackSpeedIncrease": 80,
+     "abilityDuration": 8.5,
+     "attackSpeedIncrease": 10,
+     "blacksmith": 8,
+     "dpsIncrease": 52,
+     "level": 9,
+     "speedIncrease": 28.7
+    },
+    {
+     "abilityAttackSpeedIncrease": 80,
+     "abilityDuration": 8.5,
+     "attackSpeedIncrease": 11,
+     "blacksmith": 8,
+     "dpsIncrease": 56,
+     "level": 10,
+     "speedIncrease": 28.7
+    },
+    {
+     "abilityAttackSpeedIncrease": 80,
+     "abilityDuration": 8.5,
+     "attackSpeedIncrease": 12,
+     "blacksmith": 8,
+     "dpsIncrease": 60,
+     "level": 11,
+     "speedIncrease": 28.7
+    },
+    {
+     "abilityAttackSpeedIncrease": 80,
+     "abilityDuration": 9,
+     "attackSpeedIncrease": 12,
+     "blacksmith": 8,
+     "dpsIncrease": 64,
+     "level": 12,
+     "speedIncrease": 32
+    },
+    {
+     "abilityAttackSpeedIncrease": 80,
+     "abilityDuration": 9,
+     "attackSpeedIncrease": 13,
+     "blacksmith": 8,
+     "dpsIncrease": 68,
+     "level": 13,
+     "speedIncrease": 32
+    },
+    {
+     "abilityAttackSpeedIncrease": 80,
+     "abilityDuration": 9,
+     "attackSpeedIncrease": 14,
+     "blacksmith": 8,
+     "dpsIncrease": 72,
+     "level": 14,
+     "speedIncrease": 32
+    },
+    {
+     "abilityAttackSpeedIncrease": 100,
+     "abilityDuration": 9.5,
+     "attackSpeedIncrease": 14,
+     "blacksmith": 8,
+     "dpsIncrease": 76,
+     "level": 15,
+     "speedIncrease": 35.1
+    },
+    {
+     "abilityAttackSpeedIncrease": 100,
+     "abilityDuration": 9.5,
+     "attackSpeedIncrease": 15,
+     "blacksmith": 8,
+     "dpsIncrease": 80,
+     "level": 16,
+     "speedIncrease": 35.1
+    },
+    {
+     "abilityAttackSpeedIncrease": 100,
+     "abilityDuration": 9.5,
+     "attackSpeedIncrease": 16,
+     "blacksmith": 8,
+     "dpsIncrease": 84,
+     "level": 17,
+     "speedIncrease": 35.1
+    },
+    {
+     "abilityAttackSpeedIncrease": 100,
+     "abilityDuration": 10,
+     "attackSpeedIncrease": 16,
+     "blacksmith": 8,
+     "dpsIncrease": 88,
+     "level": 18,
+     "speedIncrease": 38.3
+    }
+   ],
+   "name": "Haste Vial",
+   "rarity": "common"
+  },
+  "healingTome": {
+   "ability": {},
+   "active": true,
+   "hero": "grandWarden",
+   "levels": [
+    {
+     "abilityDuration": 15,
+     "blacksmith": 6,
+     "healingPerSecond": 60,
+     "hitpointIncrease": 92,
+     "hpRecoveryIncrease": 165,
+     "level": 1
+    },
+    {
+     "abilityDuration": 15,
+     "blacksmith": 6,
+     "healingPerSecond": 60,
+     "hitpointIncrease": 107,
+     "hpRecoveryIncrease": 193,
+     "level": 2
+    },
+    {
+     "abilityDuration": 16,
+     "blacksmith": 6,
+     "healingPerSecond": 70,
+     "hitpointIncrease": 122,
+     "hpRecoveryIncrease": 220,
+     "level": 3
+    },
+    {
+     "abilityDuration": 16,
+     "blacksmith": 6,
+     "healingPerSecond": 70,
+     "hitpointIncrease": 137,
+     "hpRecoveryIncrease": 248,
+     "level": 4
+    },
+    {
+     "abilityDuration": 16,
+     "blacksmith": 6,
+     "healingPerSecond": 70,
+     "hitpointIncrease": 153,
+     "hpRecoveryIncrease": 275,
+     "level": 5
+    },
+    {
+     "abilityDuration": 17,
+     "blacksmith": 6,
+     "healingPerSecond": 80,
+     "hitpointIncrease": 168,
+     "hpRecoveryIncrease": 303,
+     "level": 6
+    },
+    {
+     "abilityDuration": 17,
+     "blacksmith": 6,
+     "healingPerSecond": 80,
+     "hitpointIncrease": 183,
+     "hpRecoveryIncrease": 330,
+     "level": 7
+    },
+    {
+     "abilityDuration": 17,
+     "blacksmith": 6,
+     "healingPerSecond": 80,
+     "hitpointIncrease": 198,
+     "hpRecoveryIncrease": 358,
+     "level": 8
+    },
+    {
+     "abilityDuration": 18,
+     "blacksmith": 6,
+     "healingPerSecond": 100,
+     "hitpointIncrease": 229,
+     "hpRecoveryIncrease": 413,
+     "level": 9
+    },
+    {
+     "abilityDuration": 18,
+     "blacksmith": 6,
+     "healingPerSecond": 100,
+     "hitpointIncrease": 280,
+     "hpRecoveryIncrease": 463,
+     "level": 10
+    },
+    {
+     "abilityDuration": 18,
+     "blacksmith": 6,
+     "healingPerSecond": 100,
+     "hitpointIncrease": 330,
+     "hpRecoveryIncrease": 513,
+     "level": 11
+    },
+    {
+     "abilityDuration": 19,
+     "blacksmith": 6,
+     "healingPerSecond": 120,
+     "hitpointIncrease": 381,
+     "hpRecoveryIncrease": 563,
+     "level": 12
+    },
+    {
+     "abilityDuration": 19,
+     "blacksmith": 6,
+     "healingPerSecond": 120,
+     "hitpointIncrease": 432,
+     "hpRecoveryIncrease": 613,
+     "level": 13
+    },
+    {
+     "abilityDuration": 19,
+     "blacksmith": 6,
+     "healingPerSecond": 120,
+     "hitpointIncrease": 482,
+     "hpRecoveryIncrease": 663,
+     "level": 14
+    },
+    {
+     "abilityDuration": 19.5,
+     "blacksmith": 6,
+     "healingPerSecond": 140,
+     "hitpointIncrease": 533,
+     "hpRecoveryIncrease": 713,
+     "level": 15
+    },
+    {
+     "abilityDuration": 19.5,
+     "blacksmith": 7,
+     "healingPerSecond": 140,
+     "hitpointIncrease": 584,
+     "hpRecoveryIncrease": 763,
+     "level": 16
+    },
+    {
+     "abilityDuration": 19.5,
+     "blacksmith": 7,
+     "healingPerSecond": 140,
+     "hitpointIncrease": 634,
+     "hpRecoveryIncrease": 813,
+     "level": 17
+    },
+    {
+     "abilityDuration": 20,
+     "blacksmith": 7,
+     "healingPerSecond": 150,
+     "hitpointIncrease": 685,
+     "hpRecoveryIncrease": 863,
+     "level": 18
+    }
+   ],
+   "name": "Healing Tome",
+   "rarity": "common"
+  },
+  "invisibilityVial": {
+   "ability": {},
+   "active": true,
+   "hero": "archerQueen",
+   "levels": [
+    {
+     "abilityDuration": 4.2,
+     "blacksmith": 0,
+     "damagePerShotIncrease": 340,
+     "hitpointIncrease": 80,
+     "level": 1
+    },
+    {
+     "abilityDuration": 4.2,
+     "blacksmith": 1,
+     "damagePerShotIncrease": 440,
+     "hitpointIncrease": 100,
+     "level": 2
+    },
+    {
+     "abilityDuration": 4.8,
+     "blacksmith": 1,
+     "damagePerShotIncrease": 540,
+     "hitpointIncrease": 120,
+     "level": 3
+    },
+    {
+     "abilityDuration": 4.8,
+     "blacksmith": 1,
+     "damagePerShotIncrease": 640,
+     "hitpointIncrease": 140,
+     "level": 4
+    },
+    {
+     "abilityDuration": 4.8,
+     "blacksmith": 1,
+     "damagePerShotIncrease": 730,
+     "hitpointIncrease": 170,
+     "level": 5
+    },
+    {
+     "abilityDuration": 5.4,
+     "blacksmith": 1,
+     "damagePerShotIncrease": 820,
+     "hitpointIncrease": 200,
+     "level": 6
+    },
+    {
+     "abilityDuration": 5.4,
+     "blacksmith": 1,
+     "damagePerShotIncrease": 920,
+     "hitpointIncrease": 250,
+     "level": 7
+    },
+    {
+     "abilityDuration": 5.4,
+     "blacksmith": 1,
+     "damagePerShotIncrease": 1020,
+     "hitpointIncrease": 300,
+     "level": 8
+    },
+    {
+     "abilityDuration": 6,
+     "blacksmith": 1,
+     "damagePerShotIncrease": 1120,
+     "hitpointIncrease": 340,
+     "level": 9
+    },
+    {
+     "abilityDuration": 6,
+     "blacksmith": 3,
+     "damagePerShotIncrease": 1220,
+     "hitpointIncrease": 380,
+     "level": 10
+    },
+    {
+     "abilityDuration": 6,
+     "blacksmith": 3,
+     "damagePerShotIncrease": 1310,
+     "hitpointIncrease": 420,
+     "level": 11
+    },
+    {
+     "abilityDuration": 6.6,
+     "blacksmith": 3,
+     "damagePerShotIncrease": 1370,
+     "hitpointIncrease": 460,
+     "level": 12
+    },
+    {
+     "abilityDuration": 6.6,
+     "blacksmith": 5,
+     "damagePerShotIncrease": 1430,
+     "hitpointIncrease": 500,
+     "level": 13
+    },
+    {
+     "abilityDuration": 6.6,
+     "blacksmith": 5,
+     "damagePerShotIncrease": 1490,
+     "hitpointIncrease": 540,
+     "level": 14
+    },
+    {
+     "abilityDuration": 7.2,
+     "blacksmith": 5,
+     "damagePerShotIncrease": 1560,
+     "hitpointIncrease": 580,
+     "level": 15
+    },
+    {
+     "abilityDuration": 7.2,
+     "blacksmith": 7,
+     "damagePerShotIncrease": 1620,
+     "hitpointIncrease": 620,
+     "level": 16
+    },
+    {
+     "abilityDuration": 7.2,
+     "blacksmith": 7,
+     "damagePerShotIncrease": 1680,
+     "hitpointIncrease": 660,
+     "level": 17
+    },
+    {
+     "abilityDuration": 7.8,
+     "blacksmith": 7,
+     "damagePerShotIncrease": 1740,
+     "hitpointIncrease": 700,
+     "level": 18
+    }
+   ],
+   "name": "Invisibility Vial",
+   "rarity": "common"
+  },
+  "rageGem": {
+   "ability": {},
+   "active": false,
+   "hero": "grandWarden",
+   "levels": [
+    {
+     "attackSpeedIncrease": 5,
+     "blacksmith": 4,
+     "damageIncreasePercent": 15,
+     "dpsIncrease": 12,
+     "level": 1
+    },
+    {
+     "attackSpeedIncrease": 6,
+     "blacksmith": 4,
+     "damageIncreasePercent": 15,
+     "dpsIncrease": 14,
+     "level": 2
+    },
+    {
+     "attackSpeedIncrease": 7,
+     "blacksmith": 4,
+     "damageIncreasePercent": 20,
+     "dpsIncrease": 16,
+     "level": 3
+    },
+    {
+     "attackSpeedIncrease": 8,
+     "blacksmith": 4,
+     "damageIncreasePercent": 20,
+     "dpsIncrease": 18,
+     "level": 4
+    },
+    {
+     "attackSpeedIncrease": 9,
+     "blacksmith": 4,
+     "damageIncreasePercent": 20,
+     "dpsIncrease": 20,
+     "level": 5
+    },
+    {
+     "attackSpeedIncrease": 10,
+     "blacksmith": 4,
+     "damageIncreasePercent": 25,
+     "dpsIncrease": 22,
+     "level": 6
+    },
+    {
+     "attackSpeedIncrease": 11,
+     "blacksmith": 4,
+     "damageIncreasePercent": 25,
+     "dpsIncrease": 24,
+     "level": 7
+    },
+    {
+     "attackSpeedIncrease": 12,
+     "blacksmith": 4,
+     "damageIncreasePercent": 25,
+     "dpsIncrease": 26,
+     "level": 8
+    },
+    {
+     "attackSpeedIncrease": 13,
+     "blacksmith": 4,
+     "damageIncreasePercent": 30,
+     "dpsIncrease": 30,
+     "level": 9
+    },
+    {
+     "attackSpeedIncrease": 14,
+     "blacksmith": 4,
+     "damageIncreasePercent": 30,
+     "dpsIncrease": 36,
+     "level": 10
+    },
+    {
+     "attackSpeedIncrease": 15,
+     "blacksmith": 4,
+     "damageIncreasePercent": 30,
+     "dpsIncrease": 43,
+     "level": 11
+    },
+    {
+     "attackSpeedIncrease": 16,
+     "blacksmith": 4,
+     "damageIncreasePercent": 35,
+     "dpsIncrease": 49,
+     "level": 12
+    },
+    {
+     "attackSpeedIncrease": 17,
+     "blacksmith": 5,
+     "damageIncreasePercent": 35,
+     "dpsIncrease": 56,
+     "level": 13
+    },
+    {
+     "attackSpeedIncrease": 18,
+     "blacksmith": 5,
+     "damageIncreasePercent": 35,
+     "dpsIncrease": 62,
+     "level": 14
+    },
+    {
+     "attackSpeedIncrease": 19,
+     "blacksmith": 5,
+     "damageIncreasePercent": 45,
+     "dpsIncrease": 69,
+     "level": 15
+    },
+    {
+     "attackSpeedIncrease": 20,
+     "blacksmith": 7,
+     "damageIncreasePercent": 45,
+     "dpsIncrease": 75,
+     "level": 16
+    },
+    {
+     "attackSpeedIncrease": 21,
+     "blacksmith": 7,
+     "damageIncreasePercent": 45,
+     "dpsIncrease": 82,
+     "level": 17
+    },
+    {
+     "attackSpeedIncrease": 22,
+     "blacksmith": 7,
+     "damageIncreasePercent": 50,
+     "dpsIncrease": 88,
+     "level": 18
+    }
+   ],
+   "name": "Rage Gem",
+   "rarity": "common"
+  },
+  "rageVial": {
+   "ability": {
+    "abilityDuration": 10
+   },
+   "active": true,
+   "hero": "barbarianKing",
+   "levels": [
+    {
+     "blacksmith": 0,
+     "damageIncrease": 120,
+     "dpsIncrease": 17,
+     "hpRecoveryIncrease": 150,
+     "level": 1,
+     "movementSpeedIncrease": 18
+    },
+    {
+     "blacksmith": 1,
+     "damageIncrease": 120,
+     "dpsIncrease": 22,
+     "hpRecoveryIncrease": 225,
+     "level": 2,
+     "movementSpeedIncrease": 18
+    },
+    {
+     "blacksmith": 1,
+     "damageIncrease": 130,
+     "dpsIncrease": 27,
+     "hpRecoveryIncrease": 300,
+     "level": 3,
+     "movementSpeedIncrease": 22.3
+    },
+    {
+     "blacksmith": 1,
+     "damageIncrease": 130,
+     "dpsIncrease": 32,
+     "hpRecoveryIncrease": 375,
+     "level": 4,
+     "movementSpeedIncrease": 22.3
+    },
+    {
+     "blacksmith": 1,
+     "damageIncrease": 130,
+     "dpsIncrease": 37,
+     "hpRecoveryIncrease": 450,
+     "level": 5,
+     "movementSpeedIncrease": 22.3
+    },
+    {
+     "blacksmith": 1,
+     "damageIncrease": 135,
+     "dpsIncrease": 42,
+     "hpRecoveryIncrease": 525,
+     "level": 6,
+     "movementSpeedIncrease": 25.5
+    },
+    {
+     "blacksmith": 1,
+     "damageIncrease": 135,
+     "dpsIncrease": 48,
+     "hpRecoveryIncrease": 600,
+     "level": 7,
+     "movementSpeedIncrease": 25.5
+    },
+    {
+     "blacksmith": 1,
+     "damageIncrease": 135,
+     "dpsIncrease": 54,
+     "hpRecoveryIncrease": 675,
+     "level": 8,
+     "movementSpeedIncrease": 25.5
+    },
+    {
+     "blacksmith": 1,
+     "damageIncrease": 140,
+     "dpsIncrease": 60,
+     "hpRecoveryIncrease": 780,
+     "level": 9,
+     "movementSpeedIncrease": 28.7
+    },
+    {
+     "blacksmith": 3,
+     "damageIncrease": 140,
+     "dpsIncrease": 66,
+     "hpRecoveryIncrease": 900,
+     "level": 10,
+     "movementSpeedIncrease": 28.7
+    },
+    {
+     "blacksmith": 3,
+     "damageIncrease": 140,
+     "dpsIncrease": 72,
+     "hpRecoveryIncrease": 1020,
+     "level": 11,
+     "movementSpeedIncrease": 28.7
+    },
+    {
+     "blacksmith": 3,
+     "damageIncrease": 145,
+     "dpsIncrease": 79,
+     "hpRecoveryIncrease": 1155,
+     "level": 12,
+     "movementSpeedIncrease": 32
+    },
+    {
+     "blacksmith": 5,
+     "damageIncrease": 145,
+     "dpsIncrease": 86,
+     "hpRecoveryIncrease": 1290,
+     "level": 13,
+     "movementSpeedIncrease": 32
+    },
+    {
+     "blacksmith": 5,
+     "damageIncrease": 145,
+     "dpsIncrease": 94,
+     "hpRecoveryIncrease": 1410,
+     "level": 14,
+     "movementSpeedIncrease": 32
+    },
+    {
+     "blacksmith": 5,
+     "damageIncrease": 150,
+     "dpsIncrease": 104,
+     "hpRecoveryIncrease": 1590,
+     "level": 15,
+     "movementSpeedIncrease": 35.1
+    },
+    {
+     "blacksmith": 7,
+     "damageIncrease": 150,
+     "dpsIncrease": 112,
+     "hpRecoveryIncrease": 1695,
+     "level": 16,
+     "movementSpeedIncrease": 35.1
+    },
+    {
+     "blacksmith": 7,
+     "damageIncrease": 150,
+     "dpsIncrease": 120,
+     "hpRecoveryIncrease": 1800,
+     "level": 17,
+     "movementSpeedIncrease": 35.1
+    },
+    {
+     "blacksmith": 7,
+     "damageIncrease": 155,
+     "dpsIncrease": 128,
+     "hpRecoveryIncrease": 1890,
+     "level": 18,
+     "movementSpeedIncrease": 38.3
+    }
+   ],
+   "name": "Rage Vial",
+   "rarity": "common"
+  },
+  "rocketSpear": {
+   "ability": {
+    "areaDamageRadius": 0.8,
+    "attackRange": 10
+   },
+   "active": true,
+   "hero": "royalChampion",
+   "levels": [
+    {
+     "blacksmith": 1,
+     "damagePerShotIncrease": 350,
+     "dpsIncrease": 35,
+     "hitpointIncrease": 50,
+     "level": 1,
+     "numberOfAttacks": 7
+    },
+    {
+     "blacksmith": 1,
+     "damagePerShotIncrease": 350,
+     "dpsIncrease": 40,
+     "hitpointIncrease": 75,
+     "level": 2,
+     "numberOfAttacks": 7
+    },
+    {
+     "blacksmith": 1,
+     "damagePerShotIncrease": 420,
+     "dpsIncrease": 45,
+     "hitpointIncrease": 100,
+     "level": 3,
+     "numberOfAttacks": 7
+    },
+    {
+     "blacksmith": 1,
+     "damagePerShotIncrease": 420,
+     "dpsIncrease": 50,
+     "hitpointIncrease": 125,
+     "level": 4,
+     "numberOfAttacks": 7
+    },
+    {
+     "blacksmith": 1,
+     "damagePerShotIncrease": 420,
+     "dpsIncrease": 55,
+     "hitpointIncrease": 150,
+     "level": 5,
+     "numberOfAttacks": 7
+    },
+    {
+     "blacksmith": 1,
+     "damagePerShotIncrease": 490,
+     "dpsIncrease": 60,
+     "hitpointIncrease": 175,
+     "level": 6,
+     "numberOfAttacks": 7
+    },
+    {
+     "blacksmith": 1,
+     "damagePerShotIncrease": 490,
+     "dpsIncrease": 66,
+     "hitpointIncrease": 200,
+     "level": 7,
+     "numberOfAttacks": 7
+    },
+    {
+     "blacksmith": 1,
+     "damagePerShotIncrease": 490,
+     "dpsIncrease": 72,
+     "hitpointIncrease": 225,
+     "level": 8,
+     "numberOfAttacks": 7
+    },
+    {
+     "blacksmith": 1,
+     "damagePerShotIncrease": 560,
+     "dpsIncrease": 78,
+     "hitpointIncrease": 250,
+     "level": 9,
+     "numberOfAttacks": 8
+    },
+    {
+     "blacksmith": 1,
+     "damagePerShotIncrease": 560,
+     "dpsIncrease": 85,
+     "hitpointIncrease": 275,
+     "level": 10,
+     "numberOfAttacks": 8
+    },
+    {
+     "blacksmith": 1,
+     "damagePerShotIncrease": 560,
+     "dpsIncrease": 92,
+     "hitpointIncrease": 300,
+     "level": 11,
+     "numberOfAttacks": 8
+    },
+    {
+     "blacksmith": 1,
+     "damagePerShotIncrease": 630,
+     "dpsIncrease": 99,
+     "hitpointIncrease": 325,
+     "level": 12,
+     "numberOfAttacks": 8
+    },
+    {
+     "blacksmith": 3,
+     "damagePerShotIncrease": 630,
+     "dpsIncrease": 105,
+     "hitpointIncrease": 350,
+     "level": 13,
+     "numberOfAttacks": 8
+    },
+    {
+     "blacksmith": 3,
+     "damagePerShotIncrease": 630,
+     "dpsIncrease": 111,
+     "hitpointIncrease": 375,
+     "level": 14,
+     "numberOfAttacks": 8
+    },
+    {
+     "blacksmith": 3,
+     "damagePerShotIncrease": 700,
+     "dpsIncrease": 117,
+     "hitpointIncrease": 400,
+     "level": 15,
+     "numberOfAttacks": 8
+    },
+    {
+     "blacksmith": 5,
+     "damagePerShotIncrease": 700,
+     "dpsIncrease": 122,
+     "hitpointIncrease": 425,
+     "level": 16,
+     "numberOfAttacks": 8
+    },
+    {
+     "blacksmith": 5,
+     "damagePerShotIncrease": 700,
+     "dpsIncrease": 127,
+     "hitpointIncrease": 450,
+     "level": 17,
+     "numberOfAttacks": 8
+    },
+    {
+     "blacksmith": 5,
+     "damagePerShotIncrease": 770,
+     "dpsIncrease": 132,
+     "hitpointIncrease": 475,
+     "level": 18,
+     "numberOfAttacks": 9
+    },
+    {
+     "blacksmith": 7,
+     "damagePerShotIncrease": 770,
+     "dpsIncrease": 136,
+     "hitpointIncrease": 500,
+     "level": 19,
+     "numberOfAttacks": 9
+    },
+    {
+     "blacksmith": 7,
+     "damagePerShotIncrease": 770,
+     "dpsIncrease": 140,
+     "hitpointIncrease": 525,
+     "level": 20,
+     "numberOfAttacks": 9
+    },
+    {
+     "blacksmith": 7,
+     "damagePerShotIncrease": 840,
+     "dpsIncrease": 144,
+     "hitpointIncrease": 550,
+     "level": 21,
+     "numberOfAttacks": 9
+    },
+    {
+     "blacksmith": 8,
+     "damagePerShotIncrease": 840,
+     "dpsIncrease": 148,
+     "hitpointIncrease": 575,
+     "level": 22,
+     "numberOfAttacks": 9
+    },
+    {
+     "blacksmith": 8,
+     "damagePerShotIncrease": 840,
+     "dpsIncrease": 152,
+     "hitpointIncrease": 600,
+     "level": 23,
+     "numberOfAttacks": 9
+    },
+    {
+     "blacksmith": 8,
+     "damagePerShotIncrease": 910,
+     "dpsIncrease": 156,
+     "hitpointIncrease": 625,
+     "level": 24,
+     "numberOfAttacks": 9
+    },
+    {
+     "blacksmith": 9,
+     "damagePerShotIncrease": 910,
+     "dpsIncrease": 160,
+     "hitpointIncrease": 650,
+     "level": 25,
+     "numberOfAttacks": 9
+    },
+    {
+     "blacksmith": 9,
+     "damagePerShotIncrease": 910,
+     "dpsIncrease": 164,
+     "hitpointIncrease": 675,
+     "level": 26,
+     "numberOfAttacks": 9
+    },
+    {
+     "blacksmith": 9,
+     "damagePerShotIncrease": 980,
+     "dpsIncrease": 168,
+     "hitpointIncrease": 700,
+     "level": 27,
+     "numberOfAttacks": 10
+    }
+   ],
+   "name": "Rocket Spear",
+   "rarity": "epic"
+  },
+  "royalGem": {
+   "ability": {},
+   "active": true,
+   "hero": "royalChampion",
+   "levels": [
+    {
+     "blacksmith": 0,
+     "dpsIncrease": 35,
+     "healthRecovery": 1200,
+     "hitpointIncrease": 60,
+     "level": 1
+    },
+    {
+     "blacksmith": 1,
+     "dpsIncrease": 40,
+     "healthRecovery": 1200,
+     "hitpointIncrease": 90,
+     "level": 2
+    },
+    {
+     "blacksmith": 1,
+     "dpsIncrease": 45,
+     "healthRecovery": 1450,
+     "hitpointIncrease": 120,
+     "level": 3
+    },
+    {
+     "blacksmith": 1,
+     "dpsIncrease": 50,
+     "healthRecovery": 1450,
+     "hitpointIncrease": 150,
+     "level": 4
+    },
+    {
+     "blacksmith": 1,
+     "dpsIncrease": 55,
+     "healthRecovery": 1450,
+     "hitpointIncrease": 180,
+     "level": 5
+    },
+    {
+     "blacksmith": 1,
+     "dpsIncrease": 60,
+     "healthRecovery": 1600,
+     "hitpointIncrease": 210,
+     "level": 6
+    },
+    {
+     "blacksmith": 1,
+     "dpsIncrease": 65,
+     "healthRecovery": 1600,
+     "hitpointIncrease": 240,
+     "level": 7
+    },
+    {
+     "blacksmith": 1,
+     "dpsIncrease": 70,
+     "healthRecovery": 1600,
+     "hitpointIncrease": 270,
+     "level": 8
+    },
+    {
+     "blacksmith": 1,
+     "dpsIncrease": 75,
+     "healthRecovery": 1800,
+     "hitpointIncrease": 300,
+     "level": 9
+    },
+    {
+     "blacksmith": 3,
+     "dpsIncrease": 80,
+     "healthRecovery": 1800,
+     "hitpointIncrease": 330,
+     "level": 10
+    },
+    {
+     "blacksmith": 3,
+     "dpsIncrease": 85,
+     "healthRecovery": 1800,
+     "hitpointIncrease": 360,
+     "level": 11
+    },
+    {
+     "blacksmith": 3,
+     "dpsIncrease": 90,
+     "healthRecovery": 2000,
+     "hitpointIncrease": 390,
+     "level": 12
+    },
+    {
+     "blacksmith": 5,
+     "dpsIncrease": 95,
+     "healthRecovery": 2000,
+     "hitpointIncrease": 420,
+     "level": 13
+    },
+    {
+     "blacksmith": 5,
+     "dpsIncrease": 100,
+     "healthRecovery": 2000,
+     "hitpointIncrease": 450,
+     "level": 14
+    },
+    {
+     "blacksmith": 5,
+     "dpsIncrease": 105,
+     "healthRecovery": 2200,
+     "hitpointIncrease": 480,
+     "level": 15
+    },
+    {
+     "blacksmith": 7,
+     "dpsIncrease": 110,
+     "healthRecovery": 2200,
+     "hitpointIncrease": 510,
+     "level": 16
+    },
+    {
+     "blacksmith": 7,
+     "dpsIncrease": 115,
+     "healthRecovery": 2200,
+     "hitpointIncrease": 540,
+     "level": 17
+    },
+    {
+     "blacksmith": 7,
+     "dpsIncrease": 120,
+     "healthRecovery": 2400,
+     "hitpointIncrease": 570,
+     "level": 18
+    }
+   ],
+   "name": "Royal Gem",
+   "rarity": "common"
+  },
+  "seekingShield": {
+   "ability": {
+    "numberOfTargets": 4
+   },
+   "active": true,
+   "hero": "royalChampion",
+   "levels": [
+    {
+     "blacksmith": 0,
+     "hitpointIncrease": 40,
+     "level": 1,
+     "projectileDamage": 1000
+    },
+    {
+     "blacksmith": 1,
+     "hitpointIncrease": 60,
+     "level": 2,
+     "projectileDamage": 1000
+    },
+    {
+     "blacksmith": 1,
+     "hitpointIncrease": 80,
+     "level": 3,
+     "projectileDamage": 1250
+    },
+    {
+     "blacksmith": 1,
+     "hitpointIncrease": 100,
+     "level": 4,
+     "projectileDamage": 1250
+    },
+    {
+     "blacksmith": 1,
+     "hitpointIncrease": 120,
+     "level": 5,
+     "projectileDamage": 1250
+    },
+    {
+     "blacksmith": 1,
+     "hitpointIncrease": 140,
+     "level": 6,
+     "projectileDamage": 1500
+    },
+    {
+     "blacksmith": 1,
+     "hitpointIncrease": 160,
+     "level": 7,
+     "projectileDamage": 1500
+    },
+    {
+     "blacksmith": 1,
+     "hitpointIncrease": 180,
+     "level": 8,
+     "projectileDamage": 1500
+    },
+    {
+     "blacksmith": 1,
+     "hitpointIncrease": 200,
+     "level": 9,
+     "projectileDamage": 1750
+    },
+    {
+     "blacksmith": 3,
+     "hitpointIncrease": 220,
+     "level": 10,
+     "projectileDamage": 1750
+    },
+    {
+     "blacksmith": 3,
+     "hitpointIncrease": 240,
+     "level": 11,
+     "projectileDamage": 1750
+    },
+    {
+     "blacksmith": 3,
+     "hitpointIncrease": 260,
+     "level": 12,
+     "projectileDamage": 2000
+    },
+    {
+     "blacksmith": 5,
+     "hitpointIncrease": 280,
+     "level": 13,
+     "projectileDamage": 2000
+    },
+    {
+     "blacksmith": 5,
+     "hitpointIncrease": 300,
+     "level": 14,
+     "projectileDamage": 2000
+    },
+    {
+     "blacksmith": 5,
+     "hitpointIncrease": 320,
+     "level": 15,
+     "projectileDamage": 2250
+    },
+    {
+     "blacksmith": 7,
+     "hitpointIncrease": 340,
+     "level": 16,
+     "projectileDamage": 2250
+    },
+    {
+     "blacksmith": 7,
+     "hitpointIncrease": 360,
+     "level": 17,
+     "projectileDamage": 2250
+    },
+    {
+     "blacksmith": 7,
+     "hitpointIncrease": 380,
+     "level": 18,
+     "projectileDamage": 2500
+    }
+   ],
+   "name": "Seeking Shield",
+   "rarity": "common"
+  },
+  "spikyBall": {
+   "ability": {},
+   "active": true,
+   "hero": "barbarianKing",
+   "levels": [
+    {
+     "blacksmith": 1,
+     "dpsIncrease": 35,
+     "hitpointIncrease": 365,
+     "level": 1,
+     "numberOfTargets": 2,
+     "projectileDamagePerTarget": 1000
+    },
+    {
+     "blacksmith": 1,
+     "dpsIncrease": 38,
+     "hitpointIncrease": 478,
+     "level": 2,
+     "numberOfTargets": 2,
+     "projectileDamagePerTarget": 1000
+    },
+    {
+     "blacksmith": 1,
+     "dpsIncrease": 42,
+     "hitpointIncrease": 590,
+     "level": 3,
+     "numberOfTargets": 3,
+     "projectileDamagePerTarget": 1250
+    },
+    {
+     "blacksmith": 1,
+     "dpsIncrease": 45,
+     "hitpointIncrease": 703,
+     "level": 4,
+     "numberOfTargets": 3,
+     "projectileDamagePerTarget": 1250
+    },
+    {
+     "blacksmith": 1,
+     "dpsIncrease": 49,
+     "hitpointIncrease": 815,
+     "level": 5,
+     "numberOfTargets": 3,
+     "projectileDamagePerTarget": 1250
+    },
+    {
+     "blacksmith": 1,
+     "dpsIncrease": 52,
+     "hitpointIncrease": 928,
+     "level": 6,
+     "numberOfTargets": 4,
+     "projectileDamagePerTarget": 1500
+    },
+    {
+     "blacksmith": 1,
+     "dpsIncrease": 55,
+     "hitpointIncrease": 1040,
+     "level": 7,
+     "numberOfTargets": 4,
+     "projectileDamagePerTarget": 1500
+    },
+    {
+     "blacksmith": 1,
+     "dpsIncrease": 58,
+     "hitpointIncrease": 1153,
+     "level": 8,
+     "numberOfTargets": 4,
+     "projectileDamagePerTarget": 1500
+    },
+    {
+     "blacksmith": 1,
+     "dpsIncrease": 65,
+     "hitpointIncrease": 1265,
+     "level": 9,
+     "numberOfTargets": 5,
+     "projectileDamagePerTarget": 1750
+    },
+    {
+     "blacksmith": 1,
+     "dpsIncrease": 76,
+     "hitpointIncrease": 1378,
+     "level": 10,
+     "numberOfTargets": 5,
+     "projectileDamagePerTarget": 1750
+    },
+    {
+     "blacksmith": 1,
+     "dpsIncrease": 88,
+     "hitpointIncrease": 1490,
+     "level": 11,
+     "numberOfTargets": 5,
+     "projectileDamagePerTarget": 1750
+    },
+    {
+     "blacksmith": 1,
+     "dpsIncrease": 101,
+     "hitpointIncrease": 1603,
+     "level": 12,
+     "numberOfTargets": 6,
+     "projectileDamagePerTarget": 2000
+    },
+    {
+     "blacksmith": 3,
+     "dpsIncrease": 112,
+     "hitpointIncrease": 1715,
+     "level": 13,
+     "numberOfTargets": 6,
+     "projectileDamagePerTarget": 2000
+    },
+    {
+     "blacksmith": 3,
+     "dpsIncrease": 124,
+     "hitpointIncrease": 1828,
+     "level": 14,
+     "numberOfTargets": 6,
+     "projectileDamagePerTarget": 2000
+    },
+    {
+     "blacksmith": 3,
+     "dpsIncrease": 135,
+     "hitpointIncrease": 1940,
+     "level": 15,
+     "numberOfTargets": 6,
+     "projectileDamagePerTarget": 2250
+    },
+    {
+     "blacksmith": 5,
+     "dpsIncrease": 148,
+     "hitpointIncrease": 2053,
+     "level": 16,
+     "numberOfTargets": 6,
+     "projectileDamagePerTarget": 2250
+    },
+    {
+     "blacksmith": 5,
+     "dpsIncrease": 159,
+     "hitpointIncrease": 2165,
+     "level": 17,
+     "numberOfTargets": 6,
+     "projectileDamagePerTarget": 2250
+    },
+    {
+     "blacksmith": 5,
+     "dpsIncrease": 171,
+     "hitpointIncrease": 2278,
+     "level": 18,
+     "numberOfTargets": 7,
+     "projectileDamagePerTarget": 2500
+    },
+    {
+     "blacksmith": 7,
+     "dpsIncrease": 176,
+     "hitpointIncrease": 2390,
+     "level": 19,
+     "numberOfTargets": 7,
+     "projectileDamagePerTarget": 2500
+    },
+    {
+     "blacksmith": 7,
+     "dpsIncrease": 182,
+     "hitpointIncrease": 2503,
+     "level": 20,
+     "numberOfTargets": 7,
+     "projectileDamagePerTarget": 2500
+    },
+    {
+     "blacksmith": 7,
+     "dpsIncrease": 188,
+     "hitpointIncrease": 2615,
+     "level": 21,
+     "numberOfTargets": 7,
+     "projectileDamagePerTarget": 2750
+    },
+    {
+     "blacksmith": 8,
+     "dpsIncrease": 194,
+     "hitpointIncrease": 2728,
+     "level": 22,
+     "numberOfTargets": 7,
+     "projectileDamagePerTarget": 2750
+    },
+    {
+     "blacksmith": 8,
+     "dpsIncrease": 199,
+     "hitpointIncrease": 2840,
+     "level": 23,
+     "numberOfTargets": 7,
+     "projectileDamagePerTarget": 2750
+    },
+    {
+     "blacksmith": 8,
+     "dpsIncrease": 205,
+     "hitpointIncrease": 2953,
+     "level": 24,
+     "numberOfTargets": 7,
+     "projectileDamagePerTarget": 3000
+    },
+    {
+     "blacksmith": 9,
+     "dpsIncrease": 211,
+     "hitpointIncrease": 3065,
+     "level": 25,
+     "numberOfTargets": 7,
+     "projectileDamagePerTarget": 3000
+    },
+    {
+     "blacksmith": 9,
+     "dpsIncrease": 217,
+     "hitpointIncrease": 3178,
+     "level": 26,
+     "numberOfTargets": 7,
+     "projectileDamagePerTarget": 3000
+    },
+    {
+     "blacksmith": 9,
+     "dpsIncrease": 222,
+     "hitpointIncrease": 3290,
+     "level": 27,
+     "numberOfTargets": 8,
+     "projectileDamagePerTarget": 3250
+    }
+   ],
+   "name": "Spiky Ball",
+   "rarity": "epic"
+  },
+  "vampstache": {
+   "ability": {},
+   "active": false,
+   "hero": "barbarianKing",
+   "levels": [
+    {
+     "attackSpeedIncrease": 5,
+     "blacksmith": 3,
+     "dpsIncrease": 10,
+     "healPerHit": 60,
+     "level": 1
+    },
+    {
+     "attackSpeedIncrease": 6,
+     "blacksmith": 3,
+     "dpsIncrease": 15,
+     "healPerHit": 60,
+     "level": 2
+    },
+    {
+     "attackSpeedIncrease": 7,
+     "blacksmith": 3,
+     "dpsIncrease": 20,
+     "healPerHit": 90,
+     "level": 3
+    },
+    {
+     "attackSpeedIncrease": 8,
+     "blacksmith": 3,
+     "dpsIncrease": 25,
+     "healPerHit": 90,
+     "level": 4
+    },
+    {
+     "attackSpeedIncrease": 9,
+     "blacksmith": 3,
+     "dpsIncrease": 30,
+     "healPerHit": 90,
+     "level": 5
+    },
+    {
+     "attackSpeedIncrease": 10,
+     "blacksmith": 3,
+     "dpsIncrease": 40,
+     "healPerHit": 120,
+     "level": 6
+    },
+    {
+     "attackSpeedIncrease": 11,
+     "blacksmith": 3,
+     "dpsIncrease": 45,
+     "healPerHit": 120,
+     "level": 7
+    },
+    {
+     "attackSpeedIncrease": 12,
+     "blacksmith": 3,
+     "dpsIncrease": 50,
+     "healPerHit": 120,
+     "level": 8
+    },
+    {
+     "attackSpeedIncrease": 13,
+     "blacksmith": 3,
+     "dpsIncrease": 60,
+     "healPerHit": 160,
+     "level": 9
+    },
+    {
+     "attackSpeedIncrease": 14,
+     "blacksmith": 3,
+     "dpsIncrease": 65,
+     "healPerHit": 160,
+     "level": 10
+    },
+    {
+     "attackSpeedIncrease": 15,
+     "blacksmith": 3,
+     "dpsIncrease": 70,
+     "healPerHit": 160,
+     "level": 11
+    },
+    {
+     "attackSpeedIncrease": 16,
+     "blacksmith": 3,
+     "dpsIncrease": 80,
+     "healPerHit": 200,
+     "level": 12
+    },
+    {
+     "attackSpeedIncrease": 17,
+     "blacksmith": 5,
+     "dpsIncrease": 85,
+     "healPerHit": 200,
+     "level": 13
+    },
+    {
+     "attackSpeedIncrease": 18,
+     "blacksmith": 5,
+     "dpsIncrease": 90,
+     "healPerHit": 200,
+     "level": 14
+    },
+    {
+     "attackSpeedIncrease": 19,
+     "blacksmith": 5,
+     "dpsIncrease": 100,
+     "healPerHit": 250,
+     "level": 15
+    },
+    {
+     "attackSpeedIncrease": 20,
+     "blacksmith": 7,
+     "dpsIncrease": 105,
+     "healPerHit": 250,
+     "level": 16
+    },
+    {
+     "attackSpeedIncrease": 21,
+     "blacksmith": 7,
+     "dpsIncrease": 110,
+     "healPerHit": 250,
+     "level": 17
+    },
+    {
+     "attackSpeedIncrease": 22,
+     "blacksmith": 7,
+     "dpsIncrease": 120,
+     "healPerHit": 300,
+     "level": 18
+    }
+   ],
+   "name": "Vampstache",
+   "rarity": "common"
+  }
+ },
+ "equipmentLevelCaps": {
+  "common": [
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   9,
+   9,
+   12,
+   12,
+   15,
+   15,
+   18,
+   18,
+   18,
+   18,
+   18
+  ],
+  "epic": [
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   12,
+   12,
+   15,
+   15,
+   18,
+   18,
+   21,
+   24,
+   27,
+   27,
+   27
+  ]
+ },
  "source": {
   "package": "clash-of-clans-data",
   "units": {

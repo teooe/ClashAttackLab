@@ -232,6 +232,7 @@ nonisolated final class SimulationEngine {
         releasedPayloadTroopCount = 0
         garrisonReleased = [:]
         nextGarrisonRelease = [:]
+        damageAuraSources = []
         deployedHousingSpace = 0
         timeline = []
         score = scoringSystem.calculate(
@@ -338,6 +339,7 @@ nonisolated final class SimulationEngine {
         activateHeroAbilities()
 
         var pendingDamage: [UUID: Double] = [:]
+        applyHeroEquipment(by: deltaTime, pendingDamage: &pendingDamage)
         advanceProjectiles(
             by: deltaTime,
             pendingDamage: &pendingDamage
@@ -616,39 +618,133 @@ nonisolated final class SimulationEngine {
 
         if ability.protectionRadius > 0 {
             let center = entities[index].position
+            let protection = ability.protectionDuration > 0
+                ? ability.protectionDuration
+                : ability.duration
             for troopIndex in livingIndices(with: .troop) where distance(
                 from: entities[troopIndex].position,
                 to: center
             ) <= ability.protectionRadius {
                 entities[troopIndex].invulnerableRemaining = max(
                     entities[troopIndex].invulnerableRemaining,
-                    ability.duration
+                    protection
                 )
             }
         }
 
+        entities[index].invisibleRemaining = max(
+            entities[index].invisibleRemaining,
+            ability.invisibilityDuration
+        )
+        entities[index].boostedAttacksRemaining = ability.boostedAttackCount
+
         if ability.strikeTargetCount > 0 {
-            let center = entities[index].position
-            let defenses = livingIndices(with: .defense)
-                .filter {
-                    distance(from: entities[$0].position, to: center) <=
-                        ability.strikeRange
-                }
-                .sorted {
-                    let first = distance(from: entities[$0].position, to: center)
-                    let second = distance(from: entities[$1].position, to: center)
-                    if first == second {
-                        return entities[$0].id.uuidString < entities[$1].id.uuidString
-                    }
-                    return first < second
-                }
-                .prefix(ability.strikeTargetCount)
-            let damage = definition(for: entities[index].kind).attackDamage *
-                ability.strikeDamageMultiplier
-            apply(Dictionary(uniqueKeysWithValues: defenses.map {
-                (entities[$0].id, damage)
-            }))
+            strike(with: ability, from: index)
         }
+    }
+
+    /// Hits the closest targets around the hero, its current target
+    /// first, with optional splash around each one.
+    private func strike(with ability: HeroAbilityDefinition, from index: Int) {
+        let center = entities[index].position
+        let pool = ability.strikesAnyBuilding
+            ? livingIndices(with: .defense) + livingIndices(with: .building)
+            : livingIndices(with: .defense)
+        let currentTarget = entities[index].currentTargetID
+        let targets = pool
+            .filter {
+                distance(from: entities[$0].position, to: center) <=
+                    ability.strikeRange
+            }
+            .sorted {
+                let firstIsTarget = entities[$0].id == currentTarget
+                let secondIsTarget = entities[$1].id == currentTarget
+                if firstIsTarget != secondIsTarget {
+                    return firstIsTarget
+                }
+                let first = distance(from: entities[$0].position, to: center)
+                let second = distance(from: entities[$1].position, to: center)
+                if first == second {
+                    return entities[$0].id.uuidString < entities[$1].id.uuidString
+                }
+                return first < second
+            }
+            .prefix(ability.strikeTargetCount)
+        let damage = ability.strikeDamage > 0
+            ? ability.strikeDamage
+            : definition(for: entities[index].kind).attackDamage *
+                ability.strikeDamageMultiplier
+        var pending: [UUID: Double] = [:]
+        for target in targets {
+            pending[entities[target].id, default: 0] += damage
+            guard ability.strikeSplashRadius > 0 else {
+                continue
+            }
+            for other in pool where other != target && distance(
+                from: entities[other].position,
+                to: entities[target].position
+            ) <= ability.strikeSplashRadius {
+                pending[entities[other].id, default: 0] += damage
+            }
+        }
+        apply(pending)
+    }
+
+    /// Effects of hero equipment that work every tick: healing while the
+    /// ability runs, passive healing and damage auras.
+    private func applyHeroEquipment(
+        by deltaTime: TimeInterval,
+        pendingDamage: inout [UUID: Double]
+    ) {
+        let troops = livingIndices(with: .troop)
+        damageAuraSources = troops.filter {
+            definition(for: entities[$0].kind).auraDamageBonus > 0
+        }
+        for index in troops {
+            let hero = definition(for: entities[index].kind)
+            var healing = hero.passiveHealingPerSecond * deltaTime
+            if
+                entities[index].heroAbilityIsActive,
+                let ability = hero.heroAbility
+            {
+                healing += ability.selfHealingPerSecond * deltaTime
+                if ability.areaHealingPerSecond > 0 {
+                    for troopIndex in livingIndices(with: .troop) where
+                        troopIndex != index && distance(
+                            from: entities[troopIndex].position,
+                            to: entities[index].position
+                        ) <= ability.areaHealingRadius
+                    {
+                        heal(troopIndex, by: ability.areaHealingPerSecond * deltaTime)
+                    }
+                    healing += ability.areaHealingPerSecond * deltaTime
+                }
+            }
+            if healing > 0 {
+                heal(index, by: healing)
+            }
+
+            guard hero.buildingAuraDamagePerSecond > 0 else {
+                continue
+            }
+            for target in livingIndices(with: .defense) + livingIndices(with: .building)
+            where distance(
+                from: entities[target].position,
+                to: entities[index].position
+            ) <= hero.buildingAuraRadius {
+                pendingDamage[entities[target].id, default: 0] +=
+                    hero.buildingAuraDamagePerSecond * deltaTime
+            }
+        }
+    }
+
+    /// Troops whose aura raises the damage of the army around them
+    /// (Rage Gem), refreshed every tick.
+    private var damageAuraSources: [Int] = []
+
+    private func heal(_ index: Int, by amount: Double) {
+        let maximum = definition(for: entities[index].kind).maxHitPoints
+        entities[index].hitPoints = min(maximum, entities[index].hitPoints + amount)
     }
 
     private func advanceHeroAbilities(by deltaTime: TimeInterval) {
@@ -662,6 +758,12 @@ nonisolated final class SimulationEngine {
             entities[index].invulnerableRemaining = max(
                 0,
                 entities[index].invulnerableRemaining - deltaTime
+            )
+        }
+        for index in entities.indices where entities[index].invisibleRemaining > 0 {
+            entities[index].invisibleRemaining = max(
+                0,
+                entities[index].invisibleRemaining - deltaTime
             )
         }
     }
@@ -869,8 +971,14 @@ nonisolated final class SimulationEngine {
         }
 
         let troopDefinition = definition(for: entities[troopIndex].kind)
-        let effectiveAttackRange = troopDefinition.attackRange *
+        var effectiveAttackRange = troopDefinition.attackRange *
             combatModifiers(for: entities[troopIndex]).attackRange
+        if
+            entities[troopIndex].boostedAttacksRemaining > 0,
+            let boostedRange = troopDefinition.heroAbility?.boostedAttackRange
+        {
+            effectiveAttackRange = max(effectiveAttackRange, boostedRange)
+        }
         let objectiveDefinition = definition(for: entities[objectiveIndex].kind)
         let objectiveDistance = objectiveDefinition.reachDistance(
             from: entities[troopIndex].position,
@@ -1059,6 +1167,7 @@ nonisolated final class SimulationEngine {
         let defenderDefinition = definition(for: entities[index].kind)
         let candidates = possibleTargets.filter {
             !entities[$0].isUnderground &&
+                entities[$0].invisibleRemaining <= 0 &&
                 defenderDefinition.attackTargetLayer.accepts(
                     definition(for: entities[$0].kind).movementDomain
                 )
@@ -1240,6 +1349,7 @@ nonisolated final class SimulationEngine {
         let layerCandidates = candidateIndices.filter { index in
             entities.indices.contains(index) &&
                 !entities[index].isUnderground &&
+                entities[index].invisibleRemaining <= 0 &&
                 targetLayer.accepts(
                     definition(for: entities[index].kind).movementDomain
                 )
@@ -1449,10 +1559,17 @@ nonisolated final class SimulationEngine {
         let bonusDamage =
             targetDefinition.maxHitPoints *
             attackerDefinition.targetMaxHitPointDamageFraction
+        let ability = attackerDefinition.heroAbility
+        let isBoosted = attacker.boostedAttacksRemaining > 0 ||
+            attacker.invisibleRemaining > 0
+        let equipmentBonus = isBoosted ? ability?.bonusDamagePerHit ?? 0 : 0
         let attackDamage =
-            (attackerDefinition.attackDamage * rampMultiplier + bonusDamage) *
+            (attackerDefinition.attackDamage * rampMultiplier + bonusDamage + equipmentBonus) *
             modifiers.damage *
             wallMultiplier
+        let splashRadius = attacker.heroAbilityIsActive
+            ? max(attackerDefinition.splashRadius, ability?.splashRadius ?? 0)
+            : attackerDefinition.splashRadius
 
         guard
             attacker.isAlive,
@@ -1477,19 +1594,19 @@ nonisolated final class SimulationEngine {
                 destination: target.position,
                 speed: attackerDefinition.projectileSpeed,
                 damage: attackDamage,
-                splashRadius: attackerDefinition.splashRadius
+                splashRadius: splashRadius
             )
             projectile.sourceIsDefender = attacker.isDefender
             projectile.targetIsDefender = target.isDefender
             projectiles.append(projectile)
-        } else if attackerDefinition.splashRadius > 0 {
+        } else if splashRadius > 0 {
             let targetRole = definition(for: target.kind).role
             queueAreaDamage(
                 centeredAt: target.position,
                 targetRole: targetRole,
                 targetIsDefender: target.isDefender,
                 damage: attackDamage,
-                radius: attackerDefinition.splashRadius,
+                radius: splashRadius,
                 pendingDamage: &pendingDamage
             )
         } else {
@@ -1516,6 +1633,23 @@ nonisolated final class SimulationEngine {
 
         if attackerDefinition.selfDestructsOnAttack {
             pendingDamage[attacker.id, default: 0] += attacker.hitPoints
+        }
+
+        if attackerDefinition.healPerHit > 0 {
+            heal(attackerIndex, by: attackerDefinition.healPerHit)
+        }
+        if attackerDefinition.hitSlowFraction > 0 {
+            entities[targetIndex].slowFraction = max(
+                entities[targetIndex].slowRemaining > 0 ? entities[targetIndex].slowFraction : 0,
+                attackerDefinition.hitSlowFraction
+            )
+            entities[targetIndex].slowRemaining = max(
+                entities[targetIndex].slowRemaining,
+                attackerDefinition.hitSlowDuration
+            )
+        }
+        if entities[attackerIndex].boostedAttacksRemaining > 0 {
+            entities[attackerIndex].boostedAttacksRemaining -= 1
         }
 
         entities[attackerIndex].attackCooldown =
@@ -1715,9 +1849,17 @@ nonisolated final class SimulationEngine {
 
     private func reduceCooldowns(by deltaTime: TimeInterval) {
         for index in entities.indices where entities[index].isAlive {
+            // A slowed entity reloads more slowly (Frozen Arrow).
+            let pace = entities[index].slowRemaining > 0
+                ? 1 - entities[index].slowFraction
+                : 1
             entities[index].attackCooldown = max(
                 0,
-                entities[index].attackCooldown - deltaTime
+                entities[index].attackCooldown - deltaTime * pace
+            )
+            entities[index].slowRemaining = max(
+                0,
+                entities[index].slowRemaining - deltaTime
             )
         }
     }
@@ -1760,6 +1902,15 @@ nonisolated final class SimulationEngine {
                 }
                 if isProtectable, !auraSources.isEmpty {
                     damage *= auraDamageMultiplier(for: index, sources: auraSources)
+                }
+                if
+                    isProtectable,
+                    entities[index].heroAbilityIsActive,
+                    let reduction = definition(for: entities[index].kind)
+                        .heroAbility?.incomingDamageReduction,
+                    reduction > 0
+                {
+                    damage *= 1 - reduction
                 }
 
                 entities[index].hitPoints = max(
@@ -2256,6 +2407,16 @@ nonisolated final class SimulationEngine {
                 attackRange,
                 ability.attackRangeMultiplier
             )
+        }
+
+        for source in damageAuraSources where entities.indices.contains(source) {
+            let aura = definition(for: entities[source].kind)
+            if
+                entities[source].isAlive,
+                distance(from: entity.position, to: entities[source].position) <= aura.auraRadius
+            {
+                damage = max(damage, 1 + aura.auraDamageBonus)
+            }
         }
 
         for spell in activeSpells where spellDefinition(for: spell.kind).boostsTroops {

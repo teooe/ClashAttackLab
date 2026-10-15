@@ -12,6 +12,8 @@ nonisolated struct ReferenceGameCatalog: Decodable {
     let units: [String: ReferenceUnit]
     let spells: [String: ReferenceSpell]
     let army: ReferenceArmyCapacity?
+    let equipment: [String: ReferenceEquipment]?
+    let equipmentLevelCaps: ReferenceEquipmentCaps?
 
     static let resourceName = "ReferenceGameData"
 
@@ -196,6 +198,7 @@ nonisolated struct ReferenceLevelProfile: Hashable {
     var townHall: Int
     var unitLevels: [BattleEntityKind: Int] = [:]
     var spellLevels: [BattleSpellKind: Int] = [:]
+    var equipmentLevels: [HeroEquipmentKind: Int] = [:]
 
     func level(
         of unit: ReferenceUnit,
@@ -266,6 +269,9 @@ nonisolated struct ReferenceGameData: GameDataProviding {
     /// Reinforcements waiting in the Clan Castle; nil fills the castle
     /// with `defaultGarrison(capacity:)`.
     var clanCastleTroops: [BattleEntityKind]?
+
+    /// Equipment each hero wears; heroes left out wear none.
+    var heroEquipment: [BattleEntityKind: [HeroEquipmentKind]] = [:]
 
     /// Common defensive filling: Dragons, then Wizards, then Archers for
     /// the space left.
@@ -491,6 +497,9 @@ nonisolated struct ReferenceGameData: GameDataProviding {
                 defaultGarrison(capacity: level.troopCapacity ?? 0)
             definition.garrisonTriggerRadius =
                 (unit.triggerRadius ?? 0) * tileSize
+        }
+        if kind.isHero {
+            definition = equipped(definition, kind: kind)
         }
         return definition
     }

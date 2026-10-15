@@ -54,6 +54,7 @@ nonisolated struct BattleArena {
                 tileSize: grid.cellSize
             )
             data.clanCastleTroops = clanCastleTroops
+            data.heroEquipment = HeroEquipmentKind.defaultLoadouts
             return BattleArena(
                 source: source,
                 navigationGrid: grid,
