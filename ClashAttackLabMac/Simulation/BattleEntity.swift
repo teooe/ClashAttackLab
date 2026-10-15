@@ -58,6 +58,17 @@ nonisolated enum BattleEntityKind: Hashable, Codable, CaseIterable {
     case bomb
     case springTrap
     case seekingAirMine
+    case hogRider
+    case valkyrie
+    case golem
+    case bowler
+    case miner
+    case pekka
+    case yeti
+    case rootRider
+    case electroDragon
+    case dragonRider
+    case lavaHound
 
     var isTrap: Bool {
         switch self {
@@ -84,6 +95,10 @@ nonisolated struct BattleEntity: Identifiable {
 
     /// Shots fired in the current burst by defenses that fire in bursts.
     var burstShotsFired = 0
+
+    /// Burrowing troops travel underground, out of reach of defenses and
+    /// traps, until they surface to attack.
+    var isUnderground = false
 
     /// Hidden defenses cannot attack or be targeted before activation.
     var isRevealed: Bool

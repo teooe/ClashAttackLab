@@ -206,6 +206,14 @@ nonisolated struct ArmyEntryAdvisor {
                     gameData.definition(for: $0.kind).countsForDestruction
                 }
                 : townHalls
+
+        case .airDefenses:
+            let airDefenses = entities.filter { $0.kind == .airDefense }
+            return airDefenses.isEmpty
+                ? entities.filter {
+                    gameData.definition(for: $0.kind).countsForDestruction
+                }
+                : airDefenses
         }
     }
 

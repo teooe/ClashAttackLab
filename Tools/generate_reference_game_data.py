@@ -84,6 +84,17 @@ UNITS = {
     "bomb": "traps/bomb.json",
     "springTrap": "traps/spring-trap.json",
     "seekingAirMine": "traps/seeking-air-mine.json",
+    "hogRider": "troops/hog-rider.json",
+    "valkyrie": "troops/valkyrie.json",
+    "golem": "troops/golem.json",
+    "bowler": "troops/bowler.json",
+    "miner": "troops/miner.json",
+    "pekka": "troops/pekka.json",
+    "yeti": "troops/yeti.json",
+    "rootRider": "troops/root-rider.json",
+    "electroDragon": "troops/electro-dragon.json",
+    "dragonRider": "troops/dragon-rider.json",
+    "lavaHound": "troops/lava-hound.json",
 }
 
 # Defenses with several firing modes use the named one instead of "normal".

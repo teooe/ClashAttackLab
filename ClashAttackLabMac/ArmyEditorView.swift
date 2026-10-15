@@ -33,141 +33,175 @@ struct ArmyEditorView: View {
                 .foregroundStyle(.secondary)
             }
 
-            GroupBox("Truppe") {
-                VStack(spacing: 12) {
-                    troopRow(
-                        symbol: "G",
-                        color: .orange,
-                        title: "Gigante",
-                        kind: .giant,
-                        value: $draft.giants
-                    )
-                    troopRow(
-                        symbol: "B",
-                        color: .red,
-                        title: "Barbaro",
-                        kind: .barbarian,
-                        value: $draft.barbarians
-                    )
-                    troopRow(
-                        symbol: "A",
-                        color: .pink,
-                        title: "Arciera",
-                        kind: .archer,
-                        value: $draft.archers
-                    )
-                    troopRow(
-                        symbol: "WB",
-                        color: .green,
-                        title: "Spaccamuro",
-                        kind: .wallBreaker,
-                        value: $draft.wallBreakers
-                    )
-                    troopRow(
-                        symbol: "W",
-                        color: .blue,
-                        title: "Mago",
-                        kind: .wizard,
-                        value: $draft.wizards
-                    )
+            // The advanced troops make the list taller than small screens.
+            ScrollView {
+                VStack(alignment: .leading, spacing: 20) {
+                    GroupBox("Truppe") {
+                        VStack(spacing: 12) {
+                            troopRow(
+                                symbol: "G",
+                                color: .orange,
+                                title: "Gigante",
+                                kind: .giant,
+                                value: $draft.giants
+                            )
+                            troopRow(
+                                symbol: "B",
+                                color: .red,
+                                title: "Barbaro",
+                                kind: .barbarian,
+                                value: $draft.barbarians
+                            )
+                            troopRow(
+                                symbol: "A",
+                                color: .pink,
+                                title: "Arciera",
+                                kind: .archer,
+                                value: $draft.archers
+                            )
+                            troopRow(
+                                symbol: "WB",
+                                color: .green,
+                                title: "Spaccamuro",
+                                kind: .wallBreaker,
+                                value: $draft.wallBreakers
+                            )
+                            troopRow(
+                                symbol: "W",
+                                color: .blue,
+                                title: "Mago",
+                                kind: .wizard,
+                                value: $draft.wizards
+                            )
+                        }
+                        .padding(.vertical, 4)
+                    }
+
+                    GroupBox("Aria") {
+                        VStack(spacing: 12) {
+                            troopRow(
+                                symbol: "BL",
+                                color: .indigo,
+                                title: "Mongolfiera",
+                                kind: .balloon,
+                                value: $draft.balloons
+                            )
+                            troopRow(
+                                symbol: "DR",
+                                color: .mint,
+                                title: "Drago",
+                                kind: .dragon,
+                                value: $draft.dragons
+                            )
+                        }
+                        .padding(.vertical, 4)
+                    }
+
+                    if BattleEntityKind.advancedTroops.contains(where: { rules.allows($0) }) {
+                        GroupBox("Truppe avanzate") {
+                            VStack(spacing: 12) {
+                                ForEach(
+                                    BattleEntityKind.advancedTroops.filter { rules.allows($0) },
+                                    id: \.self
+                                ) { kind in
+                                    let style = TroopStyle.style(for: kind)
+                                    troopRow(
+                                        symbol: style.symbol,
+                                        color: Color(
+                                            red: style.red,
+                                            green: style.green,
+                                            blue: style.blue
+                                        ),
+                                        title: style.displayName,
+                                        kind: kind,
+                                        value: Binding(
+                                            get: { draft[troop: kind] },
+                                            set: { draft[troop: kind] = $0 }
+                                        )
+                                    )
+                                }
+                            }
+                            .padding(.vertical, 4)
+                        }
+                    }
+
+                    GroupBox("Eroe") {
+                        troopRow(
+                            symbol: "BK",
+                            color: .yellow,
+                            title: "Re barbaro",
+                            kind: .barbarianKing,
+                            value: $draft.barbarianKings
+                        )
+                        troopRow(
+                            symbol: "AQ",
+                            color: .purple,
+                            title: "Regina degli arcieri",
+                            kind: .archerQueen,
+                            value: $draft.archerQueens
+                        )
+                    }
+
+                    GroupBox("Macchina d’assedio") {
+                        troopRow(
+                            symbol: "AR",
+                            color: .brown,
+                            title: "Ariete da guerra",
+                            kind: .wallWrecker,
+                            value: $draft.wallWreckers
+                        )
+                        troopRow(
+                            symbol: "SP",
+                            color: .cyan,
+                            title: "Schiantapietre",
+                            kind: .stoneSlammer,
+                            value: $draft.stoneSlammers
+                        )
+                    }
+
+                    GroupBox("Incantesimi") {
+                        VStack(spacing: 12) {
+                            spellRow(
+                                symbol: "H",
+                                color: .green,
+                                title: "Cura",
+                                kind: .heal,
+                                value: $draft.healSpells
+                            )
+                            spellRow(
+                                symbol: "R",
+                                color: .purple,
+                                title: "Furia",
+                                kind: .rage,
+                                value: $draft.rageSpells
+                            )
+                            spellRow(
+                                symbol: "F",
+                                color: .cyan,
+                                title: "Gelo",
+                                kind: .freeze,
+                                value: $draft.freezeSpells
+                            )
+                            spellRow(
+                                symbol: "L",
+                                color: .yellow,
+                                title: "Fulmine",
+                                kind: .lightning,
+                                value: $draft.lightningSpells
+                            )
+                            spellRow(
+                                symbol: "E",
+                                color: .orange,
+                                title: "Terremoto",
+                                kind: .earthquake,
+                                value: $draft.earthquakeSpells
+                            )
+                        }
+                        .padding(.vertical, 4)
+                    }
                 }
-                .padding(.vertical, 4)
             }
-
-            GroupBox("Aria") {
-                VStack(spacing: 12) {
-                    troopRow(
-                        symbol: "BL",
-                        color: .indigo,
-                        title: "Mongolfiera",
-                        kind: .balloon,
-                        value: $draft.balloons
-                    )
-                    troopRow(
-                        symbol: "DR",
-                        color: .mint,
-                        title: "Drago",
-                        kind: .dragon,
-                        value: $draft.dragons
-                    )
-                }
-                .padding(.vertical, 4)
-            }
-
-            GroupBox("Eroe") {
-                troopRow(
-                    symbol: "BK",
-                    color: .yellow,
-                    title: "Re barbaro",
-                    kind: .barbarianKing,
-                    value: $draft.barbarianKings
-                )
-                troopRow(
-                    symbol: "AQ",
-                    color: .purple,
-                    title: "Regina degli arcieri",
-                    kind: .archerQueen,
-                    value: $draft.archerQueens
-                )
-            }
-
-            GroupBox("Macchina d’assedio") {
-                troopRow(
-                    symbol: "AR",
-                    color: .brown,
-                    title: "Ariete da guerra",
-                    kind: .wallWrecker,
-                    value: $draft.wallWreckers
-                )
-                troopRow(
-                    symbol: "SP",
-                    color: .cyan,
-                    title: "Schiantapietre",
-                    kind: .stoneSlammer,
-                    value: $draft.stoneSlammers
-                )
-            }
-
-            GroupBox("Incantesimi") {
-                VStack(spacing: 12) {
-                    spellRow(
-                        symbol: "H",
-                        color: .green,
-                        title: "Cura",
-                        kind: .heal,
-                        value: $draft.healSpells
-                    )
-                    spellRow(
-                        symbol: "R",
-                        color: .purple,
-                        title: "Furia",
-                        kind: .rage,
-                        value: $draft.rageSpells
-                    )
-                    spellRow(
-                        symbol: "F",
-                        color: .cyan,
-                        title: "Gelo",
-                        kind: .freeze,
-                        value: $draft.freezeSpells
-                    )
-                    spellRow(
-                        symbol: "L",
-                        color: .yellow,
-                        title: "Fulmine",
-                        kind: .lightning,
-                        value: $draft.lightningSpells
-                    )
-                    spellRow(
-                        symbol: "E",
-                        color: .orange,
-                        title: "Terremoto",
-                        kind: .earthquake,
-                        value: $draft.earthquakeSpells
-                    )
-                }
-                .padding(.vertical, 4)
-            }
+            .frame(maxHeight: 520)
 
             VStack(alignment: .leading, spacing: 8) {
                 HStack {
