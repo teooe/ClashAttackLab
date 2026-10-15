@@ -298,3 +298,56 @@ struct HeroEquipmentChoiceTests {
         #expect(session.candidatePlanCount > 0)
     }
 }
+
+struct HeroEquipmentComparisonTests {
+    @Test
+    func everyHeroGetsEveryPairOfItsPieces() {
+        for hero in BattleEntityKind.heroKinds {
+            let pieces = HeroEquipmentKind.available(for: hero)
+            let pairs = HeroEquipmentComparison.pairs(for: hero)
+            #expect(pairs.count == pieces.count * (pieces.count - 1) / 2, "\(hero)")
+            #expect(Set(pairs.map { Set($0) }).count == pairs.count)
+            #expect(pairs.allSatisfy { $0.count == 2 && $0[0] != $0[1] && $0.allSatisfy { $0.hero == hero } })
+        }
+    }
+
+    @Test
+    func rankingPutsTheBestPairFirstForEachHero() {
+        func entry(
+            _ hero: BattleEntityKind,
+            _ pieces: [HeroEquipmentKind],
+            _ stars: Int,
+            _ destruction: Double,
+            current: Bool = false
+        ) -> EquipmentComparisonEntry {
+            EquipmentComparisonEntry(
+                hero: hero,
+                pieces: pieces,
+                stars: stars,
+                destruction: destruction,
+                isCurrent: current
+            )
+        }
+        let entries = [
+            entry(.archerQueen, [.giantArrow, .frozenArrow], 2, 70, current: true),
+            entry(.barbarianKing, [.rageVial, .vampstache], 1, 90),
+            entry(.barbarianKing, [.giantGauntlet, .spikyBall], 2, 60, current: true),
+            entry(.archerQueen, [.giantArrow, .invisibilityVial], 2, 70),
+            entry(.barbarianKing, [.rageVial, .spikyBall], 2, 75)
+        ]
+        let ranked = HeroEquipmentComparison.ranked(entries)
+
+        #expect(ranked.map(\.hero) == [
+            .barbarianKing, .barbarianKing, .barbarianKing, .archerQueen, .archerQueen
+        ])
+        #expect(ranked[0].pieces == [.rageVial, .spikyBall])
+        #expect(ranked[1].pieces == [.giantGauntlet, .spikyBall])
+        // On a tie the pair already worn stays first.
+        #expect(ranked[3].isCurrent)
+
+        let best = HeroEquipmentComparison.best(of: entries)
+        #expect(best[.barbarianKing] == [.rageVial, .spikyBall])
+        #expect(best[.archerQueen] == [.giantArrow, .frozenArrow])
+        #expect(best[.grandWarden] == nil)
+    }
+}

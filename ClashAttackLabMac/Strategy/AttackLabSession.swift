@@ -78,7 +78,10 @@ final class AttackLabSession: ObservableObject {
 
     @Published private(set) var evaluations: [AttackPlanEvaluation] = [] {
         // Any other search or base change makes the report stale.
-        didSet { evolutionReport = [] }
+        didSet {
+            evolutionReport = []
+            equipmentComparison = []
+        }
     }
 
     /// Best plan of every generation of the last evolutionary search.
@@ -1470,6 +1473,84 @@ final class AttackLabSession: ObservableObject {
         } else {
             applyBaseLayout(baseLayout)
         }
+    }
+
+    /// Results of the last equipment comparison, grouped by hero.
+    @Published private(set) var equipmentComparison: [EquipmentComparisonEntry] = []
+
+    /// Tries every pair of pieces for each hero in the army, one hero at a
+    /// time with the others unchanged, on the best few plans against the
+    /// base under attack.
+    func compareHeroEquipment(planCount: Int = 6) {
+        guard arena.isReal, !isManualPlanning else {
+            return
+        }
+        let plans = Array(
+            ([activePlan] + candidatePlans.filter { $0.id != activePlan.id })
+                .prefix(planCount)
+        )
+        let heroes = BattleEntityKind.heroKinds.filter { hero in
+            arena.armyRules.allows(hero) &&
+                plans.contains { $0.deployments.contains { $0.kind == hero } }
+        }
+        guard !plans.isEmpty, !heroes.isEmpty else {
+            return
+        }
+        let current = heroEquipment
+        let source = gameDataSource
+        let castleTroops = arena.clanCastleTroops
+        let entities = baseEntities
+        let grid = navigationGrid
+        let total = heroes.reduce(0) {
+            $0 + HeroEquipmentComparison.pairs(for: $1).count * plans.count
+        }
+
+        startSearch(title: "Confronto equipaggiamento", total: total) { [weak self] in
+            guard let self else { return }
+            var entries: [EquipmentComparisonEntry] = []
+            var done = 0
+            for hero in heroes {
+                for pair in HeroEquipmentComparison.pairs(for: hero) {
+                    try Task.checkCancellation()
+                    var loadouts = current
+                    loadouts[hero] = pair
+                    let arena = try BattleArena.make(
+                        for: source,
+                        clanCastleTroops: castleTroops,
+                        heroEquipment: loadouts
+                    )
+                    let evaluator = AttackPlanEvaluator(
+                        baseEntities: entities,
+                        gameData: arena.gameData,
+                        navigationGrid: grid
+                    )
+                    let results = try await evaluator.evaluateAsync(plans) {
+                        self.searchCompleted = done + $0
+                    }
+                    done += plans.count
+                    if let best = results.first {
+                        entries.append(EquipmentComparisonEntry(
+                            hero: hero,
+                            pieces: pair,
+                            stars: best.stars,
+                            destruction: best.destructionPercentage,
+                            isCurrent: Set(current[hero] ?? []) == Set(pair)
+                        ))
+                    }
+                }
+            }
+            try Task.checkCancellation()
+            self.equipmentComparison = HeroEquipmentComparison.ranked(entries)
+        }
+    }
+
+    /// Wears the best pair the last comparison found for every hero.
+    func applyBestComparedEquipment() {
+        var loadouts = heroEquipment
+        for (hero, pieces) in HeroEquipmentComparison.best(of: equipmentComparison) {
+            loadouts[hero] = pieces
+        }
+        applyHeroEquipment(loadouts)
     }
 
     /// Equipment the current arena gives the heroes; empty in the

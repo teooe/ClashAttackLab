@@ -453,3 +453,68 @@ extension ReferenceGameData {
     static let fireballRange = 8.0
     static let healingTomeRadius = 5.0
 }
+
+// MARK: - Comparing equipment
+
+/// Best result one pair of pieces reached against the base under attack.
+nonisolated struct EquipmentComparisonEntry: Identifiable, Equatable {
+    let hero: BattleEntityKind
+    let pieces: [HeroEquipmentKind]
+    let stars: Int
+    let destruction: Double
+    let isCurrent: Bool
+
+    var id: String {
+        hero.referenceKey + ":" + pieces.map(\.rawValue).joined(separator: "+")
+    }
+
+    var name: String {
+        pieces.map(\.displayName).joined(separator: " + ")
+    }
+}
+
+nonisolated enum HeroEquipmentComparison {
+    /// Every pair of pieces the hero can wear, in menu order.
+    static func pairs(for hero: BattleEntityKind) -> [[HeroEquipmentKind]] {
+        let pieces = HeroEquipmentKind.available(for: hero)
+        var pairs: [[HeroEquipmentKind]] = []
+        for first in pieces.indices {
+            for second in pieces.indices where second > first {
+                pairs.append([pieces[first], pieces[second]])
+            }
+        }
+        return pairs
+    }
+
+    /// Heroes in their usual order, each hero's pairs best first; the
+    /// current pair wins ties.
+    static func ranked(_ entries: [EquipmentComparisonEntry]) -> [EquipmentComparisonEntry] {
+        let order = BattleEntityKind.heroKinds
+        return entries.sorted { first, second in
+            let firstHero = order.firstIndex(of: first.hero) ?? order.count
+            let secondHero = order.firstIndex(of: second.hero) ?? order.count
+            if firstHero != secondHero {
+                return firstHero < secondHero
+            }
+            if first.stars != second.stars {
+                return first.stars > second.stars
+            }
+            if abs(first.destruction - second.destruction) > 1e-9 {
+                return first.destruction > second.destruction
+            }
+            if first.isCurrent != second.isCurrent {
+                return first.isCurrent
+            }
+            return first.id < second.id
+        }
+    }
+
+    /// The best pair of each hero.
+    static func best(of entries: [EquipmentComparisonEntry]) -> [BattleEntityKind: [HeroEquipmentKind]] {
+        var best: [BattleEntityKind: [HeroEquipmentKind]] = [:]
+        for entry in ranked(entries) where best[entry.hero] == nil {
+            best[entry.hero] = entry.pieces
+        }
+        return best
+    }
+}
