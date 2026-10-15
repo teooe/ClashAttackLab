@@ -28,7 +28,8 @@ nonisolated struct TargetSelectionSystem {
         gameData: any GameDataProviding,
         navigationGrid: NavigationGrid,
         breakableCells: Set<GridCoordinate>,
-        breakableTraversalCost: Double
+        breakableTraversalCost: Double,
+        buildingCells: (all: Set<GridCoordinate>, byID: [UUID: Set<GridCoordinate>]) = (all: [], byID: [:])
     ) -> TargetSelectionDecision? {
         guard entities.indices.contains(troopIndex) else {
             return nil
@@ -78,14 +79,32 @@ nonisolated struct TargetSelectionSystem {
             )
             : eligibleIndices
 
-        let reachableTargets = routedIndices.compactMap { index in
-            pathfinder.findPath(
+        let reachableTargets = routedIndices.compactMap { index -> (
+            targetIndex: Int,
+            pathfinding: PathfindingResult
+        )? in
+            // Ground routes go around standing buildings other than the
+            // target; a target they wall in is still reached over them.
+            let obstacles: Set<GridCoordinate> = buildingCells.all.isEmpty
+                ? []
+                : buildingCells.all.subtracting(
+                    buildingCells.byID[entities[index].id] ?? []
+                )
+            let path: PathfindingResult? = pathfinder.findPath(
+                from: troop.position,
+                to: entities[index].position,
+                in: navigationGrid,
+                breakableCells: breakableCells,
+                breakableTraversalCost: breakableTraversalCost,
+                obstacleCells: obstacles
+            ) ?? (obstacles.isEmpty ? nil : pathfinder.findPath(
                 from: troop.position,
                 to: entities[index].position,
                 in: navigationGrid,
                 breakableCells: breakableCells,
                 breakableTraversalCost: breakableTraversalCost
-            ).map { result in
+            ))
+            return path.map { result in
                 (
                     targetIndex: index,
                     pathfinding: result

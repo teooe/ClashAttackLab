@@ -6,12 +6,16 @@ nonisolated struct PathfindingResult {
 }
 
 nonisolated struct AStarPathfinder {
+    /// `obstacleCells` are cells the route may not enter on top of the
+    /// grid's own blocked cells, such as standing buildings; diagonal
+    /// moves may not cut their corners either.
     func findPath(
         from startPosition: WorldPosition,
         to goalPosition: WorldPosition,
         in grid: NavigationGrid,
         breakableCells: Set<GridCoordinate> = [],
-        breakableTraversalCost: Double = 0
+        breakableTraversalCost: Double = 0,
+        obstacleCells: Set<GridCoordinate> = []
     ) -> PathfindingResult? {
         guard
             let start = grid.coordinate(for: startPosition),
@@ -25,19 +29,24 @@ nonisolated struct AStarPathfinder {
         var openSet: Set<GridCoordinate> = [start]
         var cameFrom: [GridCoordinate: GridCoordinate] = [:]
         var costFromStart: [GridCoordinate: Double] = [start: 0]
-        var estimatedTotalCost: [GridCoordinate: Double] = [
-            start: heuristic(from: start, to: goal, cellSize: grid.cellSize)
-        ]
+        let startEstimate = heuristic(from: start, to: goal, cellSize: grid.cellSize)
+        var estimatedTotalCost: [GridCoordinate: Double] = [start: startEstimate]
+        // The heap holds one entry per push; entries whose node has left
+        // the open set or found a cheaper estimate are skipped. Popping
+        // follows the same total order as scanning the open set (estimate,
+        // then row, then column), so routes stay identical and
+        // deterministic, only faster.
+        var frontier = OpenNodeHeap()
+        frontier.push(OpenNode(estimate: startEstimate, coordinate: start))
 
-        while let current = openSet.min(by: {
-            let firstCost = estimatedTotalCost[$0, default: .infinity]
-            let secondCost = estimatedTotalCost[$1, default: .infinity]
-            if firstCost != secondCost { return firstCost < secondCost }
-            // Set iteration order is randomized. Resolve equal costs with a
-            // total coordinate ordering so replays choose the same route.
-            if $0.row != $1.row { return $0.row < $1.row }
-            return $0.column < $1.column
-        }) {
+        while let entry = frontier.pop() {
+            let current = entry.coordinate
+            guard
+                openSet.contains(current),
+                estimatedTotalCost[current] == entry.estimate
+            else {
+                continue
+            }
             if current == goal {
                 let coordinates = reconstructPath(
                     endingAt: current,
@@ -60,6 +69,12 @@ nonisolated struct AStarPathfinder {
             openSet.remove(current)
 
             for neighbor in grid.neighbors(of: current) {
+                guard
+                    obstacleCells.isEmpty ||
+                        !touchesObstacle(from: current, to: neighbor, obstacleCells: obstacleCells)
+                else {
+                    continue
+                }
                 guard !cutsBreakableCorner(
                     from: current,
                     to: neighbor,
@@ -84,18 +99,36 @@ nonisolated struct AStarPathfinder {
 
                 cameFrom[neighbor] = current
                 costFromStart[neighbor] = tentativeCost
-                estimatedTotalCost[neighbor] =
+                let estimate =
                     tentativeCost +
                     heuristic(
                         from: neighbor,
                         to: goal,
                         cellSize: grid.cellSize
                     )
+                estimatedTotalCost[neighbor] = estimate
                 openSet.insert(neighbor)
+                frontier.push(OpenNode(estimate: estimate, coordinate: neighbor))
             }
         }
 
         return nil
+    }
+
+    /// True when the step enters an obstacle or cuts one of its corners.
+    private func touchesObstacle(
+        from first: GridCoordinate,
+        to second: GridCoordinate,
+        obstacleCells: Set<GridCoordinate>
+    ) -> Bool {
+        if obstacleCells.contains(second) {
+            return true
+        }
+        guard first.column != second.column, first.row != second.row else {
+            return false
+        }
+        return obstacleCells.contains(GridCoordinate(column: second.column, row: first.row)) ||
+            obstacleCells.contains(GridCoordinate(column: first.column, row: second.row))
     }
 
     private func cutsBreakableCorner(
@@ -152,5 +185,70 @@ nonisolated struct AStarPathfinder {
             Double(diagonalSteps) * sqrt(2) +
             Double(straightSteps)
         ) * cellSize
+    }
+}
+
+/// A node waiting in the A* frontier with its estimated total cost.
+nonisolated struct OpenNode {
+    let estimate: Double
+    let coordinate: GridCoordinate
+
+    /// Lower estimate first, then lower row, then lower column.
+    func precedes(_ other: OpenNode) -> Bool {
+        if estimate != other.estimate {
+            return estimate < other.estimate
+        }
+        if coordinate.row != other.coordinate.row {
+            return coordinate.row < other.coordinate.row
+        }
+        return coordinate.column < other.coordinate.column
+    }
+}
+
+/// Binary min-heap of frontier nodes.
+nonisolated struct OpenNodeHeap {
+    private var nodes: [OpenNode] = []
+
+    var isEmpty: Bool {
+        nodes.isEmpty
+    }
+
+    mutating func push(_ node: OpenNode) {
+        nodes.append(node)
+        var child = nodes.count - 1
+        while child > 0 {
+            let parent = (child - 1) / 2
+            guard nodes[child].precedes(nodes[parent]) else {
+                break
+            }
+            nodes.swapAt(child, parent)
+            child = parent
+        }
+    }
+
+    mutating func pop() -> OpenNode? {
+        guard !nodes.isEmpty else {
+            return nil
+        }
+        nodes.swapAt(0, nodes.count - 1)
+        let top = nodes.removeLast()
+        var parent = 0
+        while true {
+            let left = parent * 2 + 1
+            let right = left + 1
+            var first = parent
+            if left < nodes.count, nodes[left].precedes(nodes[first]) {
+                first = left
+            }
+            if right < nodes.count, nodes[right].precedes(nodes[first]) {
+                first = right
+            }
+            guard first != parent else {
+                break
+            }
+            nodes.swapAt(parent, first)
+            parent = first
+        }
+        return top
     }
 }
