@@ -40,7 +40,8 @@ Questa pagina elenca cosa viene simulato e quali valori sono stime, cioè numeri
   - Ariete da guerra e Schiantapietre;
   - Dirigibile: vola al Municipio e, quando cade, esplode sugli edifici vicini;
   - Lanciafiamme: raffiche a lunga gittata sulle difese, si consuma col tempo;
-  - Caserma d'assedio: fa uscire subito un P.E.K.K.A e 11 Stregoni, poi fa da esca per 30 s.
+  - Caserma d'assedio: fa uscire subito un P.E.K.K.A e 11 Stregoni, poi fa da esca per 30 s;
+  - Lanciatronchi: ogni 3 s rotola un tronco verso il Municipio che colpisce muri (danno ×4) ed edifici sulla sua strada, poi avanza finché un muro o un edificio non lo ferma.
 - **Danno alla morte delle truppe:** Golem e Dirigibile danneggiano gli edifici entro 2 caselle dal loro bordo.
 - **Eroi:**
   - Re, Regina, Gran Sorvegliante e Campionessa;
@@ -83,6 +84,7 @@ Questi numeri non sono nei dati e sono stati scelti a mano:
 | Bersagli della Freccia gigante | 3 entro 12 caselle |
 | Raggio del Tomo curativo | 5 caselle |
 | Raggio dell'esplosione di Golem e Dirigibile | 2 caselle dal bordo degli edifici |
+| Percorso del tronco del Lanciatronchi | 10 caselle, largo 1 casella |
 
 Altre semplificazioni:
 - i rinforzi del Castello camminano dritti, senza aggirare i muri;
@@ -91,6 +93,6 @@ Altre semplificazioni:
 
 ## Non ancora simulati
 
-- **Truppe:** Mini Yeti (mancano i dati), animali, truppe super, Lanciatronchi, Trapano da battaglia e Carro volante (questi ultimi due arrivano dal TH16).
+- **Truppe:** Mini Yeti (mancano i dati), animali, truppe super, Trapano da battaglia e Carro volante, che arrivano dal TH16.
 - **Incantesimi:** Richiamo, Rianimazione, Totem, Clonazione, Rabbia (Angry Spell).
 - **Equipaggiamenti:** quelli che evocano truppe (marionette, Specchio magico) e alcuni pezzi recenti.
