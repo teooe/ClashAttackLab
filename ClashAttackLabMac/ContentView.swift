@@ -101,6 +101,20 @@ struct ContentView: View {
                 }
                 .keyboardShortcut("2", modifiers: [.command])
 
+                Button {
+                    session.activateHeroAbility(for: .grandWarden)
+                } label: {
+                    Label("Tomo eterno", systemImage: "book.closed.fill")
+                }
+                .keyboardShortcut("3", modifiers: [.command])
+
+                Button {
+                    session.activateHeroAbility(for: .royalChampion)
+                } label: {
+                    Label("Scudo cercatore", systemImage: "shield.fill")
+                }
+                .keyboardShortcut("4", modifiers: [.command])
+
                 Text(session.heroAbilityMessage)
                     .font(.caption)
                     .foregroundStyle(.secondary)
@@ -765,7 +779,8 @@ struct ContentView: View {
             return "Ariete da guerra"
         case .stoneSlammer:
             return "Schiantapietre"
-        case .hogRider, .valkyrie, .golem, .bowler, .miner, .pekka, .yeti, .rootRider, .electroDragon, .dragonRider, .lavaHound:
+        case .hogRider, .valkyrie, .golem, .bowler, .miner, .pekka, .yeti, .rootRider, .electroDragon, .dragonRider, .lavaHound,
+             .grandWarden, .royalChampion:
             return TroopStyle.style(for: kind).displayName
         case .cannon, .archerTower, .mortar, .wizardTower, .infernoTower, .bombTower, .hiddenTesla, .giantBomb, .airBomb, .airSweeper, .airDefense,
              .townHall, .goldStorage, .wall,
@@ -799,7 +814,8 @@ struct ContentView: View {
             return "AR"
         case .stoneSlammer:
             return "SP"
-        case .hogRider, .valkyrie, .golem, .bowler, .miner, .pekka, .yeti, .rootRider, .electroDragon, .dragonRider, .lavaHound:
+        case .hogRider, .valkyrie, .golem, .bowler, .miner, .pekka, .yeti, .rootRider, .electroDragon, .dragonRider, .lavaHound,
+             .grandWarden, .royalChampion:
             return TroopStyle.style(for: kind).symbol
         case .cannon, .archerTower, .mortar, .wizardTower, .infernoTower, .bombTower, .hiddenTesla, .giantBomb, .airBomb, .airSweeper, .airDefense,
              .townHall, .goldStorage, .wall,
@@ -833,7 +849,8 @@ struct ContentView: View {
             return .brown
         case .stoneSlammer:
             return .cyan
-        case .hogRider, .valkyrie, .golem, .bowler, .miner, .pekka, .yeti, .rootRider, .electroDragon, .dragonRider, .lavaHound:
+        case .hogRider, .valkyrie, .golem, .bowler, .miner, .pekka, .yeti, .rootRider, .electroDragon, .dragonRider, .lavaHound,
+             .grandWarden, .royalChampion:
             let style = TroopStyle.style(for: kind)
             return Color(red: style.red, green: style.green, blue: style.blue)
         case .cannon, .archerTower, .mortar, .wizardTower, .infernoTower, .bombTower, .hiddenTesla, .giantBomb, .airBomb, .airSweeper, .airDefense,
@@ -856,6 +873,8 @@ struct ContentView: View {
             return "Fulmine"
         case .earthquake:
             return "Terremoto"
+        case .jump, .invisibility, .haste:
+            return SpellStyle.style(for: kind).displayName
         }
     }
 
@@ -871,6 +890,8 @@ struct ContentView: View {
             return "L"
         case .earthquake:
             return "E"
+        case .jump, .invisibility, .haste:
+            return SpellStyle.style(for: kind).symbol
         }
     }
 
@@ -886,6 +907,9 @@ struct ContentView: View {
             return .yellow
         case .earthquake:
             return .orange
+        case .jump, .invisibility, .haste:
+            let style = SpellStyle.style(for: kind)
+            return Color(red: style.red, green: style.green, blue: style.blue)
         }
     }
 

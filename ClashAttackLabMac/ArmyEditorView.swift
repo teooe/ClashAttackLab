@@ -140,6 +140,23 @@ struct ArmyEditorView: View {
                             kind: .archerQueen,
                             value: $draft.archerQueens
                         )
+                        ForEach(BattleEntityKind.advancedHeroes, id: \.self) { kind in
+                            let style = TroopStyle.style(for: kind)
+                            troopRow(
+                                symbol: style.symbol,
+                                color: Color(
+                                    red: style.red,
+                                    green: style.green,
+                                    blue: style.blue
+                                ),
+                                title: style.displayName,
+                                kind: kind,
+                                value: Binding(
+                                    get: { draft[troop: kind] },
+                                    set: { draft[troop: kind] = $0 }
+                                )
+                            )
+                        }
                     }
 
                     GroupBox("Macchina d’assedio") {
@@ -196,6 +213,23 @@ struct ArmyEditorView: View {
                                 kind: .earthquake,
                                 value: $draft.earthquakeSpells
                             )
+                            ForEach(ArmyConfiguration.advancedSpellKinds, id: \.self) { kind in
+                                let style = SpellStyle.style(for: kind)
+                                spellRow(
+                                    symbol: style.symbol,
+                                    color: Color(
+                                        red: style.red,
+                                        green: style.green,
+                                        blue: style.blue
+                                    ),
+                                    title: style.displayName,
+                                    kind: kind,
+                                    value: Binding(
+                                        get: { draft[spell: kind] },
+                                        set: { draft[spell: kind] = $0 }
+                                    )
+                                )
+                            }
                         }
                         .padding(.vertical, 4)
                     }
@@ -285,8 +319,8 @@ struct ArmyEditorView: View {
         value: Binding<Int>
     ) -> some View {
         let cost = rules.housing(for: kind)
-        let uniqueKinds: [BattleEntityKind] = [
-            .barbarianKing, .archerQueen, .wallWrecker, .stoneSlammer
+        let uniqueKinds: [BattleEntityKind] = BattleEntityKind.heroKinds + [
+            .wallWrecker, .stoneSlammer
         ]
         let isUnique = uniqueKinds.contains(kind)
         let maximum = isUnique

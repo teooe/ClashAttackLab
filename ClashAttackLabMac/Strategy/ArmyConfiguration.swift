@@ -25,9 +25,12 @@ nonisolated struct ArmyConfiguration: Equatable {
     var lightningSpells: Int
     var earthquakeSpells: Int
 
-    /// Counts of the advanced troops, keyed by kind. Zero counts are not
-    /// stored, so equal armies compare equal.
+    /// Counts of the advanced troops and heroes, keyed by kind. Zero
+    /// counts are not stored, so equal armies compare equal.
     private(set) var advancedTroops: [BattleEntityKind: Int] = [:]
+
+    /// Counts of the advanced spells, stored the same way.
+    private(set) var advancedSpells: [BattleSpellKind: Int] = [:]
 
     init(
         giants: Int,
@@ -91,7 +94,13 @@ nonisolated struct ArmyConfiguration: Equatable {
     static let troopKinds: [BattleEntityKind] = [
         .giant, .barbarian, .archer, .wallBreaker, .wizard, .balloon,
         .dragon, .barbarianKing, .archerQueen, .wallWrecker, .stoneSlammer
-    ] + BattleEntityKind.advancedTroops
+    ] + BattleEntityKind.advancedTroops + BattleEntityKind.advancedHeroes
+
+    /// Spells added for the real mode; their counts live in
+    /// `advancedSpells`.
+    static let advancedSpellKinds: [BattleSpellKind] = [
+        .jump, .invisibility, .haste
+    ]
 
     /// Count of one troop kind; settable for every kind in `troopKinds`.
     subscript(troop kind: BattleEntityKind) -> Int {
@@ -112,7 +121,7 @@ nonisolated struct ArmyConfiguration: Equatable {
             case .wallWrecker: wallWreckers = newValue
             case .stoneSlammer: stoneSlammers = newValue
             default:
-                guard kind.isAdvancedTroop else {
+                guard kind.isAdvancedTroop || kind.isHero else {
                     return
                 }
                 advancedTroops[kind] = newValue == 0 ? nil : newValue
@@ -120,9 +129,27 @@ nonisolated struct ArmyConfiguration: Equatable {
         }
     }
 
+    /// Count of one spell kind; settable for every kind in `spellKinds`.
+    subscript(spell kind: BattleSpellKind) -> Int {
+        get {
+            spellCount(for: kind)
+        }
+        set {
+            switch kind {
+            case .heal: healSpells = newValue
+            case .rage: rageSpells = newValue
+            case .freeze: freezeSpells = newValue
+            case .lightning: lightningSpells = newValue
+            case .earthquake: earthquakeSpells = newValue
+            case .jump, .invisibility, .haste:
+                advancedSpells[kind] = newValue == 0 ? nil : newValue
+            }
+        }
+    }
+
     static let spellKinds: [BattleSpellKind] = [
         .heal, .rage, .freeze, .lightning, .earthquake
-    ]
+    ] + advancedSpellKinds
 
     var troopCapacityUsed: Int {
         troopCapacityUsed(under: .prototype)
@@ -173,7 +200,7 @@ nonisolated struct ArmyConfiguration: Equatable {
             return "Capacità truppe superata."
         }
 
-        if barbarianKings > 1 || archerQueens > 1 {
+        if BattleEntityKind.heroKinds.contains(where: { troopCount(for: $0) > 1 }) {
             return "Puoi usare un solo esemplare per ciascun eroe."
         }
 
@@ -224,7 +251,8 @@ nonisolated struct ArmyConfiguration: Equatable {
             return wallWreckers
         case .stoneSlammer:
             return stoneSlammers
-        case .hogRider, .valkyrie, .golem, .bowler, .miner, .pekka, .yeti, .rootRider, .electroDragon, .dragonRider, .lavaHound:
+        case .hogRider, .valkyrie, .golem, .bowler, .miner, .pekka, .yeti, .rootRider, .electroDragon, .dragonRider, .lavaHound,
+             .grandWarden, .royalChampion:
             return advancedTroops[kind, default: 0]
         case .cannon, .archerTower, .mortar, .wizardTower, .infernoTower, .bombTower, .hiddenTesla, .giantBomb, .airBomb, .airSweeper, .airDefense,
              .townHall, .goldStorage, .wall,
@@ -246,6 +274,8 @@ nonisolated struct ArmyConfiguration: Equatable {
             return lightningSpells
         case .earthquake:
             return earthquakeSpells
+        case .jump, .invisibility, .haste:
+            return advancedSpells[kind, default: 0]
         }
     }
 
@@ -273,6 +303,8 @@ nonisolated struct ArmyConfiguration: Equatable {
             .dragonRider,
             .barbarianKing,
             .archerQueen,
+            .grandWarden,
+            .royalChampion,
             .wallWrecker,
             .stoneSlammer
         ]
@@ -293,21 +325,14 @@ nonisolated struct ArmyConfiguration: Equatable {
     }
 
     var spellSequence: [BattleSpellKind] {
-        Array(repeating: .heal, count: healSpells) +
-            Array(repeating: .rage, count: rageSpells) +
-            Array(repeating: .freeze, count: freezeSpells) +
-            Array(repeating: .lightning, count: lightningSpells) +
-            Array(repeating: .earthquake, count: earthquakeSpells)
+        Self.spellKinds.flatMap {
+            Array(repeating: $0, count: max(spellCount(for: $0), 0))
+        }
     }
 
     private var allCountsAreNonnegative: Bool {
-        Self.troopKinds.allSatisfy { troopCount(for: $0) >= 0 } && [
-            healSpells,
-            rageSpells,
-            freezeSpells,
-            lightningSpells,
-            earthquakeSpells
-        ].allSatisfy { $0 >= 0 }
+        Self.troopKinds.allSatisfy { troopCount(for: $0) >= 0 } &&
+            Self.spellKinds.allSatisfy { spellCount(for: $0) >= 0 }
     }
 }
 
@@ -338,7 +363,8 @@ nonisolated struct ArmyCapacityRules: Equatable {
             .dragonRider: 25, .lavaHound: 30
         ],
         spellHousing: [
-            .heal: 1, .rage: 1, .freeze: 1, .lightning: 1, .earthquake: 1
+            .heal: 1, .rage: 1, .freeze: 1, .lightning: 1, .earthquake: 1,
+            .jump: 2, .invisibility: 1, .haste: 1
         ],
         unlockedTroops: nil,
         unlockedSpells: nil,

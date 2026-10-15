@@ -84,6 +84,17 @@ nonisolated struct HeroAbilityDefinition {
     let attackRangeMultiplier: Double
     let behaviorEvidence: MechanicEvidence
     let tuningEvidence: MechanicEvidence
+
+    /// Strikes up to this many defenses within `strikeRange` of the hero,
+    /// each for `strikeDamageMultiplier` times its attack damage
+    /// (Seeking Shield).
+    var strikeTargetCount = 0
+    var strikeRange: Double = 0
+    var strikeDamageMultiplier: Double = 0
+
+    /// Troops within this radius, the hero included, take no damage for
+    /// the ability's duration (Eternal Tome).
+    var protectionRadius: Double = 0
 }
 
 nonisolated struct CombatDefinition {

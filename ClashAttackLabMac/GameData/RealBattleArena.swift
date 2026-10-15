@@ -441,9 +441,8 @@ extension ArmyCapacityRules {
         )
     }
 
-    nonisolated static let campFreeKinds: Set<BattleEntityKind> = [
-        .barbarianKing, .archerQueen, .wallWrecker, .stoneSlammer
-    ]
+    nonisolated static let campFreeKinds: Set<BattleEntityKind> =
+        Set(BattleEntityKind.heroKinds + [.wallWrecker, .stoneSlammer])
 }
 
 extension ArmyConfiguration {
@@ -546,8 +545,9 @@ extension ArmyConfiguration {
                 add(kind, count: free / housing)
             }
         }
-        add(.barbarianKing, count: 1)
-        add(.archerQueen, count: 1)
+        for hero in BattleEntityKind.heroKinds {
+            add(hero, count: 1)
+        }
         add(.wallWrecker, count: 1)
 
         var spellSpace = rules.spellCapacity

@@ -157,23 +157,13 @@ final class AttackLabSession: ObservableObject {
     }
 
     var manualTroopChoices: [BattleEntityKind] {
-        [
-            .giant,
-            .barbarian,
-            .archer,
-            .wallBreaker,
-            .wizard,
-            .balloon,
-            .dragon,
-            .barbarianKing,
-            .archerQueen,
-            .wallWrecker,
-            .stoneSlammer
-        ].filter { armyConfiguration.troopCount(for: $0) > 0 }
+        ArmyConfiguration.troopKinds.filter {
+            armyConfiguration.troopCount(for: $0) > 0
+        }
     }
 
     var manualSpellChoices: [BattleSpellKind] {
-        [.heal, .rage, .freeze, .lightning, .earthquake].filter {
+        ArmyConfiguration.spellKinds.filter {
             armyConfiguration.spellCount(for: $0) > 0
         }
     }

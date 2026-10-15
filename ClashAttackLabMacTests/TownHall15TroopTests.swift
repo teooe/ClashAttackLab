@@ -187,7 +187,7 @@ struct TownHall15TroopTests {
 
         #expect(army.wallBreakers == 6)
         #expect(army.giants == 12)
-        #expect(army.advancedTroops.isEmpty)
+        #expect(BattleEntityKind.advancedTroops.allSatisfy { army[troop: $0] == 0 })
         #expect(army.isValid(under: th16))
     }
 

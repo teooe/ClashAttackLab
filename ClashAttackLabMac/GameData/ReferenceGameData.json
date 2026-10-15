@@ -159,6 +159,61 @@
    ],
    "name": "Freeze Spell"
   },
+  "haste": {
+   "housingSpace": 1,
+   "levels": [
+    {
+     "duration": 10,
+     "level": 1,
+     "radius": 4,
+     "speedIncrease": 28,
+     "townHall": 9
+    },
+    {
+     "duration": 15,
+     "level": 2,
+     "radius": 4,
+     "speedIncrease": 34,
+     "townHall": 9
+    },
+    {
+     "duration": 20,
+     "level": 3,
+     "radius": 4,
+     "speedIncrease": 40,
+     "townHall": 10
+    },
+    {
+     "duration": 25,
+     "level": 4,
+     "radius": 4,
+     "speedIncrease": 46,
+     "townHall": 10
+    },
+    {
+     "duration": 30,
+     "level": 5,
+     "radius": 4,
+     "speedIncrease": 52,
+     "townHall": 11
+    },
+    {
+     "duration": 30,
+     "level": 6,
+     "radius": 4,
+     "speedIncrease": 56,
+     "townHall": 17
+    },
+    {
+     "duration": 30,
+     "level": 7,
+     "radius": 5,
+     "speedIncrease": 56,
+     "townHall": 17
+    }
+   ],
+   "name": "Haste Spell"
+  },
   "heal": {
    "housingSpace": 2,
    "levels": [
@@ -248,6 +303,72 @@
     }
    ],
    "name": "Healing Spell"
+  },
+  "invisibility": {
+   "housingSpace": 1,
+   "levels": [
+    {
+     "duration": 3.5,
+     "level": 1,
+     "radius": 4,
+     "townHall": 10
+    },
+    {
+     "duration": 3.75,
+     "level": 2,
+     "radius": 4,
+     "townHall": 11
+    },
+    {
+     "duration": 4,
+     "level": 3,
+     "radius": 4,
+     "townHall": 12
+    },
+    {
+     "duration": 4.25,
+     "level": 4,
+     "radius": 4,
+     "townHall": 13
+    }
+   ],
+   "name": "Invisibility Spell"
+  },
+  "jump": {
+   "housingSpace": 2,
+   "levels": [
+    {
+     "duration": 20,
+     "level": 1,
+     "radius": 3.5,
+     "townHall": 8
+    },
+    {
+     "duration": 40,
+     "level": 2,
+     "radius": 3.5,
+     "townHall": 8
+    },
+    {
+     "duration": 60,
+     "level": 3,
+     "radius": 3.5,
+     "townHall": 10
+    },
+    {
+     "duration": 80,
+     "level": 4,
+     "radius": 3.5,
+     "townHall": 13
+    },
+    {
+     "duration": 100,
+     "level": 5,
+     "radius": 3.5,
+     "townHall": 15
+    }
+   ],
+   "name": "Jump Spell"
   },
   "lightning": {
    "housingSpace": 1,
@@ -4964,6 +5085,609 @@
    "name": "Golem",
    "range": 1
   },
+  "grandWarden": {
+   "attackInterval": 1.8,
+   "levels": [
+    {
+     "abilityHealing": 90,
+     "damagePerHit": 77.4,
+     "hitpoints": 850,
+     "level": 1,
+     "townHall": 11
+    },
+    {
+     "abilityHealing": 90,
+     "damagePerHit": 79.2,
+     "hitpoints": 868,
+     "level": 2,
+     "townHall": 11
+    },
+    {
+     "abilityHealing": 90,
+     "damagePerHit": 82.8,
+     "hitpoints": 886,
+     "level": 3,
+     "townHall": 11
+    },
+    {
+     "abilityHealing": 90,
+     "damagePerHit": 86.4,
+     "hitpoints": 904,
+     "level": 4,
+     "townHall": 11
+    },
+    {
+     "abilityHealing": 97,
+     "damagePerHit": 88.2,
+     "hitpoints": 923,
+     "level": 5,
+     "townHall": 11
+    },
+    {
+     "abilityHealing": 97,
+     "damagePerHit": 91.8,
+     "hitpoints": 942,
+     "level": 6,
+     "townHall": 11
+    },
+    {
+     "abilityHealing": 97,
+     "damagePerHit": 97.2,
+     "hitpoints": 961,
+     "level": 7,
+     "townHall": 11
+    },
+    {
+     "abilityHealing": 97,
+     "damagePerHit": 100.8,
+     "hitpoints": 982,
+     "level": 8,
+     "townHall": 11
+    },
+    {
+     "abilityHealing": 97,
+     "damagePerHit": 106.2,
+     "hitpoints": 1003,
+     "level": 9,
+     "townHall": 11
+    },
+    {
+     "abilityHealing": 109,
+     "damagePerHit": 109.8,
+     "hitpoints": 1025,
+     "level": 10,
+     "townHall": 11
+    },
+    {
+     "abilityHealing": 109,
+     "damagePerHit": 115.2,
+     "hitpoints": 1048,
+     "level": 11,
+     "townHall": 11
+    },
+    {
+     "abilityHealing": 109,
+     "damagePerHit": 118.8,
+     "hitpoints": 1072,
+     "level": 12,
+     "townHall": 11
+    },
+    {
+     "abilityHealing": 109,
+     "damagePerHit": 126,
+     "hitpoints": 1097,
+     "level": 13,
+     "townHall": 11
+    },
+    {
+     "abilityHealing": 109,
+     "damagePerHit": 131.4,
+     "hitpoints": 1122,
+     "level": 14,
+     "townHall": 11
+    },
+    {
+     "abilityHealing": 122,
+     "damagePerHit": 138.6,
+     "hitpoints": 1148,
+     "level": 15,
+     "townHall": 11
+    },
+    {
+     "abilityHealing": 122,
+     "damagePerHit": 144,
+     "hitpoints": 1173,
+     "level": 16,
+     "townHall": 11
+    },
+    {
+     "abilityHealing": 122,
+     "damagePerHit": 149.4,
+     "hitpoints": 1199,
+     "level": 17,
+     "townHall": 11
+    },
+    {
+     "abilityHealing": 122,
+     "damagePerHit": 156.6,
+     "hitpoints": 1224,
+     "level": 18,
+     "townHall": 11
+    },
+    {
+     "abilityHealing": 122,
+     "damagePerHit": 162,
+     "hitpoints": 1250,
+     "level": 19,
+     "townHall": 11
+    },
+    {
+     "abilityHealing": 135,
+     "damagePerHit": 169.2,
+     "hitpoints": 1275,
+     "level": 20,
+     "townHall": 11
+    },
+    {
+     "abilityHealing": 135,
+     "damagePerHit": 176.4,
+     "hitpoints": 1301,
+     "level": 21,
+     "townHall": 12
+    },
+    {
+     "abilityHealing": 135,
+     "damagePerHit": 183.6,
+     "hitpoints": 1327,
+     "level": 22,
+     "townHall": 12
+    },
+    {
+     "abilityHealing": 135,
+     "damagePerHit": 190.8,
+     "hitpoints": 1354,
+     "level": 23,
+     "townHall": 12
+    },
+    {
+     "abilityHealing": 135,
+     "damagePerHit": 199.8,
+     "hitpoints": 1381,
+     "level": 24,
+     "townHall": 12
+    },
+    {
+     "abilityHealing": 149,
+     "damagePerHit": 208.8,
+     "hitpoints": 1409,
+     "level": 25,
+     "townHall": 12
+    },
+    {
+     "abilityHealing": 149,
+     "damagePerHit": 217.8,
+     "hitpoints": 1438,
+     "level": 26,
+     "townHall": 12
+    },
+    {
+     "abilityHealing": 149,
+     "damagePerHit": 226.8,
+     "hitpoints": 1467,
+     "level": 27,
+     "townHall": 12
+    },
+    {
+     "abilityHealing": 149,
+     "damagePerHit": 235.8,
+     "hitpoints": 1497,
+     "level": 28,
+     "townHall": 12
+    },
+    {
+     "abilityHealing": 149,
+     "damagePerHit": 246.6,
+     "hitpoints": 1527,
+     "level": 29,
+     "townHall": 12
+    },
+    {
+     "abilityHealing": 165,
+     "damagePerHit": 257.4,
+     "hitpoints": 1558,
+     "level": 30,
+     "townHall": 12
+    },
+    {
+     "abilityHealing": 165,
+     "damagePerHit": 268.2,
+     "hitpoints": 1590,
+     "level": 31,
+     "townHall": 12
+    },
+    {
+     "abilityHealing": 165,
+     "damagePerHit": 279,
+     "hitpoints": 1622,
+     "level": 32,
+     "townHall": 12
+    },
+    {
+     "abilityHealing": 165,
+     "damagePerHit": 291.6,
+     "hitpoints": 1655,
+     "level": 33,
+     "townHall": 12
+    },
+    {
+     "abilityHealing": 165,
+     "damagePerHit": 302.4,
+     "hitpoints": 1688,
+     "level": 34,
+     "townHall": 12
+    },
+    {
+     "abilityHealing": 182,
+     "damagePerHit": 315,
+     "hitpoints": 1722,
+     "level": 35,
+     "townHall": 12
+    },
+    {
+     "abilityHealing": 182,
+     "damagePerHit": 329.4,
+     "hitpoints": 1757,
+     "level": 36,
+     "townHall": 12
+    },
+    {
+     "abilityHealing": 182,
+     "damagePerHit": 342,
+     "hitpoints": 1793,
+     "level": 37,
+     "townHall": 12
+    },
+    {
+     "abilityHealing": 182,
+     "damagePerHit": 356.4,
+     "hitpoints": 1829,
+     "level": 38,
+     "townHall": 12
+    },
+    {
+     "abilityHealing": 182,
+     "damagePerHit": 372.6,
+     "hitpoints": 1867,
+     "level": 39,
+     "townHall": 12
+    },
+    {
+     "abilityHealing": 202,
+     "damagePerHit": 387,
+     "hitpoints": 1904,
+     "level": 40,
+     "townHall": 12
+    },
+    {
+     "abilityHealing": 202,
+     "damagePerHit": 397.8,
+     "hitpoints": 1921,
+     "level": 41,
+     "townHall": 13
+    },
+    {
+     "abilityHealing": 202,
+     "damagePerHit": 406.8,
+     "hitpoints": 1938,
+     "level": 42,
+     "townHall": 13
+    },
+    {
+     "abilityHealing": 202,
+     "damagePerHit": 414,
+     "hitpoints": 1955,
+     "level": 43,
+     "townHall": 13
+    },
+    {
+     "abilityHealing": 202,
+     "damagePerHit": 421.2,
+     "hitpoints": 1972,
+     "level": 44,
+     "townHall": 13
+    },
+    {
+     "abilityHealing": 211,
+     "damagePerHit": 426.6,
+     "hitpoints": 1989,
+     "level": 45,
+     "townHall": 13
+    },
+    {
+     "abilityHealing": 211,
+     "damagePerHit": 433.8,
+     "hitpoints": 2006,
+     "level": 46,
+     "townHall": 13
+    },
+    {
+     "abilityHealing": 211,
+     "damagePerHit": 439.2,
+     "hitpoints": 2023,
+     "level": 47,
+     "townHall": 13
+    },
+    {
+     "abilityHealing": 211,
+     "damagePerHit": 444.6,
+     "hitpoints": 2040,
+     "level": 48,
+     "townHall": 13
+    },
+    {
+     "abilityHealing": 211,
+     "damagePerHit": 451.8,
+     "hitpoints": 2057,
+     "level": 49,
+     "townHall": 13
+    },
+    {
+     "abilityHealing": 220,
+     "damagePerHit": 457.2,
+     "hitpoints": 2074,
+     "level": 50,
+     "townHall": 13
+    },
+    {
+     "abilityHealing": 220,
+     "damagePerHit": 464.4,
+     "hitpoints": 2091,
+     "level": 51,
+     "townHall": 14
+    },
+    {
+     "abilityHealing": 220,
+     "damagePerHit": 469.8,
+     "hitpoints": 2108,
+     "level": 52,
+     "townHall": 14
+    },
+    {
+     "abilityHealing": 220,
+     "damagePerHit": 475.2,
+     "hitpoints": 2125,
+     "level": 53,
+     "townHall": 14
+    },
+    {
+     "abilityHealing": 220,
+     "damagePerHit": 482.4,
+     "hitpoints": 2142,
+     "level": 54,
+     "townHall": 14
+    },
+    {
+     "abilityHealing": 229,
+     "damagePerHit": 487.8,
+     "hitpoints": 2159,
+     "level": 55,
+     "townHall": 14
+    },
+    {
+     "abilityHealing": 229,
+     "damagePerHit": 493.2,
+     "hitpoints": 2176,
+     "level": 56,
+     "townHall": 14
+    },
+    {
+     "abilityHealing": 229,
+     "damagePerHit": 496.8,
+     "hitpoints": 2193,
+     "level": 57,
+     "townHall": 14
+    },
+    {
+     "abilityHealing": 229,
+     "damagePerHit": 502.2,
+     "hitpoints": 2210,
+     "level": 58,
+     "townHall": 14
+    },
+    {
+     "abilityHealing": 229,
+     "damagePerHit": 505.8,
+     "hitpoints": 2227,
+     "level": 59,
+     "townHall": 14
+    },
+    {
+     "abilityHealing": 238,
+     "damagePerHit": 511.2,
+     "hitpoints": 2244,
+     "level": 60,
+     "townHall": 14
+    },
+    {
+     "abilityHealing": 238,
+     "damagePerHit": 514.8,
+     "hitpoints": 2261,
+     "level": 61,
+     "townHall": 15
+    },
+    {
+     "abilityHealing": 238,
+     "damagePerHit": 520.2,
+     "hitpoints": 2278,
+     "level": 62,
+     "townHall": 15
+    },
+    {
+     "abilityHealing": 238,
+     "damagePerHit": 525.6,
+     "hitpoints": 2295,
+     "level": 63,
+     "townHall": 15
+    },
+    {
+     "abilityHealing": 238,
+     "damagePerHit": 529.2,
+     "hitpoints": 2312,
+     "level": 64,
+     "townHall": 15
+    },
+    {
+     "abilityHealing": 247,
+     "damagePerHit": 534.6,
+     "hitpoints": 2329,
+     "level": 65,
+     "townHall": 15
+    },
+    {
+     "abilityHealing": 247,
+     "damagePerHit": 538.2,
+     "hitpoints": 2346,
+     "level": 66,
+     "townHall": 16
+    },
+    {
+     "abilityHealing": 247,
+     "damagePerHit": 543.6,
+     "hitpoints": 2363,
+     "level": 67,
+     "townHall": 16
+    },
+    {
+     "abilityHealing": 247,
+     "damagePerHit": 547.2,
+     "hitpoints": 2380,
+     "level": 68,
+     "townHall": 16
+    },
+    {
+     "abilityHealing": 247,
+     "damagePerHit": 552.6,
+     "hitpoints": 2397,
+     "level": 69,
+     "townHall": 16
+    },
+    {
+     "abilityHealing": 256,
+     "damagePerHit": 556.2,
+     "hitpoints": 2414,
+     "level": 70,
+     "townHall": 16
+    },
+    {
+     "abilityHealing": 256,
+     "damagePerHit": 561.6,
+     "hitpoints": 2431,
+     "level": 71,
+     "townHall": 17
+    },
+    {
+     "abilityHealing": 256,
+     "damagePerHit": 567,
+     "hitpoints": 2448,
+     "level": 72,
+     "townHall": 17
+    },
+    {
+     "abilityHealing": 256,
+     "damagePerHit": 572.4,
+     "hitpoints": 2465,
+     "level": 73,
+     "townHall": 17
+    },
+    {
+     "abilityHealing": 256,
+     "damagePerHit": 577.8,
+     "hitpoints": 2482,
+     "level": 74,
+     "townHall": 17
+    },
+    {
+     "abilityHealing": 265,
+     "damagePerHit": 583.2,
+     "hitpoints": 2499,
+     "level": 75,
+     "townHall": 17
+    },
+    {
+     "abilityHealing": 265,
+     "damagePerHit": 588.6,
+     "hitpoints": 2516,
+     "level": 76,
+     "townHall": 18
+    },
+    {
+     "abilityHealing": 265,
+     "damagePerHit": 594,
+     "hitpoints": 2533,
+     "level": 77,
+     "townHall": 18
+    },
+    {
+     "abilityHealing": 265,
+     "damagePerHit": 599.4,
+     "hitpoints": 2550,
+     "level": 78,
+     "townHall": 18
+    },
+    {
+     "abilityHealing": 265,
+     "damagePerHit": 604.8,
+     "hitpoints": 2567,
+     "level": 79,
+     "townHall": 18
+    },
+    {
+     "abilityHealing": 275,
+     "damagePerHit": 610.2,
+     "hitpoints": 2584,
+     "level": 80,
+     "townHall": 18
+    },
+    {
+     "abilityHealing": 275,
+     "damagePerHit": 615.6,
+     "hitpoints": 2601,
+     "level": 81,
+     "townHall": 18
+    },
+    {
+     "abilityHealing": 275,
+     "damagePerHit": 621,
+     "hitpoints": 2618,
+     "level": 82,
+     "townHall": 18
+    },
+    {
+     "abilityHealing": 275,
+     "damagePerHit": 626.4,
+     "hitpoints": 2635,
+     "level": 83,
+     "townHall": 18
+    },
+    {
+     "abilityHealing": 275,
+     "damagePerHit": 631.8,
+     "hitpoints": 2652,
+     "level": 84,
+     "townHall": 18
+    },
+    {
+     "abilityHealing": 285,
+     "damagePerHit": 637.2,
+     "hitpoints": 2669,
+     "level": 85,
+     "townHall": 18
+    }
+   ],
+   "movementSpeed": 16,
+   "name": "Grand Warden",
+   "range": 7
+  },
   "helperHut": {
    "countByTownHall": [
     0,
@@ -6128,6 +6852,399 @@
    "movementSpeed": 12,
    "name": "Root Rider",
    "range": 1
+  },
+  "royalChampion": {
+   "attackInterval": 1.2,
+   "levels": [
+    {
+     "abilityHealing": 400,
+     "damagePerHit": 408,
+     "hitpoints": 2508,
+     "level": 1,
+     "townHall": 13
+    },
+    {
+     "abilityHealing": 400,
+     "damagePerHit": 420,
+     "hitpoints": 2550,
+     "level": 2,
+     "townHall": 13
+    },
+    {
+     "abilityHealing": 400,
+     "damagePerHit": 432,
+     "hitpoints": 2593,
+     "level": 3,
+     "townHall": 13
+    },
+    {
+     "abilityHealing": 400,
+     "damagePerHit": 444,
+     "hitpoints": 2635,
+     "level": 4,
+     "townHall": 13
+    },
+    {
+     "abilityHealing": 500,
+     "damagePerHit": 450,
+     "hitpoints": 2678,
+     "level": 5,
+     "townHall": 13
+    },
+    {
+     "abilityHealing": 500,
+     "damagePerHit": 456,
+     "hitpoints": 2720,
+     "level": 6,
+     "townHall": 13
+    },
+    {
+     "abilityHealing": 500,
+     "damagePerHit": 462,
+     "hitpoints": 2763,
+     "level": 7,
+     "townHall": 13
+    },
+    {
+     "abilityHealing": 500,
+     "damagePerHit": 468,
+     "hitpoints": 2805,
+     "level": 8,
+     "townHall": 13
+    },
+    {
+     "abilityHealing": 500,
+     "damagePerHit": 475.2,
+     "hitpoints": 2848,
+     "level": 9,
+     "townHall": 13
+    },
+    {
+     "abilityHealing": 600,
+     "damagePerHit": 482.4,
+     "hitpoints": 2890,
+     "level": 10,
+     "townHall": 13
+    },
+    {
+     "abilityHealing": 600,
+     "damagePerHit": 489.6,
+     "hitpoints": 2933,
+     "level": 11,
+     "townHall": 13
+    },
+    {
+     "abilityHealing": 600,
+     "damagePerHit": 496.8,
+     "hitpoints": 2975,
+     "level": 12,
+     "townHall": 13
+    },
+    {
+     "abilityHealing": 600,
+     "damagePerHit": 504,
+     "hitpoints": 3018,
+     "level": 13,
+     "townHall": 13
+    },
+    {
+     "abilityHealing": 600,
+     "damagePerHit": 511.2,
+     "hitpoints": 3060,
+     "level": 14,
+     "townHall": 13
+    },
+    {
+     "abilityHealing": 700,
+     "damagePerHit": 518.4,
+     "hitpoints": 3103,
+     "level": 15,
+     "townHall": 13
+    },
+    {
+     "abilityHealing": 700,
+     "damagePerHit": 525.6,
+     "hitpoints": 3145,
+     "level": 16,
+     "townHall": 13
+    },
+    {
+     "abilityHealing": 700,
+     "damagePerHit": 532.8,
+     "hitpoints": 3188,
+     "level": 17,
+     "townHall": 13
+    },
+    {
+     "abilityHealing": 700,
+     "damagePerHit": 537.6,
+     "hitpoints": 3230,
+     "level": 18,
+     "townHall": 13
+    },
+    {
+     "abilityHealing": 700,
+     "damagePerHit": 542.4,
+     "hitpoints": 3273,
+     "level": 19,
+     "townHall": 13
+    },
+    {
+     "abilityHealing": 800,
+     "damagePerHit": 547.2,
+     "hitpoints": 3315,
+     "level": 20,
+     "townHall": 13
+    },
+    {
+     "abilityHealing": 800,
+     "damagePerHit": 552,
+     "hitpoints": 3349,
+     "level": 21,
+     "townHall": 13
+    },
+    {
+     "abilityHealing": 800,
+     "damagePerHit": 558,
+     "hitpoints": 3383,
+     "level": 22,
+     "townHall": 13
+    },
+    {
+     "abilityHealing": 800,
+     "damagePerHit": 564,
+     "hitpoints": 3417,
+     "level": 23,
+     "townHall": 13
+    },
+    {
+     "abilityHealing": 800,
+     "damagePerHit": 568.8,
+     "hitpoints": 3451,
+     "level": 24,
+     "townHall": 13
+    },
+    {
+     "abilityHealing": 900,
+     "damagePerHit": 572.4,
+     "hitpoints": 3485,
+     "level": 25,
+     "townHall": 13
+    },
+    {
+     "abilityHealing": 900,
+     "damagePerHit": 576,
+     "hitpoints": 3519,
+     "level": 26,
+     "townHall": 14
+    },
+    {
+     "abilityHealing": 900,
+     "damagePerHit": 579.6,
+     "hitpoints": 3553,
+     "level": 27,
+     "townHall": 14
+    },
+    {
+     "abilityHealing": 900,
+     "damagePerHit": 583.2,
+     "hitpoints": 3587,
+     "level": 28,
+     "townHall": 14
+    },
+    {
+     "abilityHealing": 900,
+     "damagePerHit": 586.8,
+     "hitpoints": 3621,
+     "level": 29,
+     "townHall": 14
+    },
+    {
+     "abilityHealing": 1000,
+     "damagePerHit": 590.4,
+     "hitpoints": 3655,
+     "level": 30,
+     "townHall": 14
+    },
+    {
+     "abilityHealing": 1000,
+     "damagePerHit": 594,
+     "hitpoints": 3681,
+     "level": 31,
+     "townHall": 15
+    },
+    {
+     "abilityHealing": 1000,
+     "damagePerHit": 597.6,
+     "hitpoints": 3706,
+     "level": 32,
+     "townHall": 15
+    },
+    {
+     "abilityHealing": 1000,
+     "damagePerHit": 602.4,
+     "hitpoints": 3732,
+     "level": 33,
+     "townHall": 15
+    },
+    {
+     "abilityHealing": 1000,
+     "damagePerHit": 607.2,
+     "hitpoints": 3757,
+     "level": 34,
+     "townHall": 15
+    },
+    {
+     "abilityHealing": 1100,
+     "damagePerHit": 612,
+     "hitpoints": 3783,
+     "level": 35,
+     "townHall": 15
+    },
+    {
+     "abilityHealing": 1100,
+     "damagePerHit": 616.8,
+     "hitpoints": 3808,
+     "level": 36,
+     "townHall": 15
+    },
+    {
+     "abilityHealing": 1100,
+     "damagePerHit": 621.6,
+     "hitpoints": 3834,
+     "level": 37,
+     "townHall": 15
+    },
+    {
+     "abilityHealing": 1100,
+     "damagePerHit": 626.4,
+     "hitpoints": 3859,
+     "level": 38,
+     "townHall": 15
+    },
+    {
+     "abilityHealing": 1100,
+     "damagePerHit": 631.2,
+     "hitpoints": 3885,
+     "level": 39,
+     "townHall": 15
+    },
+    {
+     "abilityHealing": 1200,
+     "damagePerHit": 636,
+     "hitpoints": 3910,
+     "level": 40,
+     "townHall": 15
+    },
+    {
+     "abilityHealing": 1200,
+     "damagePerHit": 639.6,
+     "hitpoints": 3936,
+     "level": 41,
+     "townHall": 16
+    },
+    {
+     "abilityHealing": 1200,
+     "damagePerHit": 643.2,
+     "hitpoints": 3961,
+     "level": 42,
+     "townHall": 16
+    },
+    {
+     "abilityHealing": 1200,
+     "damagePerHit": 646.8,
+     "hitpoints": 3987,
+     "level": 43,
+     "townHall": 16
+    },
+    {
+     "abilityHealing": 1200,
+     "damagePerHit": 650.4,
+     "hitpoints": 4012,
+     "level": 44,
+     "townHall": 16
+    },
+    {
+     "abilityHealing": 1300,
+     "damagePerHit": 654,
+     "hitpoints": 4038,
+     "level": 45,
+     "townHall": 16
+    },
+    {
+     "abilityHealing": 1300,
+     "damagePerHit": 657.6,
+     "hitpoints": 4064,
+     "level": 46,
+     "townHall": 17
+    },
+    {
+     "abilityHealing": 1300,
+     "damagePerHit": 661.2,
+     "hitpoints": 4090,
+     "level": 47,
+     "townHall": 17
+    },
+    {
+     "abilityHealing": 1300,
+     "damagePerHit": 664.8,
+     "hitpoints": 4116,
+     "level": 48,
+     "townHall": 17
+    },
+    {
+     "abilityHealing": 1300,
+     "damagePerHit": 668.4,
+     "hitpoints": 4142,
+     "level": 49,
+     "townHall": 17
+    },
+    {
+     "abilityHealing": 1400,
+     "damagePerHit": 672,
+     "hitpoints": 4168,
+     "level": 50,
+     "townHall": 17
+    },
+    {
+     "abilityHealing": 1400,
+     "damagePerHit": 675.6,
+     "hitpoints": 4194,
+     "level": 51,
+     "townHall": 18
+    },
+    {
+     "abilityHealing": 1400,
+     "damagePerHit": 679.2,
+     "hitpoints": 4220,
+     "level": 52,
+     "townHall": 18
+    },
+    {
+     "abilityHealing": 1400,
+     "damagePerHit": 682.8,
+     "hitpoints": 4246,
+     "level": 53,
+     "townHall": 18
+    },
+    {
+     "abilityHealing": 1400,
+     "damagePerHit": 686.4,
+     "hitpoints": 4272,
+     "level": 54,
+     "townHall": 18
+    },
+    {
+     "abilityHealing": 1500,
+     "damagePerHit": 690,
+     "hitpoints": 4298,
+     "level": 55,
+     "townHall": 18
+    }
+   ],
+   "movementSpeed": 24,
+   "name": "Royal Champion",
+   "range": 3
   },
   "scattershot": {
    "attackInterval": 3.2,

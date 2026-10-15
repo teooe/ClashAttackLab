@@ -7,6 +7,9 @@ nonisolated enum BattleSpellKind: Hashable, Codable, CaseIterable {
     case freeze
     case lightning
     case earthquake
+    case jump
+    case invisibility
+    case haste
 }
 
 /// Separates documented spell behavior from temporary tuning values.
@@ -30,6 +33,20 @@ nonisolated struct SpellDefinition {
     /// Flat movement speed bonus in world units per second, added on top of
     /// each troop's own speed, as granted by the real Rage Spell.
     var movementSpeedBonus: Double = 0
+
+    /// Ground troops inside the spell cross walls (Jump Spell).
+    var letsTroopsJumpWalls = false
+
+    /// Defenses inside the spell cannot be targeted by troops
+    /// (Invisibility Spell).
+    var hidesDefenses = false
+
+    /// Changes troop speed or damage while they stand inside the spell
+    /// (Rage, Haste).
+    var boostsTroops: Bool {
+        movementSpeedBonus > 0 || damageMultiplier > 1 ||
+            movementSpeedMultiplier > 1 || attackSpeedMultiplier > 1
+    }
 
     var dealsInstantDamage: Bool {
         instantDamage > 0 || maxHitPointDamageFraction > 0

@@ -68,6 +68,37 @@ nonisolated struct PrototypeGameData: GameDataProviding {
                 attackSpeedMultiplier: 1, disablesDefenses: false,
                 behaviorEvidence: .approximation, tuningEvidence: .prototype
             )
+        case .jump:
+            var spell = SpellDefinition(
+                displayName: "Salto", radius: 140, duration: 20,
+                healingPerSecond: 0, instantDamage: 0,
+                damageMultiplier: 1, movementSpeedMultiplier: 1,
+                attackSpeedMultiplier: 1, disablesDefenses: false,
+                behaviorEvidence: .documented, tuningEvidence: .prototype
+            )
+            spell.letsTroopsJumpWalls = true
+            return spell
+        case .invisibility:
+            var spell = SpellDefinition(
+                displayName: "Invisibilità", radius: 160, duration: 4,
+                healingPerSecond: 0, instantDamage: 0,
+                damageMultiplier: 1, movementSpeedMultiplier: 1,
+                attackSpeedMultiplier: 1, disablesDefenses: false,
+                behaviorEvidence: .documented, tuningEvidence: .prototype
+            )
+            spell.hidesDefenses = true
+            return spell
+        case .haste:
+            // Speed only: unlike Rage it adds no damage.
+            var spell = SpellDefinition(
+                displayName: "Velocità", radius: 160, duration: 10,
+                healingPerSecond: 0, instantDamage: 0,
+                damageMultiplier: 1, movementSpeedMultiplier: 1,
+                attackSpeedMultiplier: 1, disablesDefenses: false,
+                behaviorEvidence: .documented, tuningEvidence: .prototype
+            )
+            spell.movementSpeedBonus = 140
+            return spell
         }
     }
 
@@ -587,6 +618,80 @@ nonisolated struct PrototypeGameData: GameDataProviding {
                     preference: .airDefenses,
                     evidence: .documented
                 )
+            )
+
+        case .grandWarden:
+            // Eternal Tome shields every troop around the Warden.
+            var tome = HeroAbilityDefinition(
+                displayName: "Tomo eterno",
+                activationHealthFraction: 0.45,
+                duration: 5,
+                instantHealing: 150,
+                damageMultiplier: 1,
+                movementSpeedMultiplier: 1,
+                attackSpeedMultiplier: 1,
+                attackRangeMultiplier: 1,
+                behaviorEvidence: .documented,
+                tuningEvidence: .prototype
+            )
+            tome.protectionRadius = 280
+            return CombatDefinition(
+                displayName: TroopStyle.style(for: .grandWarden).displayName,
+                role: .troop,
+                maxHitPoints: 1_100,
+                movementSpeed: 85,
+                attackDamage: 120,
+                minimumAttackRange: 0,
+                attackRange: 280,
+                attackInterval: 1.8,
+                canMove: true,
+                projectileKind: .airBolt,
+                projectileSpeed: 700,
+                splashRadius: 0,
+                selfDestructsOnAttack: false,
+                targetingProfile: TargetingProfile(
+                    preference: .anyBuilding,
+                    evidence: .approximation
+                ),
+                heroAbility: tome
+            )
+
+        case .royalChampion:
+            // Seeking Shield bounces between the four closest defenses.
+            var shield = HeroAbilityDefinition(
+                displayName: "Scudo cercatore",
+                activationHealthFraction: 0.45,
+                duration: 0,
+                instantHealing: 300,
+                damageMultiplier: 1,
+                movementSpeedMultiplier: 1,
+                attackSpeedMultiplier: 1,
+                attackRangeMultiplier: 1,
+                behaviorEvidence: .documented,
+                tuningEvidence: .prototype
+            )
+            shield.strikeTargetCount = 4
+            shield.strikeRange = 360
+            shield.strikeDamageMultiplier = 2.5
+            return CombatDefinition(
+                displayName: TroopStyle.style(for: .royalChampion).displayName,
+                role: .troop,
+                maxHitPoints: 1_400,
+                movementSpeed: 125,
+                attackDamage: 170,
+                minimumAttackRange: 0,
+                attackRange: 120,
+                attackInterval: 1.2,
+                canMove: true,
+                projectileKind: .arrow,
+                projectileSpeed: 700,
+                splashRadius: 0,
+                selfDestructsOnAttack: false,
+                targetingProfile: TargetingProfile(
+                    preference: .defenses,
+                    evidence: .documented
+                ),
+                heroAbility: shield
             )
 
         case .cannon:

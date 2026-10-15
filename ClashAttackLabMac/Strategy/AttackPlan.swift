@@ -232,7 +232,7 @@ nonisolated struct ManualAttackPlan: Identifiable {
 
     var heroDeployments: [DeploymentOrder] {
         orderedDeployments.filter {
-            ($0.kind == .barbarianKing || $0.kind == .archerQueen) &&
+            $0.kind.isHero &&
                 $0.deploymentTime.isFinite &&
                 (0...latestOrderTime).contains($0.deploymentTime)
         }
@@ -417,8 +417,11 @@ extension AttackPlan {
             wallWreckers: deploymentCount(for: .wallWrecker),
             stoneSlammers: deploymentCount(for: .stoneSlammer)
         )
-        for kind in BattleEntityKind.advancedTroops {
+        for kind in BattleEntityKind.advancedTroops + BattleEntityKind.advancedHeroes {
             army[troop: kind] = deploymentCount(for: kind)
+        }
+        for kind in ArmyConfiguration.advancedSpellKinds {
+            army[spell: kind] = spellDeployments.filter { $0.kind == kind }.count
         }
         return army
     }

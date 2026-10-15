@@ -69,6 +69,8 @@ nonisolated enum BattleEntityKind: Hashable, Codable, CaseIterable {
     case electroDragon
     case dragonRider
     case lavaHound
+    case grandWarden
+    case royalChampion
 
     var isTrap: Bool {
         switch self {
@@ -95,6 +97,9 @@ nonisolated struct BattleEntity: Identifiable {
 
     /// Shots fired in the current burst by defenses that fire in bursts.
     var burstShotsFired = 0
+
+    /// Seconds left of protection from all damage (Eternal Tome).
+    var invulnerableRemaining: TimeInterval = 0
 
     /// Burrowing troops travel underground, out of reach of defenses and
     /// traps, until they surface to attack.
