@@ -148,8 +148,8 @@ struct HeroEquipmentTests {
         #expect(plain.buildingAuraDamagePerSecond == 0)
         // A piece for another hero is ignored.
         let wrong = try referenceData(equipment: [.archerQueen: [.giantGauntlet]])
-        #expect(wrong.definition(for: .archerQueen).maxHitPoints ==
-            try referenceData().definition(for: .archerQueen).maxHitPoints)
+        let bareQueen = try referenceData().definition(for: .archerQueen)
+        #expect(wrong.definition(for: .archerQueen).maxHitPoints == bareQueen.maxHitPoints)
     }
 
     // MARK: Battle
