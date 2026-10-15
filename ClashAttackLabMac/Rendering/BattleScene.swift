@@ -1158,7 +1158,7 @@ final class BattleScene: SKScene {
         case .stoneSlammer:
             return .systemCyan
         case .hogRider, .valkyrie, .golem, .bowler, .miner, .pekka, .yeti, .rootRider, .electroDragon, .dragonRider, .lavaHound,
-             .grandWarden, .royalChampion:
+             .grandWarden, .royalChampion, .lavaPup, .golemite:
             let style = TroopStyle.style(for: kind)
             return SKColor(red: style.red, green: style.green, blue: style.blue, alpha: 1)
         case .cannon, .archerTower, .mortar, .wizardTower, .infernoTower, .bombTower, .hiddenTesla, .giantBomb, .airBomb, .airSweeper, .airDefense,
@@ -1194,7 +1194,7 @@ final class BattleScene: SKScene {
         case .stoneSlammer:
             return "SP"
         case .hogRider, .valkyrie, .golem, .bowler, .miner, .pekka, .yeti, .rootRider, .electroDragon, .dragonRider, .lavaHound,
-             .grandWarden, .royalChampion:
+             .grandWarden, .royalChampion, .lavaPup, .golemite:
             return TroopStyle.style(for: kind).symbol
         case .cannon:
             return "C"
@@ -1325,7 +1325,7 @@ final class BattleScene: SKScene {
             )
 
         case .hogRider, .valkyrie, .golem, .bowler, .miner, .pekka, .yeti, .rootRider, .electroDragon, .dragonRider, .lavaHound,
-             .grandWarden, .royalChampion:
+             .grandWarden, .royalChampion, .lavaPup, .golemite:
             let style = TroopStyle.style(for: kind)
             return makeLabeledCircle(
                 radius: CGFloat(style.radius),

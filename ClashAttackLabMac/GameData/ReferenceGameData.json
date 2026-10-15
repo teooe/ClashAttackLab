@@ -4980,6 +4980,7 @@
      "deathDamage": 350,
      "hitpoints": 5100,
      "level": 1,
+     "spawnCount": 2,
      "townHall": 8
     },
     {
@@ -4987,6 +4988,7 @@
      "deathDamage": 400,
      "hitpoints": 5400,
      "level": 2,
+     "spawnCount": 2,
      "townHall": 8
     },
     {
@@ -4994,6 +4996,7 @@
      "deathDamage": 450,
      "hitpoints": 5700,
      "level": 3,
+     "spawnCount": 2,
      "townHall": 9
     },
     {
@@ -5001,6 +5004,7 @@
      "deathDamage": 500,
      "hitpoints": 6000,
      "level": 4,
+     "spawnCount": 2,
      "townHall": 9
     },
     {
@@ -5008,6 +5012,7 @@
      "deathDamage": 550,
      "hitpoints": 6300,
      "level": 5,
+     "spawnCount": 2,
      "townHall": 10
     },
     {
@@ -5015,6 +5020,7 @@
      "deathDamage": 600,
      "hitpoints": 6600,
      "level": 6,
+     "spawnCount": 2,
      "townHall": 11
     },
     {
@@ -5022,6 +5028,7 @@
      "deathDamage": 650,
      "hitpoints": 7000,
      "level": 7,
+     "spawnCount": 2,
      "townHall": 11
     },
     {
@@ -5029,6 +5036,7 @@
      "deathDamage": 700,
      "hitpoints": 7500,
      "level": 8,
+     "spawnCount": 3,
      "townHall": 12
     },
     {
@@ -5036,6 +5044,7 @@
      "deathDamage": 750,
      "hitpoints": 7900,
      "level": 9,
+     "spawnCount": 3,
      "townHall": 12
     },
     {
@@ -5043,6 +5052,7 @@
      "deathDamage": 800,
      "hitpoints": 8200,
      "level": 10,
+     "spawnCount": 3,
      "townHall": 13
     },
     {
@@ -5050,6 +5060,7 @@
      "deathDamage": 850,
      "hitpoints": 8500,
      "level": 11,
+     "spawnCount": 3,
      "townHall": 14
     },
     {
@@ -5057,6 +5068,7 @@
      "deathDamage": 900,
      "hitpoints": 8800,
      "level": 12,
+     "spawnCount": 3,
      "townHall": 15
     },
     {
@@ -5064,6 +5076,7 @@
      "deathDamage": 950,
      "hitpoints": 9200,
      "level": 13,
+     "spawnCount": 4,
      "townHall": 16
     },
     {
@@ -5071,6 +5084,7 @@
      "deathDamage": 1000,
      "hitpoints": 9600,
      "level": 14,
+     "spawnCount": 4,
      "townHall": 17
     },
     {
@@ -5078,6 +5092,7 @@
      "deathDamage": 1050,
      "hitpoints": 10600,
      "level": 15,
+     "spawnCount": 4,
      "townHall": 18
     }
    ],
@@ -6310,6 +6325,7 @@
      "deathDamage": 100,
      "hitpoints": 6100,
      "level": 1,
+     "spawnCount": 8,
      "townHall": 9
     },
     {
@@ -6317,6 +6333,7 @@
      "deathDamage": 150,
      "hitpoints": 6500,
      "level": 2,
+     "spawnCount": 10,
      "townHall": 9
     },
     {
@@ -6324,6 +6341,7 @@
      "deathDamage": 200,
      "hitpoints": 6800,
      "level": 3,
+     "spawnCount": 12,
      "townHall": 10
     },
     {
@@ -6331,6 +6349,7 @@
      "deathDamage": 250,
      "hitpoints": 7200,
      "level": 4,
+     "spawnCount": 14,
      "townHall": 11
     },
     {
@@ -6338,6 +6357,7 @@
      "deathDamage": 300,
      "hitpoints": 7600,
      "level": 5,
+     "spawnCount": 16,
      "townHall": 12
     },
     {
@@ -6345,6 +6365,7 @@
      "deathDamage": 350,
      "hitpoints": 8000,
      "level": 6,
+     "spawnCount": 18,
      "townHall": 13
     },
     {
@@ -6352,6 +6373,7 @@
      "deathDamage": 400,
      "hitpoints": 8500,
      "level": 7,
+     "spawnCount": 20,
      "townHall": 16
     },
     {
@@ -6359,6 +6381,7 @@
      "deathDamage": 450,
      "hitpoints": 9500,
      "level": 8,
+     "spawnCount": 22,
      "townHall": 18
     }
    ],

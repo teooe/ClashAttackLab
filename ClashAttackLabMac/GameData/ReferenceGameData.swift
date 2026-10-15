@@ -121,6 +121,9 @@ nonisolated struct ReferenceUnitLevel: Decodable {
     /// Housing space a Spring Trap can throw off the battlefield.
     let springCapacity: Int?
 
+    /// Troops released when this one dies (Golemites, Lava Pups).
+    let spawnCount: Int?
+
     /// Inferno Tower damage per hit for its three heat stages.
     let rampDamagePerHit: [Double]?
 }
@@ -281,6 +284,9 @@ nonisolated struct ReferenceGameData: GameDataProviding {
     }
 
     func definition(for kind: BattleEntityKind) -> CombatDefinition {
+        if kind == .golemite {
+            return golemiteDefinition()
+        }
         let base = fallback.definition(for: kind)
         guard
             let unit = catalog.unit(for: kind),
@@ -313,6 +319,10 @@ nonisolated struct ReferenceGameData: GameDataProviding {
                 ? .defense
                 : base.role
         var housingSpace = unit.housingSpace ?? base.housingSpace
+        var payload = base.siegePayload
+        if let count = level.spawnCount, let spawned = base.siegePayload.first {
+            payload = Array(repeating: spawned, count: count)
+        }
         var burstShotCount = base.burstShotCount
         var burstReloadTime = base.burstReloadTime
         var activationHousing = base.activationDeployedHousing
@@ -439,7 +449,7 @@ nonisolated struct ReferenceGameData: GameDataProviding {
             attackTargetLayer: base.attackTargetLayer,
             targetingProfile: base.targetingProfile,
             heroAbility: heroAbility,
-            siegePayload: base.siegePayload,
+            siegePayload: payload,
             // Traps trigger from their centre and never block or get hit.
             footprintSize: base.role == .trap
                 ? 0
@@ -456,7 +466,33 @@ nonisolated struct ReferenceGameData: GameDataProviding {
         definition.chainTargetCount = base.chainTargetCount
         definition.chainRange = base.chainRange
         definition.chainDamageMultiplier = base.chainDamageMultiplier
+        definition.auraRadius = base.auraRadius
+        definition.auraDamageReduction = base.auraDamageReduction
         return definition
+    }
+
+    /// Golemites are not in the catalog: each one takes a fifth of the
+    /// Golem's hit points and damage and keeps its pace.
+    private func golemiteDefinition() -> CombatDefinition {
+        let golem = definition(for: .golem)
+        let golemite = fallback.definition(for: .golemite)
+        return CombatDefinition(
+            displayName: golemite.displayName,
+            role: .troop,
+            maxHitPoints: golem.maxHitPoints / 5,
+            movementSpeed: golem.movementSpeed,
+            attackDamage: golem.attackDamage / 5,
+            minimumAttackRange: 0,
+            attackRange: golem.attackRange,
+            attackInterval: golem.attackInterval,
+            canMove: true,
+            projectileKind: nil,
+            projectileSpeed: 0,
+            splashRadius: 0,
+            selfDestructsOnAttack: false,
+            targetingProfile: golemite.targetingProfile,
+            footprintSize: 0
+        )
     }
 
     func spellDefinition(for kind: BattleSpellKind) -> SpellDefinition {
@@ -669,6 +705,8 @@ extension BattleEntityKind {
         case .lavaHound: return "lavaHound"
         case .grandWarden: return "grandWarden"
         case .royalChampion: return "royalChampion"
+        case .lavaPup: return "lavaPup"
+        case .golemite: return "golemite"
         }
     }
 }

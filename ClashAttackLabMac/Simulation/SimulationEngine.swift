@@ -634,6 +634,7 @@ nonisolated final class SimulationEngine {
 
             entities[trapIndex].isRevealed = true
             var damage: [UUID: Double] = [trap.id: trap.hitPoints]
+            var thrown: Set<UUID> = []
             switch trapDefinition.trapEffect {
             case .explosion:
                 break
@@ -662,6 +663,7 @@ nonisolated final class SimulationEngine {
                         housing <= remaining
                     {
                         remaining -= housing
+                        thrown.insert(troop.id)
                         damage[troop.id, default: 0] += troop.hitPoints
                     } else {
                         damage[troop.id, default: 0] +=
@@ -669,8 +671,23 @@ nonisolated final class SimulationEngine {
                     }
                 }
             }
-            apply(damage)
+            apply(damage, unprotected: thrown)
         }
+    }
+
+    /// Damage taken by a troop standing in a friendly aura; 1 elsewhere.
+    private func auraDamageMultiplier(for index: Int, sources: [Int]) -> Double {
+        guard definition(for: entities[index].kind).role == .troop else {
+            return 1
+        }
+        var reduction = 0.0
+        for source in sources where source != index && entities[source].isAlive {
+            let aura = definition(for: entities[source].kind)
+            if distance(from: entities[index].position, to: entities[source].position) <= aura.auraRadius {
+                reduction = max(reduction, aura.auraDamageReduction)
+            }
+        }
+        return 1 - reduction
     }
 
     private func nearest(
@@ -1419,8 +1436,17 @@ nonisolated final class SimulationEngine {
         }
     }
 
-    private func apply(_ pendingDamage: [UUID: Double]) {
+    /// Applies damage in waves until no destruction effect is left.
+    /// Troops in `unprotected` (thrown by a Spring Trap) ignore the
+    /// Warden's aura and tome.
+    private func apply(
+        _ pendingDamage: [UUID: Double],
+        unprotected: Set<UUID> = []
+    ) {
         var damageQueue = pendingDamage.filter { $0.value > 0 }
+        let auraSources = livingIndices(with: .troop).filter {
+            definition(for: entities[$0].kind).auraRadius > 0
+        }
         var payloadsToRelease: [
             (UUID, WorldPosition, [BattleEntityKind])
         ] = []
@@ -1434,16 +1460,20 @@ nonisolated final class SimulationEngine {
             ] = []
 
             for index in entities.indices {
-                let damage = damageWave[
+                var damage = damageWave[
                     entities[index].id,
                     default: 0
                 ]
+                let isProtectable = !unprotected.contains(entities[index].id)
                 guard
                     damage > 0,
                     entities[index].isAlive,
-                    entities[index].invulnerableRemaining <= 0
+                    !isProtectable || entities[index].invulnerableRemaining <= 0
                 else {
                     continue
+                }
+                if isProtectable, !auraSources.isEmpty {
+                    damage *= auraDamageMultiplier(for: index, sources: auraSources)
                 }
 
                 entities[index].hitPoints = max(
@@ -1555,7 +1585,7 @@ nonisolated final class SimulationEngine {
     ) {
         recordEvent(
             .siegePayloadReleased,
-            "Assedio distrutto: rilasciate \(payload.count) truppe"
+            "\(definition(for: entities.first { $0.id == sourceID }?.kind ?? .wallWrecker).displayName) distrutto: rilasciate \(payload.count) truppe"
         )
         for (offset, kind) in payload.enumerated() {
             let angle = Double(offset) *

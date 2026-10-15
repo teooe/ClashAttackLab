@@ -436,6 +436,29 @@ nonisolated struct PrototypeGameData: GameDataProviding {
                 targetingProfile: TargetingProfile(
                     preference: .defenses,
                     evidence: .documented
+                ),
+                // Splits into Golemites when it falls.
+                siegePayload: [.golemite, .golemite]
+            )
+
+        case .golemite:
+            return CombatDefinition(
+                displayName: TroopStyle.style(for: .golemite).displayName,
+                role: .troop,
+                maxHitPoints: 900,
+                movementSpeed: 75,
+                attackDamage: 12,
+                minimumAttackRange: 0,
+                attackRange: 40,
+                attackInterval: 2.4,
+                canMove: true,
+                projectileKind: nil,
+                projectileSpeed: 0,
+                splashRadius: 0,
+                selfDestructsOnAttack: false,
+                targetingProfile: TargetingProfile(
+                    preference: .defenses,
+                    evidence: .documented
                 )
             )
 
@@ -617,6 +640,30 @@ nonisolated struct PrototypeGameData: GameDataProviding {
                 targetingProfile: TargetingProfile(
                     preference: .airDefenses,
                     evidence: .documented
+                ),
+                // Bursts into Lava Pups when it falls.
+                siegePayload: Array(repeating: .lavaPup, count: 6)
+            )
+
+        case .lavaPup:
+            return CombatDefinition(
+                displayName: TroopStyle.style(for: .lavaPup).displayName,
+                role: .troop,
+                maxHitPoints: 100,
+                movementSpeed: 150,
+                attackDamage: 35,
+                minimumAttackRange: 0,
+                attackRange: 40,
+                attackInterval: 1.0,
+                canMove: true,
+                projectileKind: .fireball,
+                projectileSpeed: 600,
+                splashRadius: 0,
+                selfDestructsOnAttack: false,
+                movementDomain: .air,
+                targetingProfile: TargetingProfile(
+                    preference: .anyBuilding,
+                    evidence: .documented
                 )
             )
 
@@ -635,7 +682,7 @@ nonisolated struct PrototypeGameData: GameDataProviding {
                 tuningEvidence: .prototype
             )
             tome.protectionRadius = 280
-            return CombatDefinition(
+            var warden = CombatDefinition(
                 displayName: TroopStyle.style(for: .grandWarden).displayName,
                 role: .troop,
                 maxHitPoints: 1_100,
@@ -655,6 +702,10 @@ nonisolated struct PrototypeGameData: GameDataProviding {
                 ),
                 heroAbility: tome
             )
+            // Life Aura: troops around the Warden take less damage.
+            warden.auraRadius = 280
+            warden.auraDamageReduction = 0.2
+            return warden
 
         case .royalChampion:
             // Seeking Shield bounces between the four closest defenses.
