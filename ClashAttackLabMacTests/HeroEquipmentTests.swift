@@ -250,3 +250,42 @@ struct HeroEquipmentTests {
         }
     }
 }
+
+struct HeroEquipmentChoiceTests {
+    @Test
+    func storeRoundTripsTheChoice() throws {
+        let defaults = try #require(UserDefaults(suiteName: "HeroEquipmentChoiceTests-\(UUID().uuidString)"))
+        #expect(HeroEquipmentStore.load(from: defaults) == HeroEquipmentKind.defaultLoadouts)
+
+        let choice: [BattleEntityKind: [HeroEquipmentKind]] = [
+            .barbarianKing: [.rageVial, .vampstache],
+            .archerQueen: [],
+            // Pieces of another hero are dropped on load.
+            .grandWarden: [.eternalTome, .giantGauntlet]
+        ]
+        HeroEquipmentStore.save(choice, to: defaults)
+        let loaded = HeroEquipmentStore.load(from: defaults)
+
+        #expect(loaded[.barbarianKing] == [.rageVial, .vampstache])
+        #expect(loaded[.archerQueen] == [])
+        #expect(loaded[.grandWarden] == [.eternalTome])
+        #expect(loaded[.royalChampion] == nil)
+    }
+
+    @Test
+    func sessionRebuildsTheArenaWithTheChosenEquipment() {
+        let session = AttackLabSession()
+        let original = session.heroEquipment
+        defer { session.applyHeroEquipment(original) }
+
+        session.applyGameDataSource(.reference(townHall: 15))
+        let choice: [BattleEntityKind: [HeroEquipmentKind]] = [
+            .barbarianKing: [.rageVial, .vampstache]
+        ]
+        session.applyHeroEquipment(choice)
+
+        #expect(session.heroEquipment == choice)
+        #expect(session.arenaHeroEquipment == choice)
+        #expect(session.candidatePlanCount > 0)
+    }
+}

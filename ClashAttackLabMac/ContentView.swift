@@ -6,6 +6,7 @@ import UniformTypeIdentifiers
 struct ContentView: View {
     @StateObject private var session = AttackLabSession()
     @State private var showingArmyBuilder = false
+    @State private var showingHeroEquipment = false
     @State private var showingBaseLibrary = false
     @State private var showingSavedBaseLibrary = false
     @State private var showingPlanLibrary = false
@@ -323,6 +324,14 @@ struct ContentView: View {
                 session.applyArmyConfiguration(configuration)
             }
         }
+        .sheet(isPresented: $showingHeroEquipment) {
+            HeroEquipmentEditorView(
+                loadouts: session.heroEquipment,
+                heroes: BattleEntityKind.heroKinds.filter { session.armyRules.allows($0) }
+            ) { loadouts in
+                session.applyHeroEquipment(loadouts)
+            }
+        }
         .sheet(isPresented: $showingBaseLibrary) {
             BaseEditorView(
                 layout: session.baseLayout,
@@ -379,6 +388,14 @@ struct ContentView: View {
                 Label("Esercito", systemImage: "person.3.fill")
             }
             .help("Componi l’esercito")
+
+            Button {
+                showingHeroEquipment = true
+            } label: {
+                Label("Equipaggiamento", systemImage: "shield.lefthalf.filled")
+            }
+            .disabled(!session.isRealArena || session.isManualPlanning)
+            .help("Scegli l’equipaggiamento degli eroi (modalità reale)")
 
             Button {
                 showingBaseLibrary = true

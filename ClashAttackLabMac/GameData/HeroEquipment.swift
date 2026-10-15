@@ -75,6 +75,37 @@ nonisolated enum HeroEquipmentKind: String, Codable, CaseIterable, Hashable {
     static let piecesPerHero = 2
 }
 
+/// Keeps the player's equipment choice between launches.
+nonisolated enum HeroEquipmentStore {
+    static let key = "ClashAttackLab.heroEquipment.v1"
+
+    static func load(from defaults: UserDefaults = .standard) -> [BattleEntityKind: [HeroEquipmentKind]] {
+        guard
+            let data = defaults.data(forKey: key),
+            let stored = try? JSONDecoder().decode([String: [HeroEquipmentKind]].self, from: data)
+        else {
+            return HeroEquipmentKind.defaultLoadouts
+        }
+        var loadouts: [BattleEntityKind: [HeroEquipmentKind]] = [:]
+        for hero in BattleEntityKind.heroKinds {
+            if let pieces = stored[hero.referenceKey] {
+                loadouts[hero] = pieces.filter { $0.hero == hero }
+            }
+        }
+        return loadouts
+    }
+
+    static func save(
+        _ loadouts: [BattleEntityKind: [HeroEquipmentKind]],
+        to defaults: UserDefaults = .standard
+    ) {
+        let stored = Dictionary(uniqueKeysWithValues: loadouts.map { ($0.key.referenceKey, $0.value) })
+        if let data = try? JSONEncoder().encode(stored) {
+            defaults.set(data, forKey: key)
+        }
+    }
+}
+
 // MARK: - Catalog
 
 nonisolated struct ReferenceEquipment: Decodable {
