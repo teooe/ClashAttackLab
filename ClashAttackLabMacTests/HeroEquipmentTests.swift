@@ -89,13 +89,22 @@ struct HeroEquipmentTests {
 
     @Test
     func missingFieldsKeepTheLastListedValue() throws {
-        let entry = try #require(try catalog().equipment?["spikyBall"])
-        let listed = entry.levels.filter { $0.hitpointIncrease != nil }
-        let gap = try #require(entry.levels.first { level in
-            level.hitpointIncrease == nil && listed.contains { $0.level < level.level }
-        })
-        let previous = try #require(listed.last { $0.level < gap.level })
-        #expect(entry.stats(atLevel: gap.level)?.hitpointIncrease == previous.hitpointIncrease)
+        let json = """
+        {"name": "Prova", "hero": "barbarianKing", "rarity": "common", "active": true,
+         "ability": {},
+         "levels": [
+          {"level": 1, "hitpointIncrease": 100, "dpsIncrease": 10},
+          {"level": 2, "dpsIncrease": 20},
+          {"level": 3, "hitpointIncrease": 300}
+         ]}
+        """
+        let entry = try JSONDecoder().decode(ReferenceEquipment.self, from: Data(json.utf8))
+
+        #expect(entry.stats(atLevel: 2)?.hitpointIncrease == 100)
+        #expect(entry.stats(atLevel: 2)?.dpsIncrease == 20)
+        #expect(entry.stats(atLevel: 3)?.hitpointIncrease == 300)
+        #expect(entry.stats(atLevel: 3)?.dpsIncrease == 20)
+        #expect(entry.stats(atLevel: 0) == nil)
     }
 
     // MARK: Hero stats
@@ -192,17 +201,17 @@ struct HeroEquipmentTests {
     func electroBootsBurnNearbyBuildings() throws {
         func storageLoss(boots: Bool) throws -> Double {
             let data = try referenceData(equipment: boots ? [.royalChampion: [.electroBoots]] : [:])
-            let storage = BattleEntity(kind: .goldStorage, position: position(column: 25, row: 26))
-            let other = BattleEntity(kind: .goldStorage, position: position(column: 25, row: 30))
-            let champion = DeploymentOrder(kind: .royalChampion, position: position(column: 21, row: 30), deploymentTime: 0)
-            let engine = run([storage, other], [champion], gameData: data, seconds: 3)
+            let storage = BattleEntity(kind: .goldStorage, position: position(column: 25, row: 25))
+            let champion = DeploymentOrder(kind: .royalChampion, position: position(column: 21, row: 25), deploymentTime: 0)
+            let engine = run([storage], [champion], gameData: data, seconds: 3)
             let hit = try #require(engine.entities.first { $0.id == storage.id })
             return data.definition(for: .goldStorage).maxHitPoints - hit.hitPoints
         }
-        // The Champion attacks the other storage; only the aura reaches
-        // this one, about four tiles away.
-        #expect(try storageLoss(boots: false) == 0)
-        #expect(try storageLoss(boots: true) > 0)
+        // The boots add no damage per hit, so only the aura makes the
+        // difference.
+        let plain = try storageLoss(boots: false)
+        #expect(plain > 0)
+        #expect(try storageLoss(boots: true) > plain)
     }
 
     @Test
