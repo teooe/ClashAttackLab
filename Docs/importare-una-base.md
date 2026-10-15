@@ -35,6 +35,16 @@ wall 10 10 - 33 10
 | `livello 15` | Livello del Municipio a cui appartiene la base, da 7 a 18. |
 | `edificio colonna riga` | Un edificio, indicato dalla casella in alto a sinistra del suo ingombro. |
 | `edificio c1 r1 - c2 r2` | Una linea orizzontale o verticale di pezzi da una casella: muri, bombe, trappole. |
+| `rinforzi truppa numero …` | Truppe nel Castello del clan, per esempio `rinforzi dragon 2 wizard 2 archer 2`. Il numero si può omettere (vale 1). `rinforzi nessuno` lascia il Castello vuoto. |
+
+### Rinforzi del Castello del clan
+
+Se il file non ha la riga `rinforzi`, il Castello viene riempito come capita spesso in difesa:
+fino a 2 Draghi, poi 2 Stregoni, poi Arcieri per lo spazio rimasto. Al Municipio 15 ci stanno 50 posti, cioè 2 Draghi, 2 Stregoni e 2 Arcieri.
+
+I rinforzi escono quando una truppa attaccante arriva a 13 caselle dal Castello, uno ogni 0,4 secondi, oppure tutti insieme se il Castello viene distrutto.
+Inseguono l'attaccante più vicino. Le truppe che colpiscono qualsiasi bersaglio si fermano a combatterli; Giganti, Domatori e Palloncini li ignorano.
+Le truppe accettano gli stessi nomi degli edifici: chiave inglese (`dragon`, `wizard`, `archer`, `valkyrie`…) o nome italiano (`drago`, `stregone`, `arciere`, `valchiria`…).
 
 ### Coordinate
 
@@ -81,6 +91,7 @@ Valgono anche alcune abbreviazioni: `municipio`, `muro`, `balestra`, `aquila`, `
   - edifici fuori dalla mappa o sovrapposti;
   - un numero di Municipi diverso da uno;
   - una truppa al posto di un edificio.
-- **Avvisi**, che non bloccano l'importazione: più copie di un edificio di quante ne permetta il Municipio indicato.
+- **Avvisi**, che non bloccano l'importazione: più copie di un edificio di quante ne permetta il Municipio indicato, oppure rinforzi che occupano più posti di quanti ne contenga il Castello.
+- Un eroe, o una truppa che nasce solo in battaglia (Cucciolo lavico, Golemita), nella riga `rinforzi` è un errore.
 
 Un esempio completo del Municipio 15 è in `ClashAttackLabMac/Bases/esempio-municipio-15.txt`.

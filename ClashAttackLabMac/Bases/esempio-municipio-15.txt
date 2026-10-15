@@ -3,6 +3,8 @@
 # si indica con l'angolo in alto a sinistra del suo ingombro.
 nome Esempio Municipio 15
 livello 15
+# Truppe nel Castello del clan (50 posti al Municipio 15).
+rinforzi dragon 2 wizard 2 archer 2
 
 # Muri: due anelli attorno al Municipio
 wall 15 15 - 28 15

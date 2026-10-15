@@ -188,3 +188,110 @@ struct ClanCastleDefenseTests {
         #expect(target.hitPoints < data.definition(for: .giant).maxHitPoints)
     }
 }
+
+struct ClanCastleReinforcementTextTests {
+    @Test
+    func parsesReinforcementsWithOptionalCounts() throws {
+        let layout = try RealBaseLayoutText.parse("""
+        livello 15
+        townHall 20 20
+        rinforzi drago 2 stregone 2 arciere
+        """)
+        #expect(layout.clanCastleTroops == [.dragon, .dragon, .wizard, .wizard, .archer])
+
+        let empty = try RealBaseLayoutText.parse("townHall 20 20\nrinforzi nessuno")
+        #expect(empty.clanCastleTroops == [])
+
+        let none = try RealBaseLayoutText.parse("townHall 20 20")
+        #expect(none.clanCastleTroops == nil)
+    }
+
+    @Test
+    func reportsBadReinforcementLines() {
+        func line(of text: String) -> Int? {
+            do {
+                _ = try RealBaseLayoutText.parse(text)
+                return nil
+            } catch let error as RealBaseParseError {
+                return error.line
+            } catch {
+                return nil
+            }
+        }
+        #expect(line(of: "townHall 20 20\nrinforzi unicorno 2") == 2)
+        #expect(line(of: "townHall 20 20\nrinforzi dragon 99") == 2)
+        #expect(line(of: "townHall 20 20\nrinforzi") == 2)
+    }
+
+    @Test
+    func formatKeepsTheReinforcements() throws {
+        let layout = RealBaseLayout(
+            name: "Con rinforzi",
+            townHall: 15,
+            buildings: [RealBaseBuilding(kind: .townHall, column: 20, row: 20)],
+            clanCastleTroops: [.valkyrie, .valkyrie, .archer]
+        )
+        let parsed = try RealBaseLayoutText.parse(RealBaseLayoutText.format(layout))
+        #expect(parsed.clanCastleTroops == layout.clanCastleTroops)
+
+        var empty = layout
+        empty.clanCastleTroops = []
+        #expect(try RealBaseLayoutText.parse(RealBaseLayoutText.format(empty)).clanCastleTroops == [])
+    }
+
+    @Test
+    func validatesWhatGoesInTheCastle() throws {
+        let catalog = try ReferenceGameCatalog.loadBundled()
+        let heroes = RealBaseLayout(
+            name: "Eroi",
+            townHall: 15,
+            buildings: [RealBaseBuilding(kind: .townHall, column: 20, row: 20)],
+            clanCastleTroops: [.archerQueen, .lavaPup]
+        )
+        let errors = heroes.issues(catalog: catalog).filter(\.isError).map(\.text)
+        #expect(errors.filter { $0.contains("Castello del clan") }.count == 2)
+
+        let crowded = RealBaseLayout(
+            name: "Troppi",
+            townHall: 9,
+            buildings: [RealBaseBuilding(kind: .townHall, column: 20, row: 20)],
+            clanCastleTroops: [.dragon, .dragon]
+        )
+        #expect(crowded.isUsable(catalog: catalog))
+        #expect(crowded.issues(catalog: catalog).contains {
+            !$0.isError && $0.text.contains("Rinforzi da 40 posti")
+        })
+    }
+
+    @Test
+    func sessionUsesTheReinforcementsOfTheBase() throws {
+        let session = AttackLabSession()
+        let report = session.importRealBase(
+            text: """
+            nome Base con rinforzi di prova
+            livello 15
+            townHall 20 20
+            clanCastle 10 10
+            cannon 30 30
+            rinforzi valkyrie 3
+            """,
+            fileName: "rinforzi"
+        )
+        let imported = try #require(session.realBases.first { $0.name == "Base con rinforzi di prova" })
+        defer { session.removeRealBase(id: imported.id) }
+
+        #expect(report.imported, "\(report.messages)")
+        #expect(session.clanCastleTroops == [.valkyrie, .valkyrie, .valkyrie])
+
+        session.applyRealBaseChoice(.generated(.corridor))
+        #expect(session.clanCastleTroops == nil)
+    }
+
+    @Test
+    func bundledExampleListsItsReinforcements() throws {
+        let example = try #require(
+            RealBaseLayout.bundled().first { $0.name == "Esempio Municipio 15" }
+        )
+        #expect(example.clanCastleTroops == [.dragon, .dragon, .wizard, .wizard, .archer, .archer])
+    }
+}

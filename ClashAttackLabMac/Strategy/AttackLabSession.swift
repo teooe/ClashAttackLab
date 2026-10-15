@@ -1380,6 +1380,8 @@ final class AttackLabSession: ObservableObject {
 
     func applyBaseLayout(_ layout: PrototypeBaseLayout) {
         cancelSearch()
+        // Generated bases use the default Clan Castle filling.
+        useClanCastleTroops(nil)
         let entities = arena.makeBaseEntities(layout: layout)
 
         let guidance = makeGuidedCandidatePlans(
@@ -1412,8 +1414,32 @@ final class AttackLabSession: ObservableObject {
         resetManualDraft()
         scene.loadScenario(
             entities: entities,
-            attackPlan: initialPlan
+            attackPlan: initialPlan,
+            gameData: gameData
         )
+    }
+
+    /// Rebuilds the real arena's data when the base asks for different
+    /// Clan Castle reinforcements.
+    private func useClanCastleTroops(_ troops: [BattleEntityKind]?) {
+        guard
+            arena.isReal,
+            arena.clanCastleTroops != troops,
+            let rebuilt = try? BattleArena.make(
+                for: gameDataSource,
+                clanCastleTroops: troops
+            )
+        else {
+            return
+        }
+        arena = rebuilt
+        gameData = rebuilt.gameData
+    }
+
+    /// Clan Castle reinforcements of the base under attack; nil when the
+    /// default filling is used.
+    var clanCastleTroops: [BattleEntityKind]? {
+        arena.clanCastleTroops
     }
 
     /// Loads a validated JSON base as a live simulation scenario.
@@ -1473,7 +1499,8 @@ final class AttackLabSession: ObservableObject {
         resetManualDraft()
         scene.loadScenario(
             entities: entities,
-            attackPlan: initialPlan
+            attackPlan: initialPlan,
+            gameData: gameData
         )
         return true
     }
@@ -1547,6 +1574,7 @@ final class AttackLabSession: ObservableObject {
         if gameDataSource != .reference(townHall: townHall) {
             applyGameDataSource(.reference(townHall: townHall))
         }
+        useClanCastleTroops(layout.clanCastleTroops)
         guard
             arena.isReal,
             let issues = arena.issues(for: layout),
