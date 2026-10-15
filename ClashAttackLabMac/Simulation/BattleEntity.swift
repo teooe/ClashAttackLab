@@ -50,10 +50,18 @@ nonisolated enum BattleEntityKind: Hashable, Codable, CaseIterable {
     case blacksmith
     case builderHut
     case helperHut
+    case xBow
+    case eagleArtillery
+    case scattershot
+    case spellTower
+    case monolith
+    case bomb
+    case springTrap
+    case seekingAirMine
 
     var isTrap: Bool {
         switch self {
-        case .giantBomb, .airBomb:
+        case .giantBomb, .airBomb, .bomb, .springTrap, .seekingAirMine:
             return true
         default:
             return false
@@ -73,6 +81,9 @@ nonisolated struct BattleEntity: Identifiable {
     /// Tracks repeated hits on one target for ramping attacks.
     var lastAttackedTargetID: UUID?
     var consecutiveAttacksOnTarget: Int
+
+    /// Shots fired in the current burst by defenses that fire in bursts.
+    var burstShotsFired = 0
 
     /// Hidden defenses cannot attack or be targeted before activation.
     var isRevealed: Bool

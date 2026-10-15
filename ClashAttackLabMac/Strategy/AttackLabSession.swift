@@ -304,6 +304,13 @@ final class AttackLabSession: ObservableObject {
         arena.isReal
     }
 
+    /// Latest time an order may start in the current battle mode.
+    var latestOrderTime: TimeInterval {
+        BattleTiming.latestOrderTime(
+            forBattleDuration: gameData.battleDuration
+        )
+    }
+
     var armyRules: ArmyCapacityRules {
         arena.armyRules
     }
@@ -512,7 +519,8 @@ final class AttackLabSession: ObservableObject {
         let averageRow =
             deploymentRows.reduce(0, +) / deploymentRows.count
         let shiftedPlan = AttackPlanRefiner(
-            navigationGrid: navigationGrid
+            navigationGrid: navigationGrid,
+            latestOrderTime: latestOrderTime
         ).variant(
             from: westPlan,
             laneOffset: lane.row - averageRow
@@ -760,7 +768,7 @@ final class AttackLabSession: ObservableObject {
                 return HeroAbilityOrder(
                     entityID: deployment.entityID,
                     activationTime: min(
-                        59,
+                        latestOrderTime,
                         max(
                             deployment.deploymentTime,
                             deployment.deploymentTime +
@@ -851,7 +859,10 @@ final class AttackLabSession: ObservableObject {
     func refineCurrentPlanAcrossBases() {
         guard !isManualPlanning else { return }
         let plan = activePlan
-        let refiner = AttackPlanRefiner(navigationGrid: navigationGrid)
+        let refiner = AttackPlanRefiner(
+            navigationGrid: navigationGrid,
+            latestOrderTime: latestOrderTime
+        )
         let variants = transformingOnWest(plan) { refiner.variants(for: $0) }
         startSearch(title: "Ottimizzazione", total: variants.count * PrototypeBaseLayout.allCases.count) { [weak self] in
             guard let self else { return }
@@ -1088,10 +1099,11 @@ final class AttackLabSession: ObservableObject {
             name: plan.name,
             deployments: plan.deployments,
             spellDeployments: plan.spellDeployments,
-            heroAbilityOrders: plan.heroAbilityOrders
+            heroAbilityOrders: plan.heroAbilityOrders,
+            latestOrderTime: latestOrderTime
         )
         manualNextDeploymentTime = min(
-            59,
+            latestOrderTime,
             manualPlan.latestDeploymentTime + 0.6
         )
         manualSelection = defaultManualSelection
@@ -1180,7 +1192,7 @@ final class AttackLabSession: ObservableObject {
                             }) else { return nil }
                             return HeroAbilityOrder(
                                 entityID: deployment.entityID,
-                                activationTime: min(59, max(deployment.deploymentTime,
+                                activationTime: min(self.latestOrderTime, max(deployment.deploymentTime,
                                     deployment.deploymentTime + command.activationTime -
                                         original.deploymentTime))
                             )
@@ -1480,7 +1492,7 @@ final class AttackLabSession: ObservableObject {
 
     func adjustManualDeploymentTime(by delta: TimeInterval) {
         let updated = manualNextDeploymentTime + delta
-        manualNextDeploymentTime = min(59, max(0, updated))
+        manualNextDeploymentTime = min(latestOrderTime, max(0, updated))
     }
 
     func setManualHeroAbilityTime(entityID: UUID, to time: TimeInterval) {
@@ -1515,7 +1527,7 @@ final class AttackLabSession: ObservableObject {
         manualPlan.removeMostRecentOrder()
         manualNextDeploymentTime = manualPlan.totalOrderCount == 0
             ? 0
-            : min(59, manualPlan.latestDeploymentTime + 0.6)
+            : min(latestOrderTime, manualPlan.latestDeploymentTime + 0.6)
         scene.loadAttackPlan(manualPlan.makeAttackPlan())
     }
 
@@ -1552,7 +1564,7 @@ final class AttackLabSession: ObservableObject {
             time: manualNextDeploymentTime
         )
         manualNextDeploymentTime = min(
-            59,
+            latestOrderTime,
             manualNextDeploymentTime + 0.6
         )
 
@@ -1575,7 +1587,7 @@ final class AttackLabSession: ObservableObject {
     }
 
     private func resetManualDraft() {
-        manualPlan = ManualAttackPlan()
+        manualPlan = ManualAttackPlan(latestOrderTime: latestOrderTime)
         manualNextDeploymentTime = 0
         manualSelection = defaultManualSelection
     }

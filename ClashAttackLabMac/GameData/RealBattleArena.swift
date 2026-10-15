@@ -129,9 +129,9 @@ nonisolated enum RealBattleMap {
 /// Buildings sit in 4×4-tile slots (a footprint up to 3×3 plus a one-tile
 /// lane), arranged in square rings around the Town Hall. Walls follow the
 /// lanes between rings and traps take free lane crossings, so nothing
-/// overlaps. The three prototype layouts map to three wall and priority
-/// patterns. Non-defensive buildings the simulator does not model yet
-/// (collectors, camps, barracks…) are left out.
+/// overlaps. 4×4 buildings fill a whole slot, lane included, so they only
+/// take slots away from the lanes that carry walls. The three prototype
+/// layouts map to three wall and priority patterns.
 nonisolated struct RealBaseLayoutGenerator {
     private struct Variant {
         let wallRings: [Int]
@@ -182,8 +182,23 @@ nonisolated struct RealBaseLayoutGenerator {
         let slots = orderedSlots(rotation: variant.rotation)
         let buildings = interleaved(variant.priority) +
             interleaved(Self.utilityPriority)
-        for (kind, slot) in zip(buildings, slots) {
+        let laneSlots = Set(variant.wallRings.flatMap {
+            [Self.centerSlot - $0 - 1, Self.centerSlot + $0]
+        })
+        var freeSlots = slots
+        for kind in buildings {
             let size = footprint(of: kind)
+            // A building filling the whole slot covers the lane on its far
+            // edges, so it must stay off the lanes that carry walls.
+            let fits: (GridCoordinate) -> Bool = { slot in
+                size < Self.slotPitch ||
+                    (!laneSlots.contains(slot.column) &&
+                        !laneSlots.contains(slot.row))
+            }
+            guard let slotIndex = freeSlots.firstIndex(where: fits) else {
+                continue
+            }
+            let slot = freeSlots.remove(at: slotIndex)
             let offset = size >= 3 ? 0 : 1
             place(
                 kind,
@@ -210,7 +225,7 @@ nonisolated struct RealBaseLayoutGenerator {
                 row: slotOrigin($0.row) + Self.slotPitch - 1
             )
         }.filter { !occupied.contains($0) && navigationGrid.contains($0) }
-        for (kind, cell) in zip(interleaved([.giantBomb, .airBomb]), crossings) {
+        for (kind, cell) in zip(interleaved(Self.trapPriority), crossings) {
             place(kind, column: cell.column, row: cell.row, size: 1)
         }
 
@@ -336,14 +351,20 @@ nonisolated struct RealBaseLayoutGenerator {
         .elixirCollector, .darkElixirDrill, .builderHut, .helperHut
     ]
 
+    /// Traps go on lane crossings, the strongest ones first.
+    static let trapPriority: [BattleEntityKind] = [
+        .giantBomb, .seekingAirMine, .airBomb, .springTrap, .bomb
+    ]
+
     private static func variant(for layout: PrototypeBaseLayout) -> Variant {
         switch layout {
         case .fortress:
             return Variant(
                 wallRings: [1, 3],
                 priority: [
-                    .infernoTower, .airDefense, .wizardTower, .bombTower,
-                    .hiddenTesla, .mortar, .archerTower, .cannon,
+                    .eagleArtillery, .monolith, .infernoTower, .xBow,
+                    .airDefense, .scattershot, .wizardTower, .spellTower,
+                    .bombTower, .hiddenTesla, .mortar, .archerTower, .cannon,
                     .airSweeper, .goldStorage
                 ],
                 rotation: 0
@@ -352,9 +373,10 @@ nonisolated struct RealBaseLayoutGenerator {
             return Variant(
                 wallRings: [2, 4],
                 priority: [
-                    .goldStorage, .mortar, .airDefense, .wizardTower,
-                    .infernoTower, .hiddenTesla, .cannon, .archerTower,
-                    .bombTower, .airSweeper
+                    .goldStorage, .eagleArtillery, .mortar, .airDefense,
+                    .xBow, .wizardTower, .infernoTower, .monolith,
+                    .hiddenTesla, .scattershot, .cannon, .archerTower,
+                    .spellTower, .bombTower, .airSweeper
                 ],
                 rotation: 3
             )
@@ -362,9 +384,10 @@ nonisolated struct RealBaseLayoutGenerator {
             return Variant(
                 wallRings: [1, 2, 4],
                 priority: [
-                    .airDefense, .infernoTower, .goldStorage, .wizardTower,
-                    .bombTower, .mortar, .hiddenTesla, .archerTower,
-                    .cannon, .airSweeper
+                    .airDefense, .infernoTower, .xBow, .eagleArtillery,
+                    .goldStorage, .scattershot, .wizardTower, .monolith,
+                    .bombTower, .spellTower, .mortar, .hiddenTesla,
+                    .archerTower, .cannon, .airSweeper
                 ],
                 rotation: 5
             )

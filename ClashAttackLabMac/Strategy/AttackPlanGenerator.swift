@@ -47,6 +47,12 @@ nonisolated struct AttackPlanGenerator {
         self.armyRules = armyRules
     }
 
+    private var latestOrderTime: TimeInterval {
+        BattleTiming.latestOrderTime(
+            forBattleDuration: gameData.battleDuration
+        )
+    }
+
     func generate() -> [AttackPlan] {
         precondition(
             armyConfiguration.isValid(under: armyRules),
@@ -199,7 +205,7 @@ nonisolated struct AttackPlanGenerator {
                     )
                 ),
                 deploymentTime: min(
-                    59,
+                    latestOrderTime,
                     Double(wave) * tempo.waveGap +
                         Double(slot) * tempo.withinWaveDelay
                 )
@@ -271,7 +277,7 @@ nonisolated struct AttackPlanGenerator {
                 kind: kind,
                 position: position,
                 deploymentTime: min(
-                    59,
+                    latestOrderTime,
                     firstSpellTime + Double(index) * 2.2
                 )
             )
@@ -337,7 +343,8 @@ nonisolated struct AttackPlanGenerator {
             offset = direction * 2
         case .cannon, .archerTower, .mortar, .wizardTower, .infernoTower, .bombTower, .hiddenTesla, .giantBomb, .airBomb, .airSweeper, .airDefense,
              .townHall, .goldStorage, .wall,
-             .goldMine, .elixirCollector, .darkElixirDrill, .elixirStorage, .darkElixirStorage, .clanCastle, .armyCamp, .barracks, .darkBarracks, .laboratory, .spellFactory, .darkSpellFactory, .workshop, .heroHall, .petHouse, .blacksmith, .builderHut, .helperHut:
+             .goldMine, .elixirCollector, .darkElixirDrill, .elixirStorage, .darkElixirStorage, .clanCastle, .armyCamp, .barracks, .darkBarracks, .laboratory, .spellFactory, .darkSpellFactory, .workshop, .heroHall, .petHouse, .blacksmith, .builderHut, .helperHut,
+             .xBow, .eagleArtillery, .scattershot, .spellTower, .monolith, .bomb, .springTrap, .seekingAirMine:
             offset = 0
         }
 
@@ -364,7 +371,8 @@ nonisolated struct AttackPlanGenerator {
             return 0
         case .cannon, .archerTower, .mortar, .wizardTower, .infernoTower, .bombTower, .hiddenTesla, .giantBomb, .airBomb, .airSweeper, .airDefense,
              .townHall, .goldStorage, .wall,
-             .goldMine, .elixirCollector, .darkElixirDrill, .elixirStorage, .darkElixirStorage, .clanCastle, .armyCamp, .barracks, .darkBarracks, .laboratory, .spellFactory, .darkSpellFactory, .workshop, .heroHall, .petHouse, .blacksmith, .builderHut, .helperHut:
+             .goldMine, .elixirCollector, .darkElixirDrill, .elixirStorage, .darkElixirStorage, .clanCastle, .armyCamp, .barracks, .darkBarracks, .laboratory, .spellFactory, .darkSpellFactory, .workshop, .heroHall, .petHouse, .blacksmith, .builderHut, .helperHut,
+             .xBow, .eagleArtillery, .scattershot, .spellTower, .monolith, .bomb, .springTrap, .seekingAirMine:
             return 1
         }
     }

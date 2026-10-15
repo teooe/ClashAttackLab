@@ -826,7 +826,7 @@ final class BattleScene: SKScene {
         {
             let definition = simulation.definition(for: entity.kind)
             let radius = entity.kind.isTrap
-                ? definition.destructionRadius
+                ? max(definition.destructionRadius, definition.activationRange)
                 : 30
             let explosion = SKShapeNode(circleOfRadius: radius)
             explosion.position = CGPoint(
@@ -1154,7 +1154,8 @@ final class BattleScene: SKScene {
             return .systemCyan
         case .cannon, .archerTower, .mortar, .wizardTower, .infernoTower, .bombTower, .hiddenTesla, .giantBomb, .airBomb, .airSweeper, .airDefense,
              .townHall, .goldStorage, .wall,
-             .goldMine, .elixirCollector, .darkElixirDrill, .elixirStorage, .darkElixirStorage, .clanCastle, .armyCamp, .barracks, .darkBarracks, .laboratory, .spellFactory, .darkSpellFactory, .workshop, .heroHall, .petHouse, .blacksmith, .builderHut, .helperHut:
+             .goldMine, .elixirCollector, .darkElixirDrill, .elixirStorage, .darkElixirStorage, .clanCastle, .armyCamp, .barracks, .darkBarracks, .laboratory, .spellFactory, .darkSpellFactory, .workshop, .heroHall, .petHouse, .blacksmith, .builderHut, .helperHut,
+             .xBow, .eagleArtillery, .scattershot, .spellTower, .monolith, .bomb, .springTrap, .seekingAirMine:
             return .systemCyan
         }
     }
@@ -1211,6 +1212,22 @@ final class BattleScene: SKScene {
             return "D"
         case .wall:
             return "M"
+        case .xBow:
+            return "XB"
+        case .eagleArtillery:
+            return "EA"
+        case .scattershot:
+            return "LR"
+        case .spellTower:
+            return "TS"
+        case .monolith:
+            return "MN"
+        case .bomb:
+            return "BO"
+        case .springTrap:
+            return "TM"
+        case .seekingAirMine:
+            return "MA"
         case .goldMine, .elixirCollector, .darkElixirDrill, .elixirStorage, .darkElixirStorage, .clanCastle, .armyCamp, .barracks, .darkBarracks, .laboratory, .spellFactory, .darkSpellFactory, .workshop, .heroHall, .petHouse, .blacksmith, .builderHut, .helperHut:
             return UtilityBuildingStyle.style(for: kind).symbol
         }
@@ -1389,6 +1406,62 @@ final class BattleScene: SKScene {
                 radius: 35,
                 color: .systemYellow,
                 text: "D"
+            )
+
+        case .xBow:
+            return makeLabeledRectangle(
+                size: CGSize(width: 76, height: 76),
+                color: .systemPink,
+                text: "XB"
+            )
+
+        case .eagleArtillery:
+            return makeLabeledRectangle(
+                size: CGSize(width: 80, height: 80),
+                color: .systemBrown,
+                text: "EA"
+            )
+
+        case .scattershot:
+            return makeLabeledRectangle(
+                size: CGSize(width: 72, height: 72),
+                color: .systemGray,
+                text: "LR"
+            )
+
+        case .spellTower:
+            return makeLabeledRectangle(
+                size: CGSize(width: 62, height: 62),
+                color: .systemPurple,
+                text: "TS"
+            )
+
+        case .monolith:
+            return makeLabeledRectangle(
+                size: CGSize(width: 72, height: 72),
+                color: .darkGray,
+                text: "MN"
+            )
+
+        case .bomb:
+            return makeLabeledCircle(
+                radius: 18,
+                color: .systemOrange,
+                text: "BO"
+            )
+
+        case .springTrap:
+            return makeLabeledCircle(
+                radius: 18,
+                color: .systemGreen,
+                text: "TM"
+            )
+
+        case .seekingAirMine:
+            return makeLabeledCircle(
+                radius: 20,
+                color: .systemTeal,
+                text: "MA"
             )
 
         case .goldMine, .elixirCollector, .darkElixirDrill, .elixirStorage, .darkElixirStorage, .clanCastle, .armyCamp, .barracks, .darkBarracks, .laboratory, .spellFactory, .darkSpellFactory, .workshop, .heroHall, .petHouse, .blacksmith, .builderHut, .helperHut:

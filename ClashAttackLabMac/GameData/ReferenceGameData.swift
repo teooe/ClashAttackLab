@@ -59,6 +59,16 @@ nonisolated struct ReferenceUnit: Decodable {
     let triggerRadius: Double?
     let damageRadius: Double?
 
+    /// Blind spot around the defense, in tiles.
+    let minimumRange: Double?
+
+    /// Burst fire: shots in a row, then the pause before the next burst.
+    let shotsPerBurst: Int?
+    let timeBetweenBursts: Double?
+
+    /// Housing space the attacker must deploy before the defense wakes up.
+    let activationHousingSpace: Int?
+
     /// Footprint side in tiles; nil for troops.
     let size: Int?
 
@@ -104,6 +114,12 @@ nonisolated struct ReferenceUnitLevel: Decodable {
     let damageRadius: Double?
     let pushStrength: Double?
     let abilityHealing: Double?
+
+    /// Monolith bonus damage as a percentage of the target's hit points.
+    let bonusDamagePercent: Double?
+
+    /// Housing space a Spring Trap can throw off the battlefield.
+    let springCapacity: Int?
 
     /// Inferno Tower damage per hit for its three heat stages.
     let rampDamagePerHit: [Double]?
@@ -224,6 +240,10 @@ nonisolated struct ReferenceGameData: GameDataProviding {
     /// Wall Breakers deal 40× damage to walls.
     static let wallBreakerWallMultiplier = 40.0
 
+    /// Heroes weigh this much housing space towards waking the Eagle
+    /// Artillery.
+    static let heroHousingWeight = 25
+
     /// Inferno Tower heat stages begin after these many seconds.
     static let infernoStageStartTimes: [TimeInterval] = [0, 1.5, 5]
 
@@ -286,7 +306,20 @@ nonisolated struct ReferenceGameData: GameDataProviding {
             $0 / Self.movementSpeedPerTileSecond * tileSize
         } ?? base.movementSpeed
 
-        switch base.role {
+        // Builder's Huts carry a crossbow from Town Hall 14 and then
+        // defend like any other defense.
+        let role: BattleEntityRole =
+            kind == .builderHut && (level.damagePerHit ?? 0) > 0
+                ? .defense
+                : base.role
+        var housingSpace = unit.housingSpace ?? base.housingSpace
+        var burstShotCount = base.burstShotCount
+        var burstReloadTime = base.burstReloadTime
+        var activationHousing = base.activationDeployedHousing
+        var bonusFraction = base.targetMaxHitPointDamageFraction
+        var trapEffect = base.trapEffect
+
+        switch role {
         case .troop:
             // Troop reach is measured from the target's footprint edge.
             attackRange = (unit.range ?? Self.siegeMachineRange) * tileSize
@@ -295,6 +328,9 @@ nonisolated struct ReferenceGameData: GameDataProviding {
             }
             if let multiplier = level.wallDamageMultiplier {
                 wallMultiplier = multiplier
+            }
+            if base.heroAbility != nil {
+                housingSpace = Self.heroHousingWeight
             }
             if let ability = base.heroAbility, let healing = level.abilityHealing {
                 heroAbility = HeroAbilityDefinition(
@@ -317,6 +353,19 @@ nonisolated struct ReferenceGameData: GameDataProviding {
             }
             if kind == .mortar {
                 minimumAttackRange = Self.mortarMinimumRange * tileSize
+            }
+            if let minimum = unit.minimumRange {
+                minimumAttackRange = minimum * tileSize
+            }
+            if let shots = unit.shotsPerBurst, shots > 1 {
+                burstShotCount = shots
+                burstReloadTime = unit.timeBetweenBursts ?? burstReloadTime
+            }
+            if let housing = unit.activationHousingSpace {
+                activationHousing = housing
+            }
+            if let bonus = level.bonusDamagePercent {
+                bonusFraction = bonus / 100
             }
             if let splash = unit.splashRadius {
                 splashRadius = splash * tileSize
@@ -349,15 +398,18 @@ nonisolated struct ReferenceGameData: GameDataProviding {
             if let trigger = unit.triggerRadius {
                 activationRange = trigger * tileSize
             }
+            if let capacity = level.springCapacity {
+                trapEffect = .spring(capacity: capacity)
+            }
 
         case .building, .wall:
-            // Builder huts export a repair weapon; buildings never attack.
+            // Unarmed Builder's Huts and other buildings never attack.
             attackDamage = base.attackDamage
         }
 
-        return CombatDefinition(
+        var definition = CombatDefinition(
             displayName: base.displayName,
-            role: base.role,
+            role: role,
             maxHitPoints: level.hitpoints ?? base.maxHitPoints,
             movementSpeed: movementSpeed,
             attackDamage: attackDamage,
@@ -387,6 +439,13 @@ nonisolated struct ReferenceGameData: GameDataProviding {
                 ? 0
                 : Double(unit.size ?? 0) * tileSize
         )
+        definition.housingSpace = housingSpace
+        definition.burstShotCount = burstShotCount
+        definition.burstReloadTime = burstReloadTime
+        definition.activationDeployedHousing = activationHousing
+        definition.targetMaxHitPointDamageFraction = bonusFraction
+        definition.trapEffect = trapEffect
+        return definition
     }
 
     func spellDefinition(for kind: BattleSpellKind) -> SpellDefinition {
@@ -570,6 +629,14 @@ extension BattleEntityKind {
         case .blacksmith: return "blacksmith"
         case .builderHut: return "builderHut"
         case .helperHut: return "helperHut"
+        case .xBow: return "xBow"
+        case .eagleArtillery: return "eagleArtillery"
+        case .scattershot: return "scattershot"
+        case .spellTower: return "spellTower"
+        case .monolith: return "monolith"
+        case .bomb: return "bomb"
+        case .springTrap: return "springTrap"
+        case .seekingAirMine: return "seekingAirMine"
         }
     }
 }

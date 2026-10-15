@@ -76,6 +76,20 @@ UNITS = {
     "blacksmith": "army-buildings/blacksmith.json",
     "builderHut": "defenses/builders-hut.json",
     "helperHut": "other/helper-hut.json",
+    "xBow": "defenses/x-bow.json",
+    "eagleArtillery": "defenses/eagle-artillery.json",
+    "scattershot": "defenses/scattershot.json",
+    "spellTower": "defenses/spell-tower.json",
+    "monolith": "defenses/monolith.json",
+    "bomb": "traps/bomb.json",
+    "springTrap": "traps/spring-trap.json",
+    "seekingAirMine": "traps/seeking-air-mine.json",
+}
+
+# Defenses with several firing modes use the named one instead of "normal".
+# The X-Bow is modeled in its air-and-ground setting.
+MODES = {
+    "xBow": "airAndGround",
 }
 
 SPELLS = {
@@ -160,7 +174,7 @@ def army_capacity(root):
 
 
 def unit_entry(key, data, hero_halls):
-    normal_mode = data.get("modes", {}).get("normal", {})
+    normal_mode = data.get("modes", {}).get(MODES.get(key, "normal"), {})
     entry = compact({
         "name": data["name"],
         "range": data.get("range", normal_mode.get("range")),
@@ -173,6 +187,10 @@ def unit_entry(key, data, hero_halls):
             "triggerRadius", normal_mode.get("triggerRange")
         ),
         "damageRadius": data.get("damageRadius"),
+        "minimumRange": normal_mode.get("minRange"),
+        "shotsPerBurst": normal_mode.get("shotsPerBurst"),
+        "timeBetweenBursts": normal_mode.get("timeBetweenBursts"),
+        "activationHousingSpace": normal_mode.get("activationHousingSpace"),
         "size": footprint(data.get("size")),
         "housingSpace": data.get("housingSpace"),
         "countByTownHall": counts_by_town_hall(data),
@@ -219,6 +237,8 @@ def unit_entry(key, data, hero_halls):
             "damageRadius": level.get("damageRadius"),
             "pushStrength": stats.get("pushStrength"),
             "abilityHealing": level.get("healthRecovery"),
+            "bonusDamagePercent": stats.get("bonusDamagePercent"),
+            "springCapacity": level.get("springCapacity"),
             "rampDamagePerHit": ramp,
         }))
 

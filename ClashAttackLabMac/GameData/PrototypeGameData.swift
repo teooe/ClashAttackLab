@@ -622,6 +622,187 @@ nonisolated struct PrototypeGameData: GameDataProviding {
                 targetingProfile: nil
             )
 
+        case .xBow:
+            return CombatDefinition(
+                displayName: "Balestra",
+                role: .defense,
+                maxHitPoints: 1_500,
+                movementSpeed: 0,
+                attackDamage: 12,
+                minimumAttackRange: 0,
+                attackRange: 460,
+                attackInterval: 0.128,
+                canMove: false,
+                projectileKind: .arrow,
+                projectileSpeed: 900,
+                splashRadius: 0,
+                selfDestructsOnAttack: false,
+                attackTargetLayer: .both,
+                targetingProfile: nil
+            )
+
+        case .eagleArtillery:
+            // Fires three shells in a row, then reloads; it stays asleep
+            // until the attacker has deployed enough housing space.
+            var definition = CombatDefinition(
+                displayName: "Artiglieria Aquila",
+                role: .defense,
+                maxHitPoints: 2_000,
+                movementSpeed: 0,
+                attackDamage: 200,
+                minimumAttackRange: 280,
+                attackRange: 2_000,
+                attackInterval: 0.75,
+                canMove: false,
+                projectileKind: .mortarShell,
+                projectileSpeed: 450,
+                splashRadius: 30,
+                selfDestructsOnAttack: false,
+                attackTargetLayer: .both,
+                targetingProfile: nil
+            )
+            definition.burstShotCount = 3
+            definition.burstReloadTime = 10
+            definition.activationDeployedHousing = 200
+            return definition
+
+        case .scattershot:
+            return CombatDefinition(
+                displayName: "Lanciarocce",
+                role: .defense,
+                maxHitPoints: 1_800,
+                movementSpeed: 0,
+                attackDamage: 180,
+                minimumAttackRange: 120,
+                attackRange: 400,
+                attackInterval: 3.2,
+                canMove: false,
+                projectileKind: .mortarShell,
+                projectileSpeed: 500,
+                // The real rocks spray a cone behind the target; a round
+                // splash of 1.5 tiles approximates it.
+                splashRadius: 60,
+                selfDestructsOnAttack: false,
+                attackTargetLayer: .both,
+                targetingProfile: nil
+            )
+
+        case .spellTower:
+            // Casts defensive spells in the game; the simulator keeps it as
+            // a defense that troops target but that never attacks.
+            return CombatDefinition(
+                displayName: "Torre degli Incantesimi",
+                role: .defense,
+                maxHitPoints: 1_100,
+                movementSpeed: 0,
+                attackDamage: 0,
+                minimumAttackRange: 0,
+                attackRange: 360,
+                attackInterval: 0,
+                canMove: false,
+                projectileKind: nil,
+                projectileSpeed: 0,
+                splashRadius: 0,
+                selfDestructsOnAttack: false,
+                attackTargetLayer: .both,
+                targetingProfile: nil
+            )
+
+        case .monolith:
+            var definition = CombatDefinition(
+                displayName: "Monolito",
+                role: .defense,
+                maxHitPoints: 1_800,
+                movementSpeed: 0,
+                attackDamage: 90,
+                minimumAttackRange: 0,
+                attackRange: 440,
+                attackInterval: 1.5,
+                canMove: false,
+                projectileKind: .airBolt,
+                projectileSpeed: 800,
+                splashRadius: 0,
+                selfDestructsOnAttack: false,
+                attackTargetLayer: .both,
+                targetingProfile: nil
+            )
+            definition.targetMaxHitPointDamageFraction = 0.12
+            return definition
+
+        case .bomb:
+            return CombatDefinition(
+                displayName: "Bomba",
+                role: .trap,
+                maxHitPoints: 1,
+                movementSpeed: 0,
+                attackDamage: 0,
+                minimumAttackRange: 0,
+                attackRange: 0,
+                attackInterval: 0,
+                canMove: false,
+                projectileKind: nil,
+                projectileSpeed: 0,
+                splashRadius: 0,
+                selfDestructsOnAttack: false,
+                destructionDamage: 90,
+                destructionRadius: 120,
+                destructionTargetLayer: .ground,
+                startsHidden: true,
+                activationRange: 60,
+                attackTargetLayer: .ground,
+                targetingProfile: nil
+            )
+
+        case .springTrap:
+            var definition = CombatDefinition(
+                displayName: "Trappola a molla",
+                role: .trap,
+                maxHitPoints: 1,
+                movementSpeed: 0,
+                attackDamage: 0,
+                minimumAttackRange: 0,
+                attackRange: 0,
+                attackInterval: 0,
+                canMove: false,
+                projectileKind: nil,
+                projectileSpeed: 0,
+                splashRadius: 0,
+                selfDestructsOnAttack: false,
+                destructionDamage: 400,
+                destructionTargetLayer: .ground,
+                startsHidden: true,
+                activationRange: 40,
+                attackTargetLayer: .ground,
+                targetingProfile: nil
+            )
+            definition.trapEffect = .spring(capacity: 15)
+            return definition
+
+        case .seekingAirMine:
+            var definition = CombatDefinition(
+                displayName: "Mina aerea a ricerca",
+                role: .trap,
+                maxHitPoints: 1,
+                movementSpeed: 0,
+                attackDamage: 0,
+                minimumAttackRange: 0,
+                attackRange: 0,
+                attackInterval: 0,
+                canMove: false,
+                projectileKind: nil,
+                projectileSpeed: 0,
+                splashRadius: 0,
+                selfDestructsOnAttack: false,
+                destructionDamage: 1_000,
+                destructionTargetLayer: .air,
+                startsHidden: true,
+                activationRange: 160,
+                attackTargetLayer: .air,
+                targetingProfile: nil
+            )
+            definition.trapEffect = .strike
+            return definition
+
         case .wall:
             return CombatDefinition(
                 displayName: "Muro",

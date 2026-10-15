@@ -42,6 +42,21 @@ nonisolated enum TargetPreference: Hashable {
     case townHall
 }
 
+/// How a trap hurts troops once it goes off.
+nonisolated enum TrapEffect: Hashable {
+    /// Splash damage around the trap (`destructionDamage` within
+    /// `destructionRadius`).
+    case explosion
+
+    /// `destructionDamage` to the single nearest troop it can hit.
+    case strike
+
+    /// Throws the nearest troops off the battlefield until their housing
+    /// space fills `capacity`; heroes are immune and troops too large to
+    /// throw take `destructionDamage` instead.
+    case spring(capacity: Int)
+}
+
 nonisolated struct TargetingProfile {
     let preference: TargetPreference
     let evidence: MechanicEvidence
@@ -71,9 +86,9 @@ nonisolated struct HeroAbilityDefinition {
 nonisolated struct CombatDefinition {
     let displayName: String
     let role: BattleEntityRole
-    let maxHitPoints: Double
+    var maxHitPoints: Double
     let movementSpeed: Double
-    let attackDamage: Double
+    var attackDamage: Double
     let damageMultiplierAgainstWalls: Double
     let minimumAttackRange: Double
     let attackRange: Double
@@ -118,6 +133,24 @@ nonisolated struct CombatDefinition {
     /// Side of the square footprint in world units. Zero keeps the entity
     /// a point, so attack ranges are measured centre to centre.
     let footprintSize: Double
+
+    /// Army camp space of a troop. Heroes count 25, as they do towards
+    /// waking the Eagle Artillery.
+    var housingSpace = 0
+
+    /// Shots fired back to back before pausing `burstReloadTime` seconds.
+    /// One shot keeps the ordinary steady attack rhythm.
+    var burstShotCount = 1
+    var burstReloadTime: TimeInterval = 0
+
+    /// Housing space the attacker must deploy before this defense wakes up.
+    var activationDeployedHousing = 0
+
+    /// Extra damage per hit, as a fraction of the target's maximum hit
+    /// points (Monolith).
+    var targetMaxHitPointDamageFraction: Double = 0
+
+    var trapEffect: TrapEffect = .explosion
 
     init(
         displayName: String,

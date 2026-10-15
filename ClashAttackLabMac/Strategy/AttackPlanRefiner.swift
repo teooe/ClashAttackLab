@@ -8,11 +8,18 @@ import Foundation
 nonisolated struct AttackPlanRefiner {
     private let navigationGrid: NavigationGrid
 
+    /// Variants never schedule an order after this time.
+    private let latestOrderTime: TimeInterval
+
     private let laneOffsets = [-2, -1, 0, 1, 2]
     private let tempoMultipliers = [0.8, 1.0, 1.2]
 
-    init(navigationGrid: NavigationGrid) {
+    init(
+        navigationGrid: NavigationGrid,
+        latestOrderTime: TimeInterval = BattleTiming.prototypeLatestOrderTime
+    ) {
         self.navigationGrid = navigationGrid
+        self.latestOrderTime = latestOrderTime
     }
 
     func variants(for sourcePlan: AttackPlan) -> [AttackPlan] {
@@ -121,7 +128,7 @@ nonisolated struct AttackPlanRefiner {
     func heroTimingVariants(for sourcePlan: AttackPlan) -> [AttackPlan] {
         let heroes = Array(sourcePlan.orderedDeployments.filter {
             ($0.kind == .barbarianKing || $0.kind == .archerQueen) &&
-                $0.deploymentTime.isFinite && (0...59).contains($0.deploymentTime)
+                $0.deploymentTime.isFinite && (0...latestOrderTime).contains($0.deploymentTime)
         }.prefix(2))
         guard !heroes.isEmpty else { return [] }
         var result: [AttackPlan] = []
@@ -150,7 +157,7 @@ nonisolated struct AttackPlanRefiner {
             append(otherCommands, label: "\(heroName) automatica")
             let anchor = existing?.activationTime ?? (hero.deploymentTime + 6)
             for offset in [-2.0, 2.0] {
-                let time = min(59, max(hero.deploymentTime, anchor + offset))
+                let time = min(latestOrderTime, max(hero.deploymentTime, anchor + offset))
                 let command = HeroAbilityOrder(
                     id: existing?.id ?? UUID(),
                     entityID: hero.entityID,
@@ -169,7 +176,7 @@ nonisolated struct AttackPlanRefiner {
             let commands = heroes.map { hero in
                 HeroAbilityOrder(
                     entityID: hero.entityID,
-                    activationTime: min(59, hero.deploymentTime + delay)
+                    activationTime: min(latestOrderTime, hero.deploymentTime + delay)
                 )
             }
             append(remaining + commands,
@@ -325,7 +332,7 @@ nonisolated struct AttackPlanRefiner {
         _ time: TimeInterval,
         multiplier: Double
     ) -> TimeInterval {
-        min(59, max(0, time * multiplier))
+        min(latestOrderTime, max(0, time * multiplier))
     }
 
     private func adjustedSpellTime(
@@ -333,7 +340,7 @@ nonisolated struct AttackPlanRefiner {
         multiplier: Double,
         offset: TimeInterval
     ) -> TimeInterval {
-        min(59, max(0, time * multiplier + offset))
+        min(latestOrderTime, max(0, time * multiplier + offset))
     }
 
     private func variantName(
