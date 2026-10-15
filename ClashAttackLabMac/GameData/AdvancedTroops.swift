@@ -25,11 +25,25 @@ extension BattleEntityKind {
         Self.heroKinds.contains(self)
     }
 
+    /// Siege machines added for the real mode next to the Wall Wrecker and
+    /// the Stone Slammer.
+    nonisolated static let advancedSiegeMachines: [BattleEntityKind] = [
+        .battleBlimp, .flameFlinger, .siegeBarracks
+    ]
+
+    nonisolated static let siegeMachineKinds: [BattleEntityKind] = [
+        .wallWrecker, .stoneSlammer
+    ] + advancedSiegeMachines
+
+    nonisolated var isSiegeMachine: Bool {
+        Self.siegeMachineKinds.contains(self)
+    }
+
     /// Troops that only appear when another one dies (Lava Hound, Golem)
     /// or a spell summons them; they cannot be trained and have no
     /// catalog entry of their own.
     nonisolated static let spawnedTroops: [BattleEntityKind] = [
-        .lavaPup, .golemite, .skeleton, .bat
+        .lavaPup, .golemite, .skeleton, .bat, .battleBlimp, .flameFlinger, .siegeBarracks
     ]
 
     /// Buildings that only store or produce resources; Bats hurt them less.
@@ -87,6 +101,12 @@ nonisolated struct TroopStyle {
             return TroopStyle(displayName: "Scheletro", symbol: "sk", red: 0.85, green: 0.85, blue: 0.80, radius: 12)
         case .bat:
             return TroopStyle(displayName: "Pipistrello", symbol: "bt", red: 0.35, green: 0.25, blue: 0.45, radius: 10)
+        case .battleBlimp:
+            return TroopStyle(displayName: "Dirigibile da battaglia", symbol: "BB", red: 0.75, green: 0.55, blue: 0.30, radius: 34)
+        case .flameFlinger:
+            return TroopStyle(displayName: "Lanciafiamme", symbol: "FF", red: 0.90, green: 0.35, blue: 0.10, radius: 30)
+        case .siegeBarracks:
+            return TroopStyle(displayName: "Caserma d'assedio", symbol: "SB", red: 0.55, green: 0.40, blue: 0.30, radius: 34)
         default:
             return TroopStyle(displayName: "Truppa", symbol: "?", red: 0.5, green: 0.5, blue: 0.5, radius: 22)
         }

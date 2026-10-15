@@ -6040,6 +6040,56 @@
    "name": "Barracks",
    "size": 3
   },
+  "battleBlimp": {
+   "attackInterval": 1.5,
+   "housingSpace": 1,
+   "levels": [
+    {
+     "damagePerHit": 150,
+     "deathDamage": 700,
+     "hitpoints": 3000,
+     "level": 1,
+     "townHall": 12
+    },
+    {
+     "damagePerHit": 210,
+     "deathDamage": 800,
+     "hitpoints": 3500,
+     "level": 2,
+     "townHall": 12
+    },
+    {
+     "damagePerHit": 270,
+     "deathDamage": 900,
+     "hitpoints": 4000,
+     "level": 3,
+     "townHall": 12
+    },
+    {
+     "damagePerHit": 330,
+     "deathDamage": 1000,
+     "hitpoints": 4500,
+     "level": 4,
+     "townHall": 13
+    },
+    {
+     "damagePerHit": 390,
+     "deathDamage": 1100,
+     "hitpoints": 5000,
+     "level": 5,
+     "townHall": 15
+    },
+    {
+     "damagePerHit": 450,
+     "deathDamage": 1200,
+     "hitpoints": 5500,
+     "level": 6,
+     "townHall": 18
+    }
+   ],
+   "movementSpeed": 18,
+   "name": "Battle Blimp"
+  },
   "blacksmith": {
    "countByTownHall": [
     0,
@@ -7602,6 +7652,45 @@
    ],
    "name": "Elixir Storage",
    "size": 3
+  },
+  "flameFlinger": {
+   "hitpointDecayPerSecond": 17,
+   "housingSpace": 1,
+   "levels": [
+    {
+     "damagePerHit": 225,
+     "hitpoints": 1700,
+     "level": 1,
+     "townHall": 15
+    },
+    {
+     "damagePerHit": 250,
+     "hitpoints": 1800,
+     "level": 2,
+     "townHall": 15
+    },
+    {
+     "damagePerHit": 275,
+     "hitpoints": 1900,
+     "level": 3,
+     "townHall": 15
+    },
+    {
+     "damagePerHit": 300,
+     "hitpoints": 2000,
+     "level": 4,
+     "townHall": 15
+    },
+    {
+     "damagePerHit": 325,
+     "hitpoints": 2100,
+     "level": 5,
+     "townHall": 16
+    }
+   ],
+   "movementSpeed": 6,
+   "name": "Flame Flinger",
+   "range": 11
   },
   "giant": {
    "attackInterval": 2,
@@ -10462,6 +10551,56 @@
    "name": "Seeking Air Mine",
    "size": 1,
    "triggerRadius": 4
+  },
+  "siegeBarracks": {
+   "housingSpace": 1,
+   "levels": [
+    {
+     "hitpoints": 3300,
+     "level": 1,
+     "pekkasSpawned": 1,
+     "townHall": 13,
+     "wizardsSpawned": 6
+    },
+    {
+     "hitpoints": 3700,
+     "level": 2,
+     "pekkasSpawned": 1,
+     "townHall": 13,
+     "wizardsSpawned": 8
+    },
+    {
+     "hitpoints": 4100,
+     "level": 3,
+     "pekkasSpawned": 1,
+     "townHall": 13,
+     "wizardsSpawned": 10
+    },
+    {
+     "hitpoints": 4500,
+     "level": 4,
+     "pekkasSpawned": 1,
+     "townHall": 13,
+     "wizardsSpawned": 11
+    },
+    {
+     "hitpoints": 4800,
+     "level": 5,
+     "pekkasSpawned": 2,
+     "townHall": 16,
+     "wizardsSpawned": 11
+    },
+    {
+     "hitpoints": 5100,
+     "level": 6,
+     "pekkasSpawned": 2,
+     "townHall": 18,
+     "wizardsSpawned": 12
+    }
+   ],
+   "lifetime": 30,
+   "movementSpeed": 0,
+   "name": "Siege Barracks"
   },
   "spellFactory": {
    "countByTownHall": [

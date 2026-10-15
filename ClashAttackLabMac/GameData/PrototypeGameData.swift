@@ -6,6 +6,13 @@ import Foundation
 /// official Clash of Clans statistics. Target preferences and defense
 /// behaviors are stored separately from those temporary numbers.
 nonisolated struct PrototypeGameData: GameDataProviding {
+    /// Reach of the burst a Battle Blimp or a Golem leaves when it falls,
+    /// in world units; not in the catalog (estimate).
+    static let siegeDeathRadius = 80.0
+
+    /// Seconds a Siege Barracks lasts on the battlefield.
+    static let siegeBarracksLifetime = 30.0
+
     func spellDefinition(for kind: BattleSpellKind) -> SpellDefinition {
         switch kind {
         case .heal:
@@ -429,6 +436,86 @@ nonisolated struct PrototypeGameData: GameDataProviding {
                 ]
             )
 
+        // Real-mode siege machines; the real catalog replaces the numbers.
+        case .battleBlimp:
+            // Flies straight to the Town Hall dropping bombs and bursts
+            // on the buildings below when it falls.
+            return CombatDefinition(
+                displayName: TroopStyle.style(for: .battleBlimp).displayName,
+                role: .troop,
+                maxHitPoints: 3_000,
+                movementSpeed: 90,
+                attackDamage: 250,
+                minimumAttackRange: 0,
+                attackRange: 40,
+                attackInterval: 1.5,
+                canMove: true,
+                projectileKind: nil,
+                projectileSpeed: 0,
+                splashRadius: 60,
+                selfDestructsOnAttack: false,
+                destructionDamage: 700,
+                destructionRadius: Self.siegeDeathRadius,
+                movementDomain: .air,
+                attackTargetLayer: .ground,
+                targetingProfile: TargetingProfile(
+                    preference: .townHall,
+                    evidence: .documented
+                )
+            )
+
+        case .flameFlinger:
+            // Lobs bursts of fire at defenses from long range and slowly
+            // burns out.
+            var flinger = CombatDefinition(
+                displayName: TroopStyle.style(for: .flameFlinger).displayName,
+                role: .troop,
+                maxHitPoints: 1_500,
+                movementSpeed: 30,
+                attackDamage: 200,
+                minimumAttackRange: 0,
+                attackRange: 440,
+                attackInterval: 0.2,
+                canMove: true,
+                projectileKind: .fireball,
+                projectileSpeed: 400,
+                splashRadius: 60,
+                selfDestructsOnAttack: false,
+                attackTargetLayer: .ground,
+                targetingProfile: TargetingProfile(
+                    preference: .defenses,
+                    evidence: .documented
+                )
+            )
+            flinger.burstShotCount = 3
+            flinger.burstReloadTime = 5
+            flinger.hitPointDecayPerSecond = 17
+            return flinger
+
+        case .siegeBarracks:
+            // Stands where it lands and lets out a P.E.K.K.A and Wizards;
+            // it then distracts defenses until it wears out.
+            var barracks = CombatDefinition(
+                displayName: TroopStyle.style(for: .siegeBarracks).displayName,
+                role: .troop,
+                maxHitPoints: 3_000,
+                movementSpeed: 0,
+                attackDamage: 0,
+                minimumAttackRange: 0,
+                attackRange: 0,
+                attackInterval: 1,
+                canMove: false,
+                projectileKind: nil,
+                projectileSpeed: 0,
+                splashRadius: 0,
+                selfDestructsOnAttack: false,
+                targetingProfile: nil,
+                siegePayload: [.pekka] + Array(repeating: .wizard, count: 8)
+            )
+            barracks.releasesPayloadOnDeploy = true
+            barracks.hitPointDecayPerSecond = 3_000 / Self.siegeBarracksLifetime
+            return barracks
+
         // Advanced troops: behaviours follow the game, numbers are
         // synthetic prototype values like the rest of this file.
         case .hogRider:
@@ -490,11 +577,14 @@ nonisolated struct PrototypeGameData: GameDataProviding {
                 projectileSpeed: 0,
                 splashRadius: 0,
                 selfDestructsOnAttack: false,
+                // Bursts on the buildings around it and splits into
+                // Golemites when it falls.
+                destructionDamage: 400,
+                destructionRadius: Self.siegeDeathRadius,
                 targetingProfile: TargetingProfile(
                     preference: .defenses,
                     evidence: .documented
                 ),
-                // Splits into Golemites when it falls.
                 siegePayload: [.golemite, .golemite]
             )
 

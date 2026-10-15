@@ -174,6 +174,22 @@ struct ArmyEditorView: View {
                             kind: .stoneSlammer,
                             value: $draft.stoneSlammers
                         )
+                        ForEach(
+                            BattleEntityKind.advancedSiegeMachines.filter { rules.allows($0) },
+                            id: \.self
+                        ) { kind in
+                            let style = TroopStyle.style(for: kind)
+                            troopRow(
+                                symbol: style.symbol,
+                                color: Color(red: style.red, green: style.green, blue: style.blue),
+                                title: style.displayName,
+                                kind: kind,
+                                value: Binding(
+                                    get: { draft[troop: kind] },
+                                    set: { draft[troop: kind] = $0 }
+                                )
+                            )
+                        }
                     }
 
                     GroupBox("Incantesimi") {
@@ -325,9 +341,8 @@ struct ArmyEditorView: View {
         value: Binding<Int>
     ) -> some View {
         let cost = rules.housing(for: kind)
-        let uniqueKinds: [BattleEntityKind] = BattleEntityKind.heroKinds + [
-            .wallWrecker, .stoneSlammer
-        ]
+        let uniqueKinds: [BattleEntityKind] = BattleEntityKind.heroKinds +
+            BattleEntityKind.siegeMachineKinds
         let isUnique = uniqueKinds.contains(kind)
         let maximum = isUnique
             ? 1

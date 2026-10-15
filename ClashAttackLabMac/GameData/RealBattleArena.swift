@@ -487,7 +487,7 @@ extension ArmyCapacityRules {
     }
 
     nonisolated static let campFreeKinds: Set<BattleEntityKind> =
-        Set(BattleEntityKind.heroKinds + [.wallWrecker, .stoneSlammer])
+        Set(BattleEntityKind.heroKinds + BattleEntityKind.siegeMachineKinds)
 }
 
 extension ArmyConfiguration {
