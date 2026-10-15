@@ -163,3 +163,54 @@ struct SiegeMachineTests {
         }
     }
 }
+
+struct LogLauncherTests {
+    private let grid = RealBattleMap.makeNavigationGrid()
+
+    private func position(column: Int, row: Int) -> WorldPosition {
+        grid.worldPosition(for: GridCoordinate(column: column, row: row))
+    }
+
+    @Test
+    func logsSmashTheWallsInTheirPath() throws {
+        let data = ReferenceGameData(
+            catalog: try ReferenceGameCatalog.loadBundled(),
+            profile: ReferenceLevelProfile(townHall: 15)
+        )
+        let launcherDefinition = data.definition(for: .logLauncher)
+        #expect(launcherDefinition.attackDamage == 600)
+        #expect(launcherDefinition.damageMultiplierAgainstWalls == 4)
+        #expect(launcherDefinition.hitPointDecayPerSecond == 156)
+        #expect(launcherDefinition.rollingLogLength == 10 * 40)
+
+        let townHall = BattleEntity(kind: .townHall, position: position(column: 28, row: 25))
+        let walls = (22...28).map {
+            BattleEntity(kind: .wall, position: position(column: 20, row: $0))
+        }
+        let launcher = DeploymentOrder(kind: .logLauncher, position: position(column: 12, row: 25), deploymentTime: 0)
+        let engine = SimulationEngine(
+            entities: [townHall] + walls,
+            attackPlan: AttackPlan(name: "Tronchi", deployments: [launcher]),
+            gameData: data,
+            navigationGrid: grid
+        )
+        engine.start()
+        for _ in 0..<(60 * 4) {
+            engine.advance(by: 1.0 / 60.0)
+        }
+
+        // Two logs by now: at the start and three seconds later.
+        let wallHitPoints = data.definition(for: .wall).maxHitPoints
+        let inPath = try #require(engine.entities.first { $0.id == walls[3].id })
+        #expect(wallHitPoints - inPath.hitPoints >= min(wallHitPoints, 2 * 2_400) - 1e-6)
+        let aside = try #require(engine.entities.first { $0.id == walls[0].id })
+        #expect(aside.hitPoints == wallHitPoints)
+
+        let machine = try #require(engine.entities.first { $0.id == launcher.entityID })
+        #expect(machine.position.x > launcher.position.x)
+        if inPath.isAlive {
+            // A standing wall stops the crawl.
+            #expect(machine.position.x < inPath.position.x - grid.cellSize / 2)
+        }
+    }
+}

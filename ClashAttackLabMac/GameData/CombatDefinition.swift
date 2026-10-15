@@ -234,6 +234,13 @@ nonisolated struct CombatDefinition {
     /// it falls (Siege Barracks).
     var releasesPayloadOnDeploy = false
 
+    /// Every attack rolls a log this far ahead, hitting walls and
+    /// buildings within `rollingLogWidth` of its path; the machine crawls
+    /// towards the Town Hall and stops at walls and buildings
+    /// (Log Launcher).
+    var rollingLogLength: Double = 0
+    var rollingLogWidth: Double = 0
+
     /// Damage multiplier against `BattleEntityKind.resourceBuildings`.
     var resourceDamageMultiplier: Double = 1
 

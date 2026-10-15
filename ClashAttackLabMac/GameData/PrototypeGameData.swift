@@ -13,6 +13,9 @@ nonisolated struct PrototypeGameData: GameDataProviding {
     /// Seconds a Siege Barracks lasts on the battlefield.
     static let siegeBarracksLifetime = 30.0
 
+    /// Tiles a Log Launcher's log rolls; not in the catalog (estimate).
+    static let logRollTiles = 10.0
+
     func spellDefinition(for kind: BattleSpellKind) -> SpellDefinition {
         switch kind {
         case .heal:
@@ -515,6 +518,35 @@ nonisolated struct PrototypeGameData: GameDataProviding {
             barracks.releasesPayloadOnDeploy = true
             barracks.hitPointDecayPerSecond = 3_000 / Self.siegeBarracksLifetime
             return barracks
+
+        case .logLauncher:
+            // Rolls a log every few seconds towards the Town Hall: four
+            // times the damage against walls.
+            var launcher = CombatDefinition(
+                displayName: TroopStyle.style(for: .logLauncher).displayName,
+                role: .troop,
+                maxHitPoints: 3_500,
+                movementSpeed: 25,
+                attackDamage: 400,
+                damageMultiplierAgainstWalls: 4,
+                minimumAttackRange: 0,
+                attackRange: 0,
+                attackInterval: 3,
+                canMove: true,
+                projectileKind: nil,
+                projectileSpeed: 0,
+                splashRadius: 0,
+                selfDestructsOnAttack: false,
+                attackTargetLayer: .ground,
+                targetingProfile: TargetingProfile(
+                    preference: .townHall,
+                    evidence: .documented
+                )
+            )
+            launcher.rollingLogLength = Self.logRollTiles * 40
+            launcher.rollingLogWidth = 40
+            launcher.hitPointDecayPerSecond = 100
+            return launcher
 
         // Advanced troops: behaviours follow the game, numbers are
         // synthetic prototype values like the rest of this file.

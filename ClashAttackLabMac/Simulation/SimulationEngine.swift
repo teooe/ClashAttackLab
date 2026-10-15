@@ -432,6 +432,10 @@ nonisolated final class SimulationEngine {
             if entities[troopIndex].encasedRemaining > 0 {
                 continue
             }
+            if definition(for: entities[troopIndex].kind).rollingLogLength > 0 {
+                actLogLauncher(at: troopIndex, deltaTime: deltaTime, pendingDamage: &pendingDamage)
+                continue
+            }
             if engageDefender(
                 troopIndex: troopIndex,
                 defenderIndices: defenderIndices,
@@ -1171,6 +1175,72 @@ nonisolated final class SimulationEngine {
                 deltaTime: deltaTime
             )
         }
+    }
+
+    /// Rolls logs towards the Town Hall (or the nearest building left)
+    /// and crawls after them until a wall or a building blocks the way.
+    private func actLogLauncher(
+        at index: Int,
+        deltaTime: TimeInterval,
+        pendingDamage: inout [UUID: Double]
+    ) {
+        let launcher = definition(for: entities[index].kind)
+        let origin = entities[index].position
+        let objectives = livingIndices(with: .defense) + livingIndices(with: .building)
+        guard !objectives.isEmpty else {
+            return
+        }
+        let goalIndex = objectives.first { entities[$0].kind == .townHall } ??
+            nearest(objectives, to: origin)
+        let goal = entities[goalIndex].position
+        let gap = distance(from: origin, to: goal)
+        guard gap > 0 else {
+            return
+        }
+        let unitX = (goal.x - origin.x) / gap
+        let unitY = (goal.y - origin.y) / gap
+        let modifiers = combatModifiers(for: entities[index])
+
+        if entities[index].attackCooldown <= 0 {
+            for target in objectives + livingIndices(with: .wall) {
+                let targetDefinition = definition(for: entities[target].kind)
+                let half = targetDefinition.footprintSize / 2
+                let offsetX = entities[target].position.x - origin.x
+                let offsetY = entities[target].position.y - origin.y
+                let along = offsetX * unitX + offsetY * unitY
+                let across = abs(offsetX * unitY - offsetY * unitX)
+                guard
+                    along >= -half,
+                    along <= launcher.rollingLogLength + half,
+                    across <= launcher.rollingLogWidth / 2 + half
+                else {
+                    continue
+                }
+                let wallMultiplier = targetDefinition.role == .wall
+                    ? launcher.damageMultiplierAgainstWalls
+                    : 1
+                pendingDamage[entities[target].id, default: 0] +=
+                    launcher.attackDamage * modifiers.damage * wallMultiplier
+            }
+            entities[index].attackCooldown = launcher.attackInterval / modifiers.attackSpeed
+            attackCounts[.troop, default: 0] += 1
+        }
+
+        let ahead = WorldPosition(
+            x: origin.x + unitX * navigationGrid.cellSize * 0.6,
+            y: origin.y + unitY * navigationGrid.cellSize * 0.6
+        )
+        if
+            let cell = navigationGrid.coordinate(for: ahead),
+            livingWallCells().contains(cell) || routeObstacles(excluding: nil).contains(cell)
+        {
+            return
+        }
+        let step = min(launcher.movementSpeed * modifiers.movementSpeed * deltaTime, gap)
+        entities[index].position = WorldPosition(
+            x: origin.x + unitX * step,
+            y: origin.y + unitY * step
+        )
     }
 
     // MARK: Clan Castle reinforcements

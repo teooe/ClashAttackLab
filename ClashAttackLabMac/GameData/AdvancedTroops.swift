@@ -28,7 +28,7 @@ extension BattleEntityKind {
     /// Siege machines added for the real mode next to the Wall Wrecker and
     /// the Stone Slammer.
     nonisolated static let advancedSiegeMachines: [BattleEntityKind] = [
-        .battleBlimp, .flameFlinger, .siegeBarracks
+        .battleBlimp, .flameFlinger, .siegeBarracks, .logLauncher
     ]
 
     nonisolated static let siegeMachineKinds: [BattleEntityKind] = [
@@ -107,6 +107,8 @@ nonisolated struct TroopStyle {
             return TroopStyle(displayName: "Lanciafiamme", symbol: "FF", red: 0.90, green: 0.35, blue: 0.10, radius: 30)
         case .siegeBarracks:
             return TroopStyle(displayName: "Caserma d'assedio", symbol: "SB", red: 0.55, green: 0.40, blue: 0.30, radius: 34)
+        case .logLauncher:
+            return TroopStyle(displayName: "Lanciatronchi", symbol: "LL", red: 0.50, green: 0.33, blue: 0.18, radius: 32)
         default:
             return TroopStyle(displayName: "Truppa", symbol: "?", red: 0.5, green: 0.5, blue: 0.5, radius: 22)
         }

@@ -47,6 +47,7 @@ UNITS = {
     "battleBlimp": "siege-machines/battle-blimp.json",
     "flameFlinger": "siege-machines/flame-flinger.json",
     "siegeBarracks": "siege-machines/siege-barracks.json",
+    "logLauncher": "siege-machines/log-launcher.json",
     "cannon": "defenses/cannon.json",
     "archerTower": "defenses/archer-tower.json",
     "mortar": "defenses/mortar.json",

@@ -9534,6 +9534,57 @@
    "name": "Lava Hound",
    "range": 1
   },
+  "logLauncher": {
+   "attackInterval": 3,
+   "hitpointDecayPerSecond": 156,
+   "housingSpace": 1,
+   "levels": [
+    {
+     "damagePerHit": 420,
+     "hitpoints": 4000,
+     "level": 1,
+     "townHall": 14,
+     "wallDamageMultiplier": 4.0
+    },
+    {
+     "damagePerHit": 480,
+     "hitpoints": 4400,
+     "level": 2,
+     "townHall": 14,
+     "wallDamageMultiplier": 4.0
+    },
+    {
+     "damagePerHit": 540,
+     "hitpoints": 4800,
+     "level": 3,
+     "townHall": 14,
+     "wallDamageMultiplier": 4.0
+    },
+    {
+     "damagePerHit": 600,
+     "hitpoints": 5200,
+     "level": 4,
+     "townHall": 14,
+     "wallDamageMultiplier": 4.0
+    },
+    {
+     "damagePerHit": 660,
+     "hitpoints": 5500,
+     "level": 5,
+     "townHall": 16,
+     "wallDamageMultiplier": 4.0
+    },
+    {
+     "damagePerHit": 690,
+     "hitpoints": 5800,
+     "level": 6,
+     "townHall": 18,
+     "wallDamageMultiplier": 4.0
+    }
+   ],
+   "movementSpeed": 5,
+   "name": "Log Launcher"
+  },
   "miner": {
    "attackInterval": 1.7,
    "housingSpace": 6,
