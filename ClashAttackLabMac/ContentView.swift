@@ -278,7 +278,7 @@ struct ContentView: View {
                 manualPlannerBar
             }
 
-            if !session.evaluations.isEmpty {
+            if !session.evaluations.isEmpty || !session.equipmentComparison.isEmpty {
                 Divider()
                 comparisonBar
             }
@@ -376,6 +376,10 @@ struct ContentView: View {
                 Button("Ricerca evolutiva · più lenta, più precisa") {
                     session.evolveBestAttack()
                 }
+                Button("Confronta equipaggiamento eroi") {
+                    session.compareHeroEquipment()
+                }
+                .disabled(!session.isRealArena)
             } label: {
                 Label("Trova attacco", systemImage: "wand.and.stars")
             }
@@ -1011,6 +1015,10 @@ struct ContentView: View {
                 .foregroundStyle(.secondary)
             }
 
+            if !session.equipmentComparison.isEmpty {
+                equipmentComparisonSummary
+            }
+
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 10) {
                     ForEach(
@@ -1028,6 +1036,45 @@ struct ContentView: View {
         .padding(.horizontal)
         .padding(.vertical, 10)
         .background(Color.blue.opacity(0.06))
+    }
+
+    /// Best and current pair of each hero from the last comparison.
+    private var equipmentComparisonSummary: some View {
+        let entries = session.equipmentComparison
+        let heroes = BattleEntityKind.heroKinds.filter { hero in
+            entries.contains { $0.hero == hero }
+        }
+        return VStack(alignment: .leading, spacing: 4) {
+            ForEach(heroes, id: \.self) { hero in
+                Text(equipmentComparisonLine(for: hero, in: entries))
+                    .font(.caption2)
+            }
+            Button("Usa il miglior equipaggiamento") {
+                session.applyBestComparedEquipment()
+            }
+            .font(.caption)
+            .disabled(session.isSearching)
+        }
+    }
+
+    private func equipmentComparisonLine(
+        for hero: BattleEntityKind,
+        in entries: [EquipmentComparisonEntry]
+    ) -> String {
+        let ranked = entries.filter { $0.hero == hero }
+        guard let best = ranked.first else {
+            return ""
+        }
+        let name = TroopStyle.style(for: hero).displayName
+        var line = "\(name): \(best.name) \(best.stars)★ \(Int(best.destruction.rounded()))%"
+        if let current = ranked.first(where: \.isCurrent) {
+            if current.id == best.id {
+                line += " · già in uso"
+            } else {
+                line += " · ora \(current.stars)★ \(Int(current.destruction.rounded()))%"
+            }
+        }
+        return line
     }
 
     private func planCard(
