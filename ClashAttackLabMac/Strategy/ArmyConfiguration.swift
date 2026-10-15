@@ -99,7 +99,7 @@ nonisolated struct ArmyConfiguration: Equatable {
     /// Spells added for the real mode; their counts live in
     /// `advancedSpells`.
     static let advancedSpellKinds: [BattleSpellKind] = [
-        .jump, .invisibility, .haste, .poison
+        .jump, .invisibility, .haste, .poison, .overgrowth, .iceBlock
     ]
 
     /// Count of one troop kind; settable for every kind in `troopKinds`.
@@ -141,7 +141,7 @@ nonisolated struct ArmyConfiguration: Equatable {
             case .freeze: freezeSpells = newValue
             case .lightning: lightningSpells = newValue
             case .earthquake: earthquakeSpells = newValue
-            case .jump, .invisibility, .haste, .poison:
+            case .jump, .invisibility, .haste, .poison, .overgrowth, .iceBlock:
                 advancedSpells[kind] = newValue == 0 ? nil : newValue
             }
         }
@@ -274,7 +274,7 @@ nonisolated struct ArmyConfiguration: Equatable {
             return lightningSpells
         case .earthquake:
             return earthquakeSpells
-        case .jump, .invisibility, .haste, .poison:
+        case .jump, .invisibility, .haste, .poison, .overgrowth, .iceBlock:
             return advancedSpells[kind, default: 0]
         }
     }
@@ -364,7 +364,8 @@ nonisolated struct ArmyCapacityRules: Equatable {
         ],
         spellHousing: [
             .heal: 1, .rage: 1, .freeze: 1, .lightning: 1, .earthquake: 1,
-            .jump: 2, .invisibility: 1, .haste: 1, .poison: 1
+            .jump: 2, .invisibility: 1, .haste: 1, .poison: 1,
+            .overgrowth: 2, .iceBlock: 1
         ],
         unlockedTroops: nil,
         unlockedSpells: nil,

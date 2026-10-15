@@ -100,6 +100,10 @@ nonisolated struct SpellStyle {
             return SpellStyle(displayName: "Velocità", symbol: "V", red: 0.95, green: 0.55, blue: 0.75)
         case .poison:
             return SpellStyle(displayName: "Veleno", symbol: "P", red: 0.55, green: 0.25, blue: 0.65)
+        case .overgrowth:
+            return SpellStyle(displayName: "Rampicante", symbol: "O", red: 0.30, green: 0.55, blue: 0.20)
+        case .iceBlock:
+            return SpellStyle(displayName: "Blocco di ghiaccio", symbol: "IB", red: 0.65, green: 0.85, blue: 1.0)
         case .heal:
             return SpellStyle(displayName: "Cura", symbol: "H", red: 0.2, green: 0.8, blue: 0.3)
         case .rage:

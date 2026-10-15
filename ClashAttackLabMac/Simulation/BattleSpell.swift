@@ -11,6 +11,8 @@ nonisolated enum BattleSpellKind: Hashable, Codable, CaseIterable {
     case invisibility
     case haste
     case poison
+    case overgrowth
+    case iceBlock
 }
 
 /// Separates documented spell behavior from temporary tuning values.
@@ -48,6 +50,16 @@ nonisolated struct SpellDefinition {
     var defenderDamagePerSecond: Double = 0
     var defenderSpeedMultiplier: Double = 1
     var defenderAttackSpeedMultiplier: Double = 1
+
+    /// Buildings inside are trapped: defenses stop attacking and troops
+    /// ignore them until the spell ends (Overgrowth Spell).
+    var entanglesBuildings = false
+
+    /// Troops inside when the spell lands are encased: they cannot move
+    /// or attack and take `troopDamageReduction` less damage
+    /// (Ice Block Spell).
+    var encasesTroops = false
+    var troopDamageReduction: Double = 0
 
     /// Seconds the cloud takes to reach its full damage.
     var defenderDamageRampTime: TimeInterval = 0

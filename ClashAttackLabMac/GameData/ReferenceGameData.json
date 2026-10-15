@@ -3026,6 +3026,54 @@
    ],
    "name": "Healing Spell"
   },
+  "iceBlock": {
+   "housingSpace": 1,
+   "levels": [
+    {
+     "damageReductionPercent": 86,
+     "duration": 7,
+     "level": 1,
+     "radius": 5,
+     "townHall": 12
+    },
+    {
+     "damageReductionPercent": 88,
+     "duration": 7,
+     "level": 2,
+     "radius": 5,
+     "townHall": 14
+    },
+    {
+     "damageReductionPercent": 90,
+     "duration": 7,
+     "level": 3,
+     "radius": 5,
+     "townHall": 15
+    },
+    {
+     "damageReductionPercent": 92,
+     "duration": 7,
+     "level": 4,
+     "radius": 5,
+     "townHall": 16
+    },
+    {
+     "damageReductionPercent": 94,
+     "duration": 7,
+     "level": 5,
+     "radius": 5,
+     "townHall": 17
+    },
+    {
+     "damageReductionPercent": 96,
+     "duration": 7,
+     "level": 6,
+     "radius": 5,
+     "townHall": 18
+    }
+   ],
+   "name": "Ice Block Spell"
+  },
   "invisibility": {
    "housingSpace": 1,
    "levels": [
@@ -3175,6 +3223,42 @@
     }
    ],
    "name": "Lightning Spell"
+  },
+  "overgrowth": {
+   "housingSpace": 2,
+   "levels": [
+    {
+     "duration": 22,
+     "level": 1,
+     "radius": 6,
+     "townHall": 11
+    },
+    {
+     "duration": 23,
+     "level": 2,
+     "radius": 6,
+     "townHall": 12
+    },
+    {
+     "duration": 24,
+     "level": 3,
+     "radius": 6,
+     "townHall": 14
+    },
+    {
+     "duration": 25,
+     "level": 4,
+     "radius": 6,
+     "townHall": 16
+    },
+    {
+     "duration": 26,
+     "level": 5,
+     "radius": 6,
+     "townHall": 18
+    }
+   ],
+   "name": "Overgrowth Spell"
   },
   "poison": {
    "housingSpace": 1,

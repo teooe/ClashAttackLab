@@ -113,6 +113,27 @@ nonisolated struct PrototypeGameData: GameDataProviding {
             spell.defenderAttackSpeedMultiplier = 0.3
             spell.defenderDamageRampTime = SpellDefinition.poisonRampTime
             return spell
+        case .overgrowth:
+            var spell = SpellDefinition(
+                displayName: "Rampicante", radius: 240, duration: 24,
+                healingPerSecond: 0, instantDamage: 0,
+                damageMultiplier: 1, movementSpeedMultiplier: 1,
+                attackSpeedMultiplier: 1, disablesDefenses: false,
+                behaviorEvidence: .documented, tuningEvidence: .prototype
+            )
+            spell.entanglesBuildings = true
+            return spell
+        case .iceBlock:
+            var spell = SpellDefinition(
+                displayName: "Blocco di ghiaccio", radius: 200, duration: 7,
+                healingPerSecond: 0, instantDamage: 0,
+                damageMultiplier: 1, movementSpeedMultiplier: 1,
+                attackSpeedMultiplier: 1, disablesDefenses: false,
+                behaviorEvidence: .documented, tuningEvidence: .prototype
+            )
+            spell.encasesTroops = true
+            spell.troopDamageReduction = 0.9
+            return spell
         }
     }
 
