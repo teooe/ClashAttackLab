@@ -144,13 +144,14 @@ struct RealBattleArenaTests {
             let army = real.defaultArmy
 
             #expect(army.isValid(under: real.armyRules), "TH \(townHall)")
-            #expect(army.troopCapacityUsed(under: real.armyRules) <= real.armyRules.troopCapacity)
+            // Camps and the attacker's Clan Castle together.
+            #expect(army.troopCapacityUsed(under: real.armyRules) <= real.armyRules.totalTroopCapacity)
             #expect(
                 army.troopCapacityUsed(under: real.armyRules) >=
-                    real.armyRules.troopCapacity - 4
+                    real.armyRules.totalTroopCapacity - 4
             )
-            #expect(army.spellCapacityUsed(under: real.armyRules) <= real.armyRules.spellCapacity)
-            #expect(army.totalTroops <= 80, "TH \(townHall) army is too large")
+            #expect(army.spellCapacityUsed(under: real.armyRules) <= real.armyRules.totalSpellCapacity)
+            #expect(army.totalTroops <= 90, "TH \(townHall) army is too large")
         }
 
         let th16 = try arena(townHall: 16).defaultArmy
