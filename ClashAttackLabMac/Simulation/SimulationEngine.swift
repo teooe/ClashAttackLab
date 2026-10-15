@@ -280,9 +280,21 @@ nonisolated final class SimulationEngine {
 
         return activeSpells.contains { spell in
             let spellData = spellDefinition(for: spell.kind)
-            return spellData.disablesDefenses &&
+            let stops = spellData.disablesDefenses ||
+                (spellData.entanglesBuildings && !defense.isDefender)
+            return stops &&
                 distance(from: defense.position, to: spell.position) <=
                     spellData.radius
+        }
+    }
+
+    /// Buildings at `position` are trapped in roots and cannot be
+    /// targeted (Overgrowth Spell).
+    private func isEntangled(_ position: WorldPosition) -> Bool {
+        activeSpells.contains { spell in
+            let spellData = spellDefinition(for: spell.kind)
+            return spellData.entanglesBuildings &&
+                distance(from: position, to: spell.position) <= spellData.radius
         }
     }
 
@@ -368,10 +380,14 @@ nonisolated final class SimulationEngine {
         let wallIndices = livingIndices(with: .wall)
         let objectiveIndices = defenseIndices + buildingIndices
         let visibleDefenseIndices = defenseIndices.filter {
-            !isHiddenBySpell(entities[$0].position)
+            !isHiddenBySpell(entities[$0].position) &&
+                !isEntangled(entities[$0].position)
+        }
+        let reachableBuildingIndices = buildingIndices.filter {
+            !isEntangled(entities[$0].position)
         }
         let troopTargetIndices =
-            visibleDefenseIndices + buildingIndices + wallIndices
+            visibleDefenseIndices + reachableBuildingIndices + wallIndices
 
         guard !objectiveIndices.isEmpty else {
             finish(reason: .totalDestruction)
@@ -407,6 +423,10 @@ nonisolated final class SimulationEngine {
         }
 
         for troopIndex in troopIndices {
+            // Troops in an Ice Block neither move nor attack.
+            if entities[troopIndex].encasedRemaining > 0 {
+                continue
+            }
             if engageDefender(
                 troopIndex: troopIndex,
                 defenderIndices: defenderIndices,
@@ -481,6 +501,21 @@ nonisolated final class SimulationEngine {
                 apply(damage)
             } else {
                 activeSpells.append(ActiveBattleSpell(id: next.id, kind: next.kind, position: next.position, remainingDuration: definition.duration))
+                if definition.encasesTroops {
+                    for index in livingIndices(with: .troop) where distance(
+                        from: entities[index].position,
+                        to: next.position
+                    ) <= definition.radius {
+                        entities[index].encasedRemaining = max(
+                            entities[index].encasedRemaining,
+                            definition.duration
+                        )
+                        entities[index].encasedDamageReduction = max(
+                            entities[index].encasedRemaining > 0 ? entities[index].encasedDamageReduction : 0,
+                            definition.troopDamageReduction
+                        )
+                    }
+                }
             }
             recordEvent(
                 .spellCast,
@@ -764,6 +799,12 @@ nonisolated final class SimulationEngine {
             entities[index].invisibleRemaining = max(
                 0,
                 entities[index].invisibleRemaining - deltaTime
+            )
+        }
+        for index in entities.indices where entities[index].encasedRemaining > 0 {
+            entities[index].encasedRemaining = max(
+                0,
+                entities[index].encasedRemaining - deltaTime
             )
         }
     }
@@ -1902,6 +1943,9 @@ nonisolated final class SimulationEngine {
                 }
                 if isProtectable, !auraSources.isEmpty {
                     damage *= auraDamageMultiplier(for: index, sources: auraSources)
+                }
+                if isProtectable, entities[index].encasedRemaining > 0 {
+                    damage *= 1 - entities[index].encasedDamageReduction
                 }
                 if
                     isProtectable,

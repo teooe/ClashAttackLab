@@ -122,6 +122,11 @@ nonisolated struct BattleEntity: Identifiable {
     var slowRemaining: TimeInterval = 0
     var slowFraction: Double = 0
 
+    /// Seconds left inside an Ice Block, and the share of damage the ice
+    /// stops.
+    var encasedRemaining: TimeInterval = 0
+    var encasedDamageReduction: Double = 0
+
     /// Hidden defenses cannot attack or be targeted before activation.
     var isRevealed: Bool
 

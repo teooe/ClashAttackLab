@@ -271,6 +271,8 @@ nonisolated struct AttackPlanGenerator {
             } else if kind == .poison {
                 // Reinforcements gather around their Clan Castle.
                 position = baseEntities.first { $0.kind == .clanCastle }?.position ?? fallback
+            } else if kind == .overgrowth {
+                position = Self.overgrowthTarget(in: baseEntities)?.position ?? fallback
             } else {
                 position = fallback
             }
@@ -291,6 +293,20 @@ nonisolated struct AttackPlanGenerator {
             deployments: deployments,
             spellDeployments: spellDeployments
         )
+    }
+
+    /// Strongest defense to smother with an Overgrowth Spell.
+    static let overgrowthPriority: [BattleEntityKind] = [
+        .eagleArtillery, .infernoTower, .scattershot, .monolith, .xBow
+    ]
+
+    static func overgrowthTarget(in entities: [BattleEntity]) -> BattleEntity? {
+        for kind in overgrowthPriority {
+            if let target = entities.first(where: { $0.kind == kind }) {
+                return target
+            }
+        }
+        return nil
     }
 
     private func spellColumn(for kind: BattleSpellKind) -> Int {
@@ -318,6 +334,10 @@ nonisolated struct AttackPlanGenerator {
             return 11
         case .poison:
             return 16
+        case .overgrowth:
+            return 17
+        case .iceBlock:
+            return 12
         }
     }
 

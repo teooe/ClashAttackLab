@@ -115,6 +115,8 @@ SPELLS = {
     "invisibility": "spells/invisibility-spell.json",
     "haste": "spells/haste-spell.json",
     "poison": "spells/poison-spell.json",
+    "overgrowth": "spells/overgrowth-spell.json",
+    "iceBlock": "spells/ice-block-spell.json",
 }
 
 
@@ -391,6 +393,11 @@ def spell_entry(key, data):
             values["damagePerSecond"] = level["maxDamagePerSecond"]
             values["speedDecreasePercent"] = level["speedDecrease"]
             values["attackRateDecreasePercent"] = level["attackRateDecrease"]
+        elif key == "overgrowth":
+            values["duration"] = level["spellDuration"]
+        elif key == "iceBlock":
+            values["duration"] = level["spellDuration"]
+            values["damageReductionPercent"] = level["incomingDamageReduction"]
         levels.append(compact(values))
 
     return {

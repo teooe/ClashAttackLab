@@ -187,6 +187,9 @@ nonisolated struct ReferenceSpellLevel: Decodable {
     let damagePerSecond: Double?
     let speedDecreasePercent: Double?
     let attackRateDecreasePercent: Double?
+
+    /// Ice Block: share of the damage the ice stops.
+    let damageReductionPercent: Double?
 }
 
 // MARK: - Level selection
@@ -592,7 +595,7 @@ nonisolated struct ReferenceGameData: GameDataProviding {
         case .poison:
             // Real values; only the damage ramp is estimated.
             tuningEvidence = .approximation
-        case .jump, .invisibility:
+        case .jump, .invisibility, .overgrowth, .iceBlock:
             break
         }
 
@@ -620,6 +623,10 @@ nonisolated struct ReferenceGameData: GameDataProviding {
         definition.defenderAttackSpeedMultiplier = level.attackRateDecreasePercent
             .map { 1 - $0 / 100 } ?? base.defenderAttackSpeedMultiplier
         definition.defenderDamageRampTime = base.defenderDamageRampTime
+        definition.entanglesBuildings = base.entanglesBuildings
+        definition.encasesTroops = base.encasesTroops
+        definition.troopDamageReduction = level.damageReductionPercent
+            .map { $0 / 100 } ?? base.troopDamageReduction
         return definition
     }
 
@@ -786,6 +793,8 @@ extension BattleSpellKind {
         case .invisibility: return "invisibility"
         case .haste: return "haste"
         case .poison: return "poison"
+        case .overgrowth: return "overgrowth"
+        case .iceBlock: return "iceBlock"
         }
     }
 }
