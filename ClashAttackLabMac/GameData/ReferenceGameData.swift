@@ -180,6 +180,11 @@ nonisolated struct ReferenceSpellLevel: Decodable {
     let damageIncreasePercent: Double?
     let speedIncrease: Double?
     let buildingDamagePercent: Double?
+
+    /// Poison: full damage per second and slowdowns of the reinforcements.
+    let damagePerSecond: Double?
+    let speedDecreasePercent: Double?
+    let attackRateDecreasePercent: Double?
 }
 
 // MARK: - Level selection
@@ -575,6 +580,9 @@ nonisolated struct ReferenceGameData: GameDataProviding {
         case .haste:
             movementSpeedBonus = (level.speedIncrease ?? 0) /
                 Self.movementSpeedPerTileSecond * tileSize
+        case .poison:
+            // Real values; only the damage ramp is estimated.
+            tuningEvidence = .approximation
         case .jump, .invisibility:
             break
         }
@@ -596,6 +604,13 @@ nonisolated struct ReferenceGameData: GameDataProviding {
         )
         definition.letsTroopsJumpWalls = base.letsTroopsJumpWalls
         definition.hidesDefenses = base.hidesDefenses
+        definition.defenderDamagePerSecond =
+            level.damagePerSecond ?? base.defenderDamagePerSecond
+        definition.defenderSpeedMultiplier = level.speedDecreasePercent
+            .map { 1 - $0 / 100 } ?? base.defenderSpeedMultiplier
+        definition.defenderAttackSpeedMultiplier = level.attackRateDecreasePercent
+            .map { 1 - $0 / 100 } ?? base.defenderAttackSpeedMultiplier
+        definition.defenderDamageRampTime = base.defenderDamageRampTime
         return definition
     }
 
@@ -761,6 +776,7 @@ extension BattleSpellKind {
         case .jump: return "jump"
         case .invisibility: return "invisibility"
         case .haste: return "haste"
+        case .poison: return "poison"
         }
     }
 }

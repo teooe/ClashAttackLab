@@ -320,6 +320,7 @@ nonisolated final class SimulationEngine {
         deployScheduledTroops()
         deployScheduledSpells()
         applyHealingSpells(by: deltaTime)
+        applyPoisonSpells(by: deltaTime)
 
         defer {
             advanceActiveSpells(by: deltaTime)
@@ -520,6 +521,36 @@ nonisolated final class SimulationEngine {
                 maximum,
                 entities[troopIndex].hitPoints + healing
             )
+        }
+    }
+
+    /// Poison clouds hurt the Clan Castle reinforcements inside them,
+    /// harder as the cloud grows.
+    private func applyPoisonSpells(by deltaTime: TimeInterval) {
+        let clouds = activeSpells.filter {
+            spellDefinition(for: $0.kind).defenderDamagePerSecond > 0
+        }
+        guard !clouds.isEmpty else {
+            return
+        }
+
+        var damage: [UUID: Double] = [:]
+        for defenderIndex in livingDefenderIndices() {
+            for spell in clouds {
+                let spellData = spellDefinition(for: spell.kind)
+                guard distance(
+                    from: entities[defenderIndex].position,
+                    to: spell.position
+                ) <= spellData.radius else {
+                    continue
+                }
+                let age = spellData.duration - spell.remainingDuration
+                damage[entities[defenderIndex].id, default: 0] +=
+                    spellData.defenderDamagePerSecond(atAge: age) * deltaTime
+            }
+        }
+        if !damage.isEmpty {
+            apply(damage)
         }
     }
 
@@ -2192,8 +2223,11 @@ nonisolated final class SimulationEngine {
     private func combatModifiers(
         for entity: BattleEntity
     ) -> CombatModifiers {
-        guard definition(for: entity.kind).role == .troop, !entity.isDefender else {
+        guard definition(for: entity.kind).role == .troop else {
             return .neutral
+        }
+        if entity.isDefender {
+            return defenderModifiers(for: entity)
         }
 
         var damage = 1.0
@@ -2250,6 +2284,30 @@ nonisolated final class SimulationEngine {
             movementSpeed: movementSpeed,
             attackSpeed: attackSpeed,
             attackRange: attackRange
+        )
+    }
+
+    /// Reinforcements slowed by the strongest cloud they stand in; spells
+    /// that help the army never help them.
+    private func defenderModifiers(for entity: BattleEntity) -> CombatModifiers {
+        var movementSpeed = 1.0
+        var attackSpeed = 1.0
+        for spell in activeSpells {
+            let spellData = spellDefinition(for: spell.kind)
+            guard
+                spellData.affectsDefenders,
+                distance(from: entity.position, to: spell.position) <= spellData.radius
+            else {
+                continue
+            }
+            movementSpeed = min(movementSpeed, spellData.defenderSpeedMultiplier)
+            attackSpeed = min(attackSpeed, spellData.defenderAttackSpeedMultiplier)
+        }
+        return CombatModifiers(
+            damage: 1,
+            movementSpeed: movementSpeed,
+            attackSpeed: attackSpeed,
+            attackRange: 1
         )
     }
 

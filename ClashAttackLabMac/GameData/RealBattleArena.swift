@@ -536,7 +536,7 @@ extension ArmyConfiguration {
     }
 
     /// Adds troops in order until the camps are full, then the heroes, a
-    /// Wall Wrecker and as many spells as fit.
+    /// Wall Wrecker, a Poison and as many other spells as fit.
     private nonisolated static func filling(
         rules: ArmyCapacityRules,
         with fill: [(BattleEntityKind, ArmyFill)]
@@ -579,6 +579,11 @@ extension ArmyConfiguration {
         add(.wallWrecker, count: 1)
 
         var spellSpace = rules.spellCapacity
+        // One Poison for the Clan Castle reinforcements every real base has.
+        if rules.allows(.poison), rules.housing(for: .poison) <= spellSpace {
+            army[spell: .poison] = 1
+            spellSpace -= max(rules.housing(for: .poison), 1)
+        }
         let spellOrder: [(BattleSpellKind, WritableKeyPath<ArmyConfiguration, Int>)] = [
             (.rage, \.rageSpells),
             (.heal, \.healSpells),

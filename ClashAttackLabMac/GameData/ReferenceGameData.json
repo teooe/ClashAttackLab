@@ -454,6 +454,120 @@
    ],
    "name": "Lightning Spell"
   },
+  "poison": {
+   "housingSpace": 1,
+   "levels": [
+    {
+     "attackRateDecreasePercent": 35,
+     "damagePerSecond": 90,
+     "duration": 16,
+     "level": 1,
+     "radius": 4,
+     "speedDecreasePercent": 26,
+     "townHall": 8
+    },
+    {
+     "attackRateDecreasePercent": 40,
+     "damagePerSecond": 115,
+     "duration": 16,
+     "level": 2,
+     "radius": 4,
+     "speedDecreasePercent": 30,
+     "townHall": 8
+    },
+    {
+     "attackRateDecreasePercent": 45,
+     "damagePerSecond": 145,
+     "duration": 16,
+     "level": 3,
+     "radius": 4,
+     "speedDecreasePercent": 34,
+     "townHall": 9
+    },
+    {
+     "attackRateDecreasePercent": 50,
+     "damagePerSecond": 180,
+     "duration": 16,
+     "level": 4,
+     "radius": 4,
+     "speedDecreasePercent": 38,
+     "townHall": 10
+    },
+    {
+     "attackRateDecreasePercent": 55,
+     "damagePerSecond": 220,
+     "duration": 16,
+     "level": 5,
+     "radius": 4,
+     "speedDecreasePercent": 40,
+     "townHall": 11
+    },
+    {
+     "attackRateDecreasePercent": 60,
+     "damagePerSecond": 260,
+     "duration": 16,
+     "level": 6,
+     "radius": 4,
+     "speedDecreasePercent": 42,
+     "townHall": 12
+    },
+    {
+     "attackRateDecreasePercent": 65,
+     "damagePerSecond": 280,
+     "duration": 16,
+     "level": 7,
+     "radius": 4,
+     "speedDecreasePercent": 44,
+     "townHall": 13
+    },
+    {
+     "attackRateDecreasePercent": 68,
+     "damagePerSecond": 300,
+     "duration": 16,
+     "level": 8,
+     "radius": 4,
+     "speedDecreasePercent": 46,
+     "townHall": 14
+    },
+    {
+     "attackRateDecreasePercent": 70,
+     "damagePerSecond": 320,
+     "duration": 16,
+     "level": 9,
+     "radius": 4,
+     "speedDecreasePercent": 48,
+     "townHall": 15
+    },
+    {
+     "attackRateDecreasePercent": 72,
+     "damagePerSecond": 340,
+     "duration": 16,
+     "level": 10,
+     "radius": 4,
+     "speedDecreasePercent": 50,
+     "townHall": 16
+    },
+    {
+     "attackRateDecreasePercent": 73,
+     "damagePerSecond": 360,
+     "duration": 16,
+     "level": 11,
+     "radius": 4,
+     "speedDecreasePercent": 51,
+     "townHall": 17
+    },
+    {
+     "attackRateDecreasePercent": 74,
+     "damagePerSecond": 380,
+     "duration": 16,
+     "level": 12,
+     "radius": 4,
+     "speedDecreasePercent": 52,
+     "townHall": 17
+    }
+   ],
+   "name": "Poison Spell"
+  },
   "rage": {
    "housingSpace": 2,
    "levels": [

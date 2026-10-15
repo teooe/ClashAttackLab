@@ -1119,7 +1119,7 @@ final class BattleScene: SKScene {
             return .systemYellow
         case .earthquake:
             return .systemOrange
-        case .jump, .invisibility, .haste:
+        case .jump, .invisibility, .haste, .poison:
             let style = SpellStyle.style(for: kind)
             return SKColor(red: style.red, green: style.green, blue: style.blue, alpha: 1)
         }
@@ -1137,7 +1137,7 @@ final class BattleScene: SKScene {
             return "L"
         case .earthquake:
             return "E"
-        case .jump, .invisibility, .haste:
+        case .jump, .invisibility, .haste, .poison:
             return SpellStyle.style(for: kind).symbol
         }
     }

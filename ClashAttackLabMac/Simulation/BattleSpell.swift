@@ -10,6 +10,7 @@ nonisolated enum BattleSpellKind: Hashable, Codable, CaseIterable {
     case jump
     case invisibility
     case haste
+    case poison
 }
 
 /// Separates documented spell behavior from temporary tuning values.
@@ -40,6 +41,33 @@ nonisolated struct SpellDefinition {
     /// Defenses inside the spell cannot be targeted by troops
     /// (Invisibility Spell).
     var hidesDefenses = false
+
+    /// Clan Castle reinforcements inside the spell take this much damage
+    /// per second once the cloud is fully grown, and move and attack at
+    /// these fractions of their speed (Poison Spell).
+    var defenderDamagePerSecond: Double = 0
+    var defenderSpeedMultiplier: Double = 1
+    var defenderAttackSpeedMultiplier: Double = 1
+
+    /// Seconds the cloud takes to reach its full damage.
+    var defenderDamageRampTime: TimeInterval = 0
+
+    /// The game only says the poison grows "with increasing severity";
+    /// a linear ramp over this many seconds is an estimate.
+    static let poisonRampTime: TimeInterval = 4
+
+    var affectsDefenders: Bool {
+        defenderDamagePerSecond > 0 || defenderSpeedMultiplier < 1 ||
+            defenderAttackSpeedMultiplier < 1
+    }
+
+    /// Damage per second dealt `age` seconds after the cast.
+    func defenderDamagePerSecond(atAge age: TimeInterval) -> Double {
+        guard defenderDamageRampTime > 0 else {
+            return defenderDamagePerSecond
+        }
+        return defenderDamagePerSecond * min(1, max(0, age) / defenderDamageRampTime)
+    }
 
     /// Changes troop speed or damage while they stand inside the spell
     /// (Rage, Haste).
