@@ -543,7 +543,7 @@ extension ArmyConfiguration {
                 (.wallBreaker, .count(6)), (.yeti, .share(0.55)),
                 (.bowler, .share(0.2)), (.wizard, .rest), (.archer, .rest)
             ]),
-            ("Cavalieri del drago", [
+            ("Cavalcadraghi", [
                 (.dragonRider, .share(0.6)), (.balloon, .share(0.25)),
                 (.archer, .rest)
             ])
