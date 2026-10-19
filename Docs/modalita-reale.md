@@ -43,6 +43,10 @@ Questa pagina elenca cosa viene simulato e quali valori sono stime, cioè numeri
   - Caserma d'assedio: fa uscire subito un P.E.K.K.A e 11 Stregoni, poi fa da esca per 30 s;
   - Lanciatronchi: ogni 3 s rotola un tronco verso il Municipio che colpisce muri (danno ×4) ed edifici sulla sua strada, poi avanza finché un muro o un edificio non lo ferma.
 - **Danno alla morte delle truppe:** Golem e Dirigibile danneggiano gli edifici entro 2 caselle dal loro bordo.
+- **Duca Drago:** eroe volante dal TH15, con Cuor di fuoco (cura ed esplosione quando cade) e Mazzo della vendetta (contrattacca le difese che lo colpiscono). Si portano al massimo 4 eroi.
+- **Drago neonato:** raddoppia il danno quando non ha altre truppe aeree vicine.
+- **Famigli:** Polaris, Fenice, Gufo elettrico e Unicorno seguono il loro eroe. La Fenice lo protegge 8 s quando sta per cadere. I Frostmiti di Polaris non sono ancora simulati.
+- **Formazioni pronte:** il pulsante **Formazioni** nell'editor dell'esercito carica gli eserciti pronti. Tra questi c'è **La mia formazione**: 12 Draghi, 4 Cavalcadraghi, 4 Mongolfiere, 1 Drago neonato, Lanciatronchi, Regina, Duca Drago, Sorvegliante e Campionessa, 12 Invisibilità e 1 Furia (Castello compreso).
 - **Eroi:**
   - Re, Regina, Gran Sorvegliante e Campionessa;
   - l'aura del Sorvegliante riduce del 20% il danno subito dalle truppe vicine.
@@ -55,9 +59,10 @@ Li scegli con il pulsante **Equipaggiamento**. **Trova attacco → Confronta equ
 | Eroe | Pezzi disponibili | Predefiniti |
 | --- | --- | --- |
 | Re barbaro | Fiala della furia, Guanto gigante, Palla chiodata, Vampibaffi | Guanto gigante + Palla chiodata |
-| Regina degli arcieri | Freccia gigante, Freccia congelante, Fiala dell'invisibilità | Freccia gigante + Freccia congelante |
-| Gran Sorvegliante | Tomo eterno, Palla di fuoco, Gemma della furia, Tomo curativo | Tomo eterno + Palla di fuoco |
+| Regina degli arcieri | Freccia gigante, Freccia congelante, Fiala dell'invisibilità, Pupazzo del guaritore | Pupazzo del guaritore + Freccia gigante |
+| Gran Sorvegliante | Tomo eterno, Palla di fuoco, Gemma della furia, Tomo curativo | Gemma della furia + Tomo eterno |
 | Campionessa reale | Scudo cercatore, Lancia razzo, Stivali elettrici, Gemma reale, Fiala della velocità | Lancia razzo + Stivali elettrici |
+| Duca Drago | Cuor di fuoco, Mazzo della vendetta | Cuor di fuoco + Mazzo della vendetta |
 
 ## Incantesimi
 
@@ -84,6 +89,7 @@ Questi numeri non sono nei dati e sono stati scelti a mano:
 | Bersagli della Freccia gigante | 3 entro 12 caselle |
 | Raggio del Tomo curativo | 5 caselle |
 | Raggio dell'esplosione di Golem e Dirigibile | 2 caselle dal bordo degli edifici |
+| Distanza che calma il Drago neonato | 4,5 caselle |
 | Percorso del tronco del Lanciatronchi | 10 caselle, largo 1 casella |
 
 Altre semplificazioni:
@@ -93,6 +99,6 @@ Altre semplificazioni:
 
 ## Non ancora simulati
 
-- **Truppe:** Mini Yeti (mancano i dati), animali, truppe super, Trapano da battaglia e Carro volante, che arrivano dal TH16.
+- **Truppe:** Mini Yeti (mancano i dati), Frostmiti di Polaris, truppe super, Trapano da battaglia e Carro volante, che arrivano dal TH16.
 - **Incantesimi:** Richiamo, Rianimazione, Totem, Clonazione, Rabbia (Angry Spell).
 - **Equipaggiamenti:** quelli che evocano truppe (marionette, Specchio magico) e alcuni pezzi recenti.

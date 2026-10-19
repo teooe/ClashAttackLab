@@ -319,7 +319,10 @@ struct ContentView: View {
             ArmyEditorView(
                 configuration: session.armyConfiguration,
                 rules: session.armyRules,
-                defaultArmy: session.defaultArmy
+                defaultArmy: session.defaultArmy,
+                presets: session.isRealArena
+                    ? ArmyConfiguration.realPresets(for: session.armyRules)
+                    : []
             ) { configuration in
                 session.applyArmyConfiguration(configuration)
             }

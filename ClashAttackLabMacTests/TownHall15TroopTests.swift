@@ -156,7 +156,14 @@ struct TownHall15TroopTests {
         let th15 = try rules(townHall: 15)
         let presets = ArmyConfiguration.realPresets(for: th15)
 
-        #expect(presets.count == 6)
+        #expect(presets.count == 7)
+        let mine = try #require(presets.first { $0.name == ArmyConfiguration.playerArmyName })
+        #expect(mine.configuration.dragons == 12)
+        #expect(mine.configuration[troop: .dragonDuke] == 1)
+        #expect(mine.configuration[troop: .barbarianKing] == 0)
+        #expect(mine.configuration[troop: .logLauncher] == 1)
+        #expect(mine.configuration[spell: .invisibility] == 12)
+        #expect(mine.configuration.troopCapacityUsed(under: th15) == th15.totalTroopCapacity)
         for preset in presets {
             #expect(preset.configuration.isValid(under: th15), "\(preset.name)")
             #expect(preset.configuration.troopCapacityUsed(under: th15) > th15.troopCapacity - 10)
