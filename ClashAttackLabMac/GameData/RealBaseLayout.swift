@@ -177,7 +177,8 @@ extension RealBaseLayout {
         let invalid = Set(clanCastleTroops.filter {
             prototype.definition(for: $0).role != .troop ||
                 BattleEntityKind.spawnedTroops.contains($0) ||
-                $0.isHero
+                $0.isHero ||
+                $0.isPet
         })
         for kind in invalid.sorted(by: { $0.referenceKey < $1.referenceKey }) {
             issues.append(RealBaseIssue(

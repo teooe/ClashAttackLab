@@ -50,6 +50,11 @@ UNITS = {
     "logLauncher": "siege-machines/log-launcher.json",
     "dragonDuke": "heroes/dragon-duke.json",
     "babyDragon": "troops/baby-dragon.json",
+    "healer": "troops/healer.json",
+    "frosty": "pets/frosty.json",
+    "phoenix": "pets/phoenix.json",
+    "electroOwl": "pets/electro-owl.json",
+    "unicorn": "pets/unicorn.json",
     "cannon": "defenses/cannon.json",
     "archerTower": "defenses/archer-tower.json",
     "mortar": "defenses/mortar.json",
@@ -148,6 +153,7 @@ EQUIPMENT = {
     "hasteVial": "hero-equipment/haste-vial.json",
     "fireHeart": "hero-equipment/fire-heart.json",
     "revengeDeck": "hero-equipment/revenge-deck.json",
+    "healerPuppet": "hero-equipment/healer-puppet.json",
 }
 
 HEROES = {
@@ -311,6 +317,8 @@ def unit_entry(key, data, hero_halls):
         "housingSpace": data.get("housingSpace"),
         "countByTownHall": counts_by_town_hall(data),
         "hitpointDecayPerSecond": data.get("hpDecayPerSecond"),
+        "chainTargets": data.get("numberOfTargets"),
+        "chainDamageDecayPercent": data.get("chainDamageDecay"),
         "lifetime": data.get("lifetime"),
     })
 
@@ -366,6 +374,11 @@ def unit_entry(key, data, hero_halls):
             "pekkasSpawned": level.get("pekkasSpawned"),
             "enragedDamagePerHit": level.get("stats", {})
             .get("enraged", {}).get("damagePerShot"),
+            "healingPerSecond": level.get(
+                "healingPerSecond", stats.get("healingPerSecond")
+            ),
+            "heroHealingPerSecond": stats.get("healingPerSecondOnHeroes"),
+            "reviveDuration": level.get("reviveDuration"),
             "wizardsSpawned": level.get("wizardsSpawned"),
             "rampDamagePerHit": ramp,
             "troopCapacity": (

@@ -17,6 +17,23 @@ extension BattleEntityKind {
         .grandWarden, .royalChampion, .dragonDuke
     ]
 
+    /// Pets that follow a hero into battle.
+    nonisolated static let petKinds: [BattleEntityKind] = [
+        .frosty, .phoenix, .electroOwl, .unicorn
+    ]
+
+    nonisolated var isPet: Bool {
+        Self.petKinds.contains(self)
+    }
+
+    /// Pet each hero takes by default.
+    nonisolated static let defaultPets: [BattleEntityKind: BattleEntityKind] = [
+        .archerQueen: .frosty,
+        .dragonDuke: .phoenix,
+        .grandWarden: .electroOwl,
+        .royalChampion: .unicorn
+    ]
+
     /// Heroes an army can bring into one battle.
     nonisolated static let maximumHeroesPerArmy = 4
 
@@ -116,6 +133,16 @@ nonisolated struct TroopStyle {
             return TroopStyle(displayName: "Duca Drago", symbol: "DD", red: 0.80, green: 0.25, blue: 0.30, radius: 36)
         case .babyDragon:
             return TroopStyle(displayName: "Drago neonato", symbol: "BD", red: 0.40, green: 0.75, blue: 0.35, radius: 26)
+        case .healer:
+            return TroopStyle(displayName: "Guaritrice", symbol: "HL", red: 0.95, green: 0.85, blue: 0.55, radius: 22)
+        case .frosty:
+            return TroopStyle(displayName: "Polaris", symbol: "PO", red: 0.80, green: 0.92, blue: 1.0, radius: 18)
+        case .phoenix:
+            return TroopStyle(displayName: "Fenice", symbol: "FE", red: 1.0, green: 0.45, blue: 0.15, radius: 18)
+        case .electroOwl:
+            return TroopStyle(displayName: "Gufo elettrico", symbol: "GE", red: 0.45, green: 0.70, blue: 0.95, radius: 16)
+        case .unicorn:
+            return TroopStyle(displayName: "Unicorno", symbol: "UN", red: 0.98, green: 0.85, blue: 0.95, radius: 18)
         default:
             return TroopStyle(displayName: "Truppa", symbol: "?", red: 0.5, green: 0.5, blue: 0.5, radius: 22)
         }

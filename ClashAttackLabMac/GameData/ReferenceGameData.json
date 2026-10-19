@@ -1455,6 +1455,159 @@
    "name": "Haste Vial",
    "rarity": "common"
   },
+  "healerPuppet": {
+   "ability": {},
+   "active": true,
+   "hero": "archerQueen",
+   "levels": [
+    {
+     "blacksmith": 5,
+     "healerLevel": 4,
+     "hitpointIncrease": 132,
+     "level": 1,
+     "selfHealingPerSecond": 6,
+     "summonedHealers": 1
+    },
+    {
+     "blacksmith": 5,
+     "healerLevel": 4,
+     "hitpointIncrease": 154,
+     "level": 2,
+     "selfHealingPerSecond": 8,
+     "summonedHealers": 1
+    },
+    {
+     "blacksmith": 5,
+     "healerLevel": 5,
+     "hitpointIncrease": 177,
+     "level": 3,
+     "selfHealingPerSecond": 10,
+     "summonedHealers": 1
+    },
+    {
+     "blacksmith": 5,
+     "healerLevel": 5,
+     "hitpointIncrease": 199,
+     "level": 4,
+     "selfHealingPerSecond": 12,
+     "summonedHealers": 1
+    },
+    {
+     "blacksmith": 5,
+     "healerLevel": 5,
+     "hitpointIncrease": 221,
+     "level": 5,
+     "selfHealingPerSecond": 14,
+     "summonedHealers": 1
+    },
+    {
+     "blacksmith": 5,
+     "healerLevel": 5,
+     "hitpointIncrease": 243,
+     "level": 6,
+     "selfHealingPerSecond": 16,
+     "summonedHealers": 2
+    },
+    {
+     "blacksmith": 5,
+     "healerLevel": 5,
+     "hitpointIncrease": 265,
+     "level": 7,
+     "selfHealingPerSecond": 18,
+     "summonedHealers": 2
+    },
+    {
+     "blacksmith": 5,
+     "healerLevel": 5,
+     "hitpointIncrease": 287,
+     "level": 8,
+     "selfHealingPerSecond": 20,
+     "summonedHealers": 2
+    },
+    {
+     "blacksmith": 5,
+     "healerLevel": 6,
+     "hitpointIncrease": 331,
+     "level": 9,
+     "selfHealingPerSecond": 22,
+     "summonedHealers": 2
+    },
+    {
+     "blacksmith": 5,
+     "healerLevel": 6,
+     "hitpointIncrease": 402,
+     "level": 10,
+     "selfHealingPerSecond": 24,
+     "summonedHealers": 2
+    },
+    {
+     "blacksmith": 5,
+     "healerLevel": 6,
+     "hitpointIncrease": 473,
+     "level": 11,
+     "selfHealingPerSecond": 26,
+     "summonedHealers": 2
+    },
+    {
+     "blacksmith": 5,
+     "healerLevel": 7,
+     "hitpointIncrease": 543,
+     "level": 12,
+     "selfHealingPerSecond": 28,
+     "summonedHealers": 2
+    },
+    {
+     "blacksmith": 5,
+     "healerLevel": 7,
+     "hitpointIncrease": 614,
+     "level": 13,
+     "selfHealingPerSecond": 30,
+     "summonedHealers": 2
+    },
+    {
+     "blacksmith": 5,
+     "healerLevel": 7,
+     "hitpointIncrease": 685,
+     "level": 14,
+     "selfHealingPerSecond": 31,
+     "summonedHealers": 2
+    },
+    {
+     "blacksmith": 5,
+     "healerLevel": 7,
+     "hitpointIncrease": 756,
+     "level": 15,
+     "selfHealingPerSecond": 32,
+     "summonedHealers": 3
+    },
+    {
+     "blacksmith": 7,
+     "healerLevel": 7,
+     "hitpointIncrease": 826,
+     "level": 16,
+     "selfHealingPerSecond": 33,
+     "summonedHealers": 3
+    },
+    {
+     "blacksmith": 7,
+     "healerLevel": 7,
+     "hitpointIncrease": 897,
+     "level": 17,
+     "selfHealingPerSecond": 34,
+     "summonedHealers": 3
+    },
+    {
+     "blacksmith": 7,
+     "healerLevel": 8,
+     "hitpointIncrease": 968,
+     "level": 18,
+     "selfHealingPerSecond": 35,
+     "summonedHealers": 3
+    }
+   ],
+   "name": "Healer Puppet",
+   "rarity": "common"
+  },
   "healingTome": {
    "ability": {},
    "active": true,
@@ -8053,6 +8206,106 @@
    "name": "Electro Dragon",
    "range": 3
   },
+  "electroOwl": {
+   "attackInterval": 1.4,
+   "chainDamageDecayPercent": -20,
+   "chainTargets": 2,
+   "levels": [
+    {
+     "damagePerHit": 140,
+     "hitpoints": 1600,
+     "level": 1,
+     "townHall": 14
+    },
+    {
+     "damagePerHit": 147,
+     "hitpoints": 1700,
+     "level": 2,
+     "townHall": 14
+    },
+    {
+     "damagePerHit": 154,
+     "hitpoints": 1800,
+     "level": 3,
+     "townHall": 14
+    },
+    {
+     "damagePerHit": 161,
+     "hitpoints": 1900,
+     "level": 4,
+     "townHall": 14
+    },
+    {
+     "damagePerHit": 168,
+     "hitpoints": 2000,
+     "level": 5,
+     "townHall": 14
+    },
+    {
+     "damagePerHit": 175,
+     "hitpoints": 2100,
+     "level": 6,
+     "townHall": 14
+    },
+    {
+     "damagePerHit": 182,
+     "hitpoints": 2200,
+     "level": 7,
+     "townHall": 14
+    },
+    {
+     "damagePerHit": 189,
+     "hitpoints": 2300,
+     "level": 8,
+     "townHall": 14
+    },
+    {
+     "damagePerHit": 196,
+     "hitpoints": 2400,
+     "level": 9,
+     "townHall": 14
+    },
+    {
+     "damagePerHit": 203,
+     "hitpoints": 2500,
+     "level": 10,
+     "townHall": 14
+    },
+    {
+     "damagePerHit": 210,
+     "hitpoints": 2600,
+     "level": 11,
+     "townHall": 16
+    },
+    {
+     "damagePerHit": 217,
+     "hitpoints": 2700,
+     "level": 12,
+     "townHall": 16
+    },
+    {
+     "damagePerHit": 224,
+     "hitpoints": 2800,
+     "level": 13,
+     "townHall": 16
+    },
+    {
+     "damagePerHit": 231,
+     "hitpoints": 2900,
+     "level": 14,
+     "townHall": 16
+    },
+    {
+     "damagePerHit": 238,
+     "hitpoints": 3000,
+     "level": 15,
+     "townHall": 16
+    }
+   ],
+   "movementSpeed": 20,
+   "name": "Electro Owl",
+   "range": 6
+  },
   "elixirCollector": {
    "countByTownHall": [
     1,
@@ -8323,6 +8576,104 @@
    "movementSpeed": 6,
    "name": "Flame Flinger",
    "range": 11
+  },
+  "frosty": {
+   "attackInterval": 1.2,
+   "levels": [
+    {
+     "damagePerHit": 112.8,
+     "hitpoints": 2350,
+     "level": 1,
+     "townHall": 15
+    },
+    {
+     "damagePerHit": 117.6,
+     "hitpoints": 2450,
+     "level": 2,
+     "townHall": 15
+    },
+    {
+     "damagePerHit": 122.4,
+     "hitpoints": 2550,
+     "level": 3,
+     "townHall": 15
+    },
+    {
+     "damagePerHit": 127.2,
+     "hitpoints": 2650,
+     "level": 4,
+     "townHall": 15
+    },
+    {
+     "damagePerHit": 132,
+     "hitpoints": 2800,
+     "level": 5,
+     "townHall": 15
+    },
+    {
+     "damagePerHit": 136.8,
+     "hitpoints": 2900,
+     "level": 6,
+     "townHall": 15
+    },
+    {
+     "damagePerHit": 141.6,
+     "hitpoints": 3000,
+     "level": 7,
+     "townHall": 15
+    },
+    {
+     "damagePerHit": 146.4,
+     "hitpoints": 3100,
+     "level": 8,
+     "townHall": 15
+    },
+    {
+     "damagePerHit": 151.2,
+     "hitpoints": 3200,
+     "level": 9,
+     "townHall": 15
+    },
+    {
+     "damagePerHit": 156,
+     "hitpoints": 3300,
+     "level": 10,
+     "townHall": 15
+    },
+    {
+     "damagePerHit": 160.8,
+     "hitpoints": 3400,
+     "level": 11,
+     "townHall": 17
+    },
+    {
+     "damagePerHit": 165.6,
+     "hitpoints": 3500,
+     "level": 12,
+     "townHall": 17
+    },
+    {
+     "damagePerHit": 170.4,
+     "hitpoints": 3600,
+     "level": 13,
+     "townHall": 17
+    },
+    {
+     "damagePerHit": 175.2,
+     "hitpoints": 3700,
+     "level": 14,
+     "townHall": 17
+    },
+    {
+     "damagePerHit": 180,
+     "hitpoints": 3800,
+     "level": 15,
+     "townHall": 17
+    }
+   ],
+   "movementSpeed": 24,
+   "name": "Frosty",
+   "range": 3.5
   },
   "giant": {
    "attackInterval": 2,
@@ -9479,6 +9830,92 @@
    "movementSpeed": 16,
    "name": "Grand Warden",
    "range": 7
+  },
+  "healer": {
+   "attackInterval": 0.7,
+   "housingSpace": 14,
+   "levels": [
+    {
+     "healingPerSecond": 36,
+     "heroHealingPerSecond": 19,
+     "hitpoints": 500,
+     "level": 1,
+     "townHall": 6
+    },
+    {
+     "healingPerSecond": 48,
+     "heroHealingPerSecond": 26,
+     "hitpoints": 700,
+     "level": 2,
+     "townHall": 7
+    },
+    {
+     "healingPerSecond": 60,
+     "heroHealingPerSecond": 33,
+     "hitpoints": 900,
+     "level": 3,
+     "townHall": 8
+    },
+    {
+     "healingPerSecond": 66,
+     "heroHealingPerSecond": 36,
+     "hitpoints": 1200,
+     "level": 4,
+     "townHall": 9
+    },
+    {
+     "healingPerSecond": 72,
+     "heroHealingPerSecond": 48,
+     "hitpoints": 1500,
+     "level": 5,
+     "townHall": 11
+    },
+    {
+     "healingPerSecond": 72,
+     "heroHealingPerSecond": 56,
+     "hitpoints": 1600,
+     "level": 6,
+     "townHall": 13
+    },
+    {
+     "healingPerSecond": 72,
+     "heroHealingPerSecond": 62,
+     "hitpoints": 1700,
+     "level": 7,
+     "townHall": 14
+    },
+    {
+     "healingPerSecond": 76,
+     "heroHealingPerSecond": 68,
+     "hitpoints": 1800,
+     "level": 8,
+     "townHall": 15
+    },
+    {
+     "healingPerSecond": 80,
+     "heroHealingPerSecond": 75,
+     "hitpoints": 1900,
+     "level": 9,
+     "townHall": 16
+    },
+    {
+     "healingPerSecond": 80,
+     "heroHealingPerSecond": 78,
+     "hitpoints": 2000,
+     "level": 10,
+     "townHall": 17
+    },
+    {
+     "healingPerSecond": 82,
+     "heroHealingPerSecond": 88,
+     "hitpoints": 2100,
+     "level": 11,
+     "townHall": 18
+    }
+   ],
+   "movementSpeed": 16,
+   "name": "Healer",
+   "range": 5
   },
   "helperHut": {
    "countByTownHall": [
@@ -10671,6 +11108,84 @@
    "name": "Pet House",
    "size": 3
   },
+  "phoenix": {
+   "attackInterval": 1,
+   "levels": [
+    {
+     "damagePerHit": 178,
+     "hitpoints": 3120,
+     "level": 1,
+     "reviveDuration": 6,
+     "townHall": 15
+    },
+    {
+     "damagePerHit": 186,
+     "hitpoints": 3240,
+     "level": 2,
+     "reviveDuration": 6,
+     "townHall": 15
+    },
+    {
+     "damagePerHit": 194,
+     "hitpoints": 3360,
+     "level": 3,
+     "reviveDuration": 6,
+     "townHall": 15
+    },
+    {
+     "damagePerHit": 202,
+     "hitpoints": 3480,
+     "level": 4,
+     "reviveDuration": 6,
+     "townHall": 15
+    },
+    {
+     "damagePerHit": 210,
+     "hitpoints": 3600,
+     "level": 5,
+     "reviveDuration": 7,
+     "townHall": 15
+    },
+    {
+     "damagePerHit": 218,
+     "hitpoints": 3720,
+     "level": 6,
+     "reviveDuration": 7,
+     "townHall": 15
+    },
+    {
+     "damagePerHit": 226,
+     "hitpoints": 3840,
+     "level": 7,
+     "reviveDuration": 7,
+     "townHall": 15
+    },
+    {
+     "damagePerHit": 234,
+     "hitpoints": 3960,
+     "level": 8,
+     "reviveDuration": 7,
+     "townHall": 15
+    },
+    {
+     "damagePerHit": 242,
+     "hitpoints": 4080,
+     "level": 9,
+     "reviveDuration": 7,
+     "townHall": 15
+    },
+    {
+     "damagePerHit": 250,
+     "hitpoints": 4200,
+     "level": 10,
+     "reviveDuration": 8,
+     "townHall": 15
+    }
+   ],
+   "movementSpeed": 16,
+   "name": "Phoenix",
+   "range": 2.5
+  },
   "rootRider": {
    "attackInterval": 2.2,
    "housingSpace": 20,
@@ -11652,6 +12167,104 @@
    ],
    "name": "Town Hall",
    "size": 4
+  },
+  "unicorn": {
+   "attackInterval": 1,
+   "levels": [
+    {
+     "healingPerSecond": 50,
+     "hitpoints": 1400,
+     "level": 1,
+     "townHall": 14
+    },
+    {
+     "healingPerSecond": 53,
+     "hitpoints": 1450,
+     "level": 2,
+     "townHall": 14
+    },
+    {
+     "healingPerSecond": 56,
+     "hitpoints": 1500,
+     "level": 3,
+     "townHall": 14
+    },
+    {
+     "healingPerSecond": 58,
+     "hitpoints": 1550,
+     "level": 4,
+     "townHall": 14
+    },
+    {
+     "healingPerSecond": 60,
+     "hitpoints": 1600,
+     "level": 5,
+     "townHall": 14
+    },
+    {
+     "healingPerSecond": 62,
+     "hitpoints": 1675,
+     "level": 6,
+     "townHall": 14
+    },
+    {
+     "healingPerSecond": 64,
+     "hitpoints": 1725,
+     "level": 7,
+     "townHall": 14
+    },
+    {
+     "healingPerSecond": 66,
+     "hitpoints": 1800,
+     "level": 8,
+     "townHall": 14
+    },
+    {
+     "healingPerSecond": 68,
+     "hitpoints": 1875,
+     "level": 9,
+     "townHall": 14
+    },
+    {
+     "healingPerSecond": 70,
+     "hitpoints": 1950,
+     "level": 10,
+     "townHall": 14
+    },
+    {
+     "healingPerSecond": 71,
+     "hitpoints": 2025,
+     "level": 11,
+     "townHall": 17
+    },
+    {
+     "healingPerSecond": 72,
+     "hitpoints": 2100,
+     "level": 12,
+     "townHall": 17
+    },
+    {
+     "healingPerSecond": 73,
+     "hitpoints": 2175,
+     "level": 13,
+     "townHall": 17
+    },
+    {
+     "healingPerSecond": 74,
+     "hitpoints": 2250,
+     "level": 14,
+     "townHall": 17
+    },
+    {
+     "healingPerSecond": 75,
+     "hitpoints": 2325,
+     "level": 15,
+     "townHall": 17
+    }
+   ],
+   "movementSpeed": 16,
+   "name": "Unicorn",
+   "range": 2.5
   },
   "valkyrie": {
    "attackInterval": 1.8,

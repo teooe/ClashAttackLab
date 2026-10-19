@@ -434,6 +434,12 @@ nonisolated final class SimulationEngine {
             if entities[troopIndex].encasedRemaining > 0 {
                 continue
             }
+            if
+                definition(for: entities[troopIndex].kind).followsOwner,
+                actFollower(at: troopIndex, deltaTime: deltaTime, pendingDamage: &pendingDamage)
+            {
+                continue
+            }
             if definition(for: entities[troopIndex].kind).rollingLogLength > 0 {
                 actLogLauncher(at: troopIndex, deltaTime: deltaTime, pendingDamage: &pendingDamage)
                 continue
@@ -483,6 +489,9 @@ nonisolated final class SimulationEngine {
                 .deployment,
                 "\(definition.displayName) schierato"
             )
+            if let pet = definition.pet {
+                spawnFollower(pet, index: 0, owner: next.entityID, at: next.position)
+            }
             if definition.releasesPayloadOnDeploy, !definition.siegePayload.isEmpty {
                 releasedSiegeMachineIDs.insert(next.entityID)
                 releaseSiegePayload(
@@ -730,6 +739,17 @@ nonisolated final class SimulationEngine {
             ability.invisibilityDuration
         )
         entities[index].boostedAttacksRemaining = ability.boostedAttackCount
+
+        if let summoned = ability.summonedTroop {
+            for slot in 0..<ability.summonCount {
+                spawnFollower(
+                    summoned,
+                    index: slot + 1,
+                    owner: entities[index].id,
+                    at: entities[index].position
+                )
+            }
+        }
 
         if ability.strikeTargetCount > 0 {
             strike(with: ability, from: index)
@@ -1269,6 +1289,133 @@ nonisolated final class SimulationEngine {
             heal(index, by: hero.counterHealing)
             entities[index].counterCooldownRemaining = hero.counterCooldown
         }
+    }
+
+    // MARK: Pets and summoned followers
+
+    /// Adds a pet or summoned troop next to its hero. A Phoenix waits as
+    /// an egg until its hero would fall.
+    private func spawnFollower(
+        _ kind: BattleEntityKind,
+        index: Int,
+        owner: UUID,
+        at position: WorldPosition
+    ) {
+        let followerDefinition = definition(for: kind)
+        let key = "ClashAttackLab.follower.v1:\(owner.uuidString):\(index)"
+        let bytes = Array(SHA256.hash(data: Data(key.utf8)))
+        let angle = Double(index) * 2.1
+        var follower = BattleEntity(
+            id: UUID(uuid: (
+                bytes[0], bytes[1], bytes[2], bytes[3],
+                bytes[4], bytes[5], bytes[6], bytes[7],
+                bytes[8], bytes[9], bytes[10], bytes[11],
+                bytes[12], bytes[13], bytes[14], bytes[15]
+            )),
+            kind: kind,
+            position: payloadSpawnPosition(
+                near: WorldPosition(
+                    x: position.x + cos(angle) * navigationGrid.cellSize * 0.5,
+                    y: position.y + sin(angle) * navigationGrid.cellSize * 0.5
+                ),
+                domain: followerDefinition.movementDomain
+            ),
+            hitPoints: followerDefinition.maxHitPoints
+        )
+        follower.ownerID = owner
+        follower.isDormant = followerDefinition.reviveDuration > 0
+        entities.append(follower)
+        summonedTroopCount += 1
+    }
+
+    /// Healers stay by their hero and mend it; fighting pets attack what
+    /// the hero attacks. Without a hero they fight on their own.
+    /// Returns false when the follower should act like any troop.
+    private func actFollower(
+        at index: Int,
+        deltaTime: TimeInterval,
+        pendingDamage: inout [UUID: Double]
+    ) -> Bool {
+        let follower = definition(for: entities[index].kind)
+        guard
+            let ownerID = entities[index].ownerID,
+            let owner = entities.indices.first(where: {
+                entities[$0].id == ownerID && entities[$0].isAlive
+            })
+        else {
+            // A healer with no hero left has nothing to do.
+            return follower.healingPerSecond > 0
+        }
+
+        if follower.healingPerSecond > 0 || follower.heroHealingPerSecond > 0 {
+            let gap = distance(from: entities[index].position, to: entities[owner].position)
+            if gap <= follower.attackRange {
+                let ownerIsHero = definition(for: entities[owner].kind).heroAbility != nil
+                heal(owner, by: (ownerIsHero ? follower.heroHealingPerSecond : follower.healingPerSecond) * deltaTime)
+            } else {
+                moveDirectly(
+                    entityAt: index,
+                    toward: entities[owner].position,
+                    stoppingAt: follower.attackRange * 0.8,
+                    deltaTime: deltaTime
+                )
+            }
+            return true
+        }
+
+        guard
+            let targetID = entities[owner].currentTargetID,
+            let target = entities.indices.first(where: {
+                entities[$0].id == targetID && entities[$0].isAlive
+            })
+        else {
+            moveDirectly(
+                entityAt: index,
+                toward: entities[owner].position,
+                stoppingAt: navigationGrid.cellSize,
+                deltaTime: deltaTime
+            )
+            return true
+        }
+        let targetDefinition = definition(for: entities[target].kind)
+        let reach = targetDefinition.reachDistance(
+            from: entities[index].position,
+            toCenter: entities[target].position
+        )
+        if reach <= follower.attackRange {
+            performAttackIfPossible(
+                attackerIndex: index,
+                targetIndex: target,
+                pendingDamage: &pendingDamage
+            )
+        } else {
+            moveDirectly(
+                entityAt: index,
+                toward: entities[target].position,
+                stoppingAt: follower.attackRange,
+                targetFootprint: targetDefinition.footprintSize,
+                deltaTime: deltaTime
+            )
+        }
+        return true
+    }
+
+    /// A hero about to fall wakes its Phoenix and is shielded instead.
+    private func reviveWithPhoenix(_ index: Int) -> Bool {
+        guard let phoenix = entities.indices.first(where: {
+            entities[$0].ownerID == entities[index].id &&
+                entities[$0].isDormant &&
+                entities[$0].isAlive
+        }) else {
+            return false
+        }
+        let protection = definition(for: entities[phoenix].kind).reviveDuration
+        entities[phoenix].isDormant = false
+        entities[phoenix].position = entities[index].position
+        entities[index].hitPoints = 1
+        entities[index].invulnerableRemaining = max(entities[index].invulnerableRemaining, protection)
+        recordEvent(.heroAbility, "\(definition(for: entities[phoenix].kind).displayName) protegge l'eroe")
+        return true
     }
 
     // MARK: Clan Castle reinforcements
@@ -2135,6 +2282,14 @@ nonisolated final class SimulationEngine {
                     0,
                     entities[index].hitPoints - damage
                 )
+                if
+                    !entities[index].isAlive,
+                    !entities[index].isDefender,
+                    definition(for: entities[index].kind).heroAbility != nil,
+                    reviveWithPhoenix(index)
+                {
+                    continue
+                }
                 guard !entities[index].isAlive else {
                     continue
                 }
@@ -2373,6 +2528,7 @@ nonisolated final class SimulationEngine {
         entities.indices.filter { index in
             entities[index].isAlive &&
                 !entities[index].isDefender &&
+                !entities[index].isDormant &&
                 definition(for: entities[index].kind).role == role
         }
     }

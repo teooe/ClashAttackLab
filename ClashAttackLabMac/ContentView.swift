@@ -327,9 +327,10 @@ struct ContentView: View {
         .sheet(isPresented: $showingHeroEquipment) {
             HeroEquipmentEditorView(
                 loadouts: session.heroEquipment,
+                pets: session.heroPets,
                 heroes: BattleEntityKind.heroKinds.filter { session.armyRules.allows($0) }
-            ) { loadouts in
-                session.applyHeroEquipment(loadouts)
+            ) { loadouts, pets in
+                session.applyHeroEquipment(loadouts, pets: pets)
             }
         }
         .sheet(isPresented: $showingBaseLibrary) {
@@ -818,7 +819,7 @@ struct ContentView: View {
         case .stoneSlammer:
             return "Schiantapietre"
         case .hogRider, .valkyrie, .golem, .bowler, .miner, .pekka, .yeti, .rootRider, .electroDragon, .dragonRider, .lavaHound,
-             .grandWarden, .royalChampion, .lavaPup, .golemite, .skeleton, .bat, .battleBlimp, .flameFlinger, .siegeBarracks, .logLauncher, .dragonDuke, .babyDragon:
+             .grandWarden, .royalChampion, .lavaPup, .golemite, .skeleton, .bat, .battleBlimp, .flameFlinger, .siegeBarracks, .logLauncher, .dragonDuke, .babyDragon, .healer, .frosty, .phoenix, .electroOwl, .unicorn:
             return TroopStyle.style(for: kind).displayName
         case .cannon, .archerTower, .mortar, .wizardTower, .infernoTower, .bombTower, .hiddenTesla, .giantBomb, .airBomb, .airSweeper, .airDefense,
              .townHall, .goldStorage, .wall,
@@ -853,7 +854,7 @@ struct ContentView: View {
         case .stoneSlammer:
             return "SP"
         case .hogRider, .valkyrie, .golem, .bowler, .miner, .pekka, .yeti, .rootRider, .electroDragon, .dragonRider, .lavaHound,
-             .grandWarden, .royalChampion, .lavaPup, .golemite, .skeleton, .bat, .battleBlimp, .flameFlinger, .siegeBarracks, .logLauncher, .dragonDuke, .babyDragon:
+             .grandWarden, .royalChampion, .lavaPup, .golemite, .skeleton, .bat, .battleBlimp, .flameFlinger, .siegeBarracks, .logLauncher, .dragonDuke, .babyDragon, .healer, .frosty, .phoenix, .electroOwl, .unicorn:
             return TroopStyle.style(for: kind).symbol
         case .cannon, .archerTower, .mortar, .wizardTower, .infernoTower, .bombTower, .hiddenTesla, .giantBomb, .airBomb, .airSweeper, .airDefense,
              .townHall, .goldStorage, .wall,
@@ -888,7 +889,7 @@ struct ContentView: View {
         case .stoneSlammer:
             return .cyan
         case .hogRider, .valkyrie, .golem, .bowler, .miner, .pekka, .yeti, .rootRider, .electroDragon, .dragonRider, .lavaHound,
-             .grandWarden, .royalChampion, .lavaPup, .golemite, .skeleton, .bat, .battleBlimp, .flameFlinger, .siegeBarracks, .logLauncher, .dragonDuke, .babyDragon:
+             .grandWarden, .royalChampion, .lavaPup, .golemite, .skeleton, .bat, .battleBlimp, .flameFlinger, .siegeBarracks, .logLauncher, .dragonDuke, .babyDragon, .healer, .frosty, .phoenix, .electroOwl, .unicorn:
             let style = TroopStyle.style(for: kind)
             return Color(red: style.red, green: style.green, blue: style.blue)
         case .cannon, .archerTower, .mortar, .wizardTower, .infernoTower, .bombTower, .hiddenTesla, .giantBomb, .airBomb, .airSweeper, .airDefense,

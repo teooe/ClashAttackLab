@@ -20,6 +20,9 @@ nonisolated struct BattleArena {
     /// Equipment the heroes wear; empty in the prototype.
     let heroEquipment: [BattleEntityKind: [HeroEquipmentKind]]
 
+    /// Pet each hero brings; empty in the prototype.
+    let heroPets: [BattleEntityKind: BattleEntityKind]
+
     private let catalog: ReferenceGameCatalog?
 
     static var prototype: BattleArena {
@@ -32,6 +35,7 @@ nonisolated struct BattleArena {
             sceneSize: CGSize(width: 1_100, height: 760),
             clanCastleTroops: nil,
             heroEquipment: [:],
+            heroPets: [:],
             catalog: nil
         )
     }
@@ -40,6 +44,7 @@ nonisolated struct BattleArena {
         for source: GameDataSource,
         clanCastleTroops: [BattleEntityKind]? = nil,
         heroEquipment: [BattleEntityKind: [HeroEquipmentKind]] = HeroEquipmentKind.defaultLoadouts,
+        heroPets: [BattleEntityKind: BattleEntityKind] = BattleEntityKind.defaultPets,
         catalog: () throws -> ReferenceGameCatalog = ReferenceGameCatalog.loadBundled
     ) throws -> BattleArena {
         switch source {
@@ -60,6 +65,7 @@ nonisolated struct BattleArena {
             )
             data.clanCastleTroops = clanCastleTroops
             data.heroEquipment = heroEquipment
+            data.heroPets = heroPets
             return BattleArena(
                 source: source,
                 navigationGrid: grid,
@@ -69,6 +75,7 @@ nonisolated struct BattleArena {
                 sceneSize: RealBattleMap.sceneSize,
                 clanCastleTroops: clanCastleTroops,
                 heroEquipment: heroEquipment,
+                heroPets: heroPets,
                 catalog: catalog
             )
         }
