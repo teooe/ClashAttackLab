@@ -369,6 +369,161 @@
    "name": "Eternal Tome",
    "rarity": "common"
   },
+  "fireHeart": {
+   "ability": {
+    "damageRadius": 4
+   },
+   "active": false,
+   "hero": "dragonDuke",
+   "levels": [
+    {
+     "blacksmith": 0,
+     "damageOnDefeat": 1000,
+     "dpsIncrease": 10,
+     "hitpointIncrease": 900,
+     "level": 1,
+     "selfHealingPerSecond": 50
+    },
+    {
+     "blacksmith": 1,
+     "damageOnDefeat": 1000,
+     "dpsIncrease": 12,
+     "hitpointIncrease": 1200,
+     "level": 2,
+     "selfHealingPerSecond": 50
+    },
+    {
+     "blacksmith": 1,
+     "damageOnDefeat": 1350,
+     "dpsIncrease": 14,
+     "hitpointIncrease": 1450,
+     "level": 3,
+     "selfHealingPerSecond": 70
+    },
+    {
+     "blacksmith": 1,
+     "damageOnDefeat": 1350,
+     "dpsIncrease": 16,
+     "hitpointIncrease": 1750,
+     "level": 4,
+     "selfHealingPerSecond": 70
+    },
+    {
+     "blacksmith": 1,
+     "damageOnDefeat": 1350,
+     "dpsIncrease": 18,
+     "hitpointIncrease": 2000,
+     "level": 5,
+     "selfHealingPerSecond": 70
+    },
+    {
+     "blacksmith": 1,
+     "damageOnDefeat": 1700,
+     "dpsIncrease": 20,
+     "hitpointIncrease": 2300,
+     "level": 6,
+     "selfHealingPerSecond": 90
+    },
+    {
+     "blacksmith": 1,
+     "damageOnDefeat": 1700,
+     "dpsIncrease": 22,
+     "hitpointIncrease": 2600,
+     "level": 7,
+     "selfHealingPerSecond": 90
+    },
+    {
+     "blacksmith": 1,
+     "damageOnDefeat": 1700,
+     "dpsIncrease": 24,
+     "hitpointIncrease": 2850,
+     "level": 8,
+     "selfHealingPerSecond": 90
+    },
+    {
+     "blacksmith": 1,
+     "damageOnDefeat": 2000,
+     "dpsIncrease": 26,
+     "hitpointIncrease": 3150,
+     "level": 9,
+     "selfHealingPerSecond": 110
+    },
+    {
+     "blacksmith": 3,
+     "damageOnDefeat": 2000,
+     "dpsIncrease": 28,
+     "hitpointIncrease": 3400,
+     "level": 10,
+     "selfHealingPerSecond": 110
+    },
+    {
+     "blacksmith": 3,
+     "damageOnDefeat": 2000,
+     "dpsIncrease": 30,
+     "hitpointIncrease": 3700,
+     "level": 11,
+     "selfHealingPerSecond": 110
+    },
+    {
+     "blacksmith": 3,
+     "damageOnDefeat": 2350,
+     "dpsIncrease": 32,
+     "hitpointIncrease": 4000,
+     "level": 12,
+     "selfHealingPerSecond": 130
+    },
+    {
+     "blacksmith": 5,
+     "damageOnDefeat": 2350,
+     "dpsIncrease": 34,
+     "hitpointIncrease": 4250,
+     "level": 13,
+     "selfHealingPerSecond": 130
+    },
+    {
+     "blacksmith": 5,
+     "damageOnDefeat": 2350,
+     "dpsIncrease": 36,
+     "hitpointIncrease": 4550,
+     "level": 14,
+     "selfHealingPerSecond": 130
+    },
+    {
+     "blacksmith": 5,
+     "damageOnDefeat": 2700,
+     "dpsIncrease": 38,
+     "hitpointIncrease": 4800,
+     "level": 15,
+     "selfHealingPerSecond": 155
+    },
+    {
+     "blacksmith": 7,
+     "damageOnDefeat": 2700,
+     "dpsIncrease": 40,
+     "hitpointIncrease": 5100,
+     "level": 16,
+     "selfHealingPerSecond": 155
+    },
+    {
+     "blacksmith": 7,
+     "damageOnDefeat": 2700,
+     "dpsIncrease": 42,
+     "hitpointIncrease": 5450,
+     "level": 17,
+     "selfHealingPerSecond": 155
+    },
+    {
+     "blacksmith": 7,
+     "damageOnDefeat": 3000,
+     "dpsIncrease": 45,
+     "hitpointIncrease": 5600,
+     "level": 18,
+     "selfHealingPerSecond": 175
+    }
+   ],
+   "name": "Fire Heart",
+   "rarity": "common"
+  },
   "fireball": {
    "ability": {},
    "active": true,
@@ -1877,6 +2032,207 @@
    ],
    "name": "Rage Vial",
    "rarity": "common"
+  },
+  "revengeDeck": {
+   "ability": {
+    "counterCooldown": 0.8,
+    "maxCounterRange": 25
+   },
+   "active": false,
+   "hero": "dragonDuke",
+   "levels": [
+    {
+     "blacksmith": 1,
+     "counterDamage": 150,
+     "healPerCounter": 30,
+     "hitpointIncrease": 900,
+     "level": 1
+    },
+    {
+     "blacksmith": 1,
+     "counterDamage": 150,
+     "healPerCounter": 30,
+     "hitpointIncrease": 988,
+     "level": 2
+    },
+    {
+     "blacksmith": 1,
+     "counterDamage": 155,
+     "healPerCounter": 32,
+     "hitpointIncrease": 1077,
+     "level": 3
+    },
+    {
+     "blacksmith": 1,
+     "counterDamage": 155,
+     "healPerCounter": 32,
+     "hitpointIncrease": 1165,
+     "level": 4
+    },
+    {
+     "blacksmith": 1,
+     "counterDamage": 155,
+     "healPerCounter": 32,
+     "hitpointIncrease": 1254,
+     "level": 5
+    },
+    {
+     "blacksmith": 1,
+     "counterDamage": 160,
+     "healPerCounter": 35,
+     "hitpointIncrease": 1342,
+     "level": 6
+    },
+    {
+     "blacksmith": 1,
+     "counterDamage": 160,
+     "healPerCounter": 35,
+     "hitpointIncrease": 1431,
+     "level": 7
+    },
+    {
+     "blacksmith": 1,
+     "counterDamage": 160,
+     "healPerCounter": 35,
+     "hitpointIncrease": 1519,
+     "level": 8
+    },
+    {
+     "blacksmith": 1,
+     "counterDamage": 165,
+     "healPerCounter": 39,
+     "hitpointIncrease": 1608,
+     "level": 9
+    },
+    {
+     "blacksmith": 1,
+     "counterDamage": 165,
+     "healPerCounter": 39,
+     "hitpointIncrease": 1696,
+     "level": 10
+    },
+    {
+     "blacksmith": 1,
+     "counterDamage": 165,
+     "healPerCounter": 39,
+     "hitpointIncrease": 1785,
+     "level": 11
+    },
+    {
+     "blacksmith": 1,
+     "counterDamage": 175,
+     "healPerCounter": 43,
+     "hitpointIncrease": 1873,
+     "level": 12
+    },
+    {
+     "blacksmith": 3,
+     "counterDamage": 175,
+     "healPerCounter": 43,
+     "hitpointIncrease": 1962,
+     "level": 13
+    },
+    {
+     "blacksmith": 3,
+     "counterDamage": 175,
+     "healPerCounter": 43,
+     "hitpointIncrease": 2050,
+     "level": 14
+    },
+    {
+     "blacksmith": 3,
+     "counterDamage": 185,
+     "healPerCounter": 46,
+     "hitpointIncrease": 2139,
+     "level": 15
+    },
+    {
+     "blacksmith": 5,
+     "counterDamage": 185,
+     "healPerCounter": 46,
+     "hitpointIncrease": 2227,
+     "level": 16
+    },
+    {
+     "blacksmith": 5,
+     "counterDamage": 185,
+     "healPerCounter": 46,
+     "hitpointIncrease": 2316,
+     "level": 17
+    },
+    {
+     "blacksmith": 5,
+     "counterDamage": 195,
+     "healPerCounter": 49,
+     "hitpointIncrease": 2404,
+     "level": 18
+    },
+    {
+     "blacksmith": 7,
+     "counterDamage": 195,
+     "healPerCounter": 49,
+     "hitpointIncrease": 2493,
+     "level": 19
+    },
+    {
+     "blacksmith": 7,
+     "counterDamage": 195,
+     "healPerCounter": 49,
+     "hitpointIncrease": 2581,
+     "level": 20
+    },
+    {
+     "blacksmith": 7,
+     "counterDamage": 205,
+     "healPerCounter": 52,
+     "hitpointIncrease": 2670,
+     "level": 21
+    },
+    {
+     "blacksmith": 8,
+     "counterDamage": 205,
+     "healPerCounter": 52,
+     "hitpointIncrease": 2758,
+     "level": 22
+    },
+    {
+     "blacksmith": 8,
+     "counterDamage": 205,
+     "healPerCounter": 52,
+     "hitpointIncrease": 2847,
+     "level": 23
+    },
+    {
+     "blacksmith": 8,
+     "counterDamage": 215,
+     "healPerCounter": 55,
+     "hitpointIncrease": 2935,
+     "level": 24
+    },
+    {
+     "blacksmith": 9,
+     "counterDamage": 215,
+     "healPerCounter": 55,
+     "hitpointIncrease": 3024,
+     "level": 25
+    },
+    {
+     "blacksmith": 9,
+     "counterDamage": 215,
+     "healPerCounter": 55,
+     "hitpointIncrease": 3112,
+     "level": 26
+    },
+    {
+     "blacksmith": 9,
+     "counterDamage": 225,
+     "healPerCounter": 60,
+     "hitpointIncrease": 3200,
+     "level": 27
+    }
+   ],
+   "name": "Revenge Deck",
+   "rarity": "epic"
   },
   "rocketSpear": {
    "ability": {
@@ -4954,6 +5310,99 @@
    "name": "Army Camp",
    "size": 4
   },
+  "babyDragon": {
+   "attackInterval": 1,
+   "housingSpace": 10,
+   "levels": [
+    {
+     "damagePerHit": 75,
+     "enragedDamagePerHit": 150,
+     "hitpoints": 1200,
+     "level": 1,
+     "townHall": 9
+    },
+    {
+     "damagePerHit": 85,
+     "enragedDamagePerHit": 170,
+     "hitpoints": 1300,
+     "level": 2,
+     "townHall": 9
+    },
+    {
+     "damagePerHit": 95,
+     "enragedDamagePerHit": 190,
+     "hitpoints": 1400,
+     "level": 3,
+     "townHall": 10
+    },
+    {
+     "damagePerHit": 105,
+     "enragedDamagePerHit": 210,
+     "hitpoints": 1500,
+     "level": 4,
+     "townHall": 10
+    },
+    {
+     "damagePerHit": 115,
+     "enragedDamagePerHit": 230,
+     "hitpoints": 1600,
+     "level": 5,
+     "townHall": 11
+    },
+    {
+     "damagePerHit": 125,
+     "enragedDamagePerHit": 250,
+     "hitpoints": 1700,
+     "level": 6,
+     "townHall": 12
+    },
+    {
+     "damagePerHit": 135,
+     "enragedDamagePerHit": 270,
+     "hitpoints": 1800,
+     "level": 7,
+     "townHall": 13
+    },
+    {
+     "damagePerHit": 145,
+     "enragedDamagePerHit": 290,
+     "hitpoints": 1900,
+     "level": 8,
+     "townHall": 14
+    },
+    {
+     "damagePerHit": 155,
+     "enragedDamagePerHit": 310,
+     "hitpoints": 2000,
+     "level": 9,
+     "townHall": 15
+    },
+    {
+     "damagePerHit": 165,
+     "enragedDamagePerHit": 330,
+     "hitpoints": 2100,
+     "level": 10,
+     "townHall": 16
+    },
+    {
+     "damagePerHit": 175,
+     "enragedDamagePerHit": 350,
+     "hitpoints": 2200,
+     "level": 11,
+     "townHall": 17
+    },
+    {
+     "damagePerHit": 185,
+     "enragedDamagePerHit": 370,
+     "hitpoints": 2350,
+     "level": 12,
+     "townHall": 18
+    }
+   ],
+   "movementSpeed": 20,
+   "name": "Baby Dragon",
+   "range": 2.75
+  },
   "balloon": {
    "attackInterval": 3,
    "housingSpace": 5,
@@ -7222,6 +7671,189 @@
    "movementSpeed": 16,
    "name": "Dragon",
    "range": 3
+  },
+  "dragonDuke": {
+   "attackInterval": 1.2,
+   "levels": [
+    {
+     "abilityHealing": 3500,
+     "damagePerHit": 364.8,
+     "hitpoints": 9100,
+     "level": 1,
+     "townHall": 15
+    },
+    {
+     "abilityHealing": 3500,
+     "damagePerHit": 369.6,
+     "hitpoints": 9175,
+     "level": 2,
+     "townHall": 15
+    },
+    {
+     "abilityHealing": 3500,
+     "damagePerHit": 374.4,
+     "hitpoints": 9250,
+     "level": 3,
+     "townHall": 15
+    },
+    {
+     "abilityHealing": 3500,
+     "damagePerHit": 379.2,
+     "hitpoints": 9325,
+     "level": 4,
+     "townHall": 15
+    },
+    {
+     "abilityHealing": 3750,
+     "damagePerHit": 384,
+     "hitpoints": 9400,
+     "level": 5,
+     "townHall": 15
+    },
+    {
+     "abilityHealing": 3750,
+     "damagePerHit": 388.8,
+     "hitpoints": 9475,
+     "level": 6,
+     "townHall": 15
+    },
+    {
+     "abilityHealing": 3750,
+     "damagePerHit": 393.6,
+     "hitpoints": 9550,
+     "level": 7,
+     "townHall": 15
+    },
+    {
+     "abilityHealing": 3750,
+     "damagePerHit": 398.4,
+     "hitpoints": 9625,
+     "level": 8,
+     "townHall": 15
+    },
+    {
+     "abilityHealing": 3750,
+     "damagePerHit": 403.2,
+     "hitpoints": 9700,
+     "level": 9,
+     "townHall": 15
+    },
+    {
+     "abilityHealing": 4000,
+     "damagePerHit": 408,
+     "hitpoints": 9775,
+     "level": 10,
+     "townHall": 15
+    },
+    {
+     "abilityHealing": 4000,
+     "damagePerHit": 412.8,
+     "hitpoints": 9850,
+     "level": 11,
+     "townHall": 16
+    },
+    {
+     "abilityHealing": 4000,
+     "damagePerHit": 417.6,
+     "hitpoints": 9925,
+     "level": 12,
+     "townHall": 16
+    },
+    {
+     "abilityHealing": 4000,
+     "damagePerHit": 422.4,
+     "hitpoints": 10000,
+     "level": 13,
+     "townHall": 16
+    },
+    {
+     "abilityHealing": 4000,
+     "damagePerHit": 427.2,
+     "hitpoints": 10075,
+     "level": 14,
+     "townHall": 16
+    },
+    {
+     "abilityHealing": 4250,
+     "damagePerHit": 432,
+     "hitpoints": 10150,
+     "level": 15,
+     "townHall": 16
+    },
+    {
+     "abilityHealing": 4250,
+     "damagePerHit": 436.8,
+     "hitpoints": 10225,
+     "level": 16,
+     "townHall": 17
+    },
+    {
+     "abilityHealing": 4250,
+     "damagePerHit": 441.6,
+     "hitpoints": 10300,
+     "level": 17,
+     "townHall": 17
+    },
+    {
+     "abilityHealing": 4250,
+     "damagePerHit": 446.4,
+     "hitpoints": 10375,
+     "level": 18,
+     "townHall": 17
+    },
+    {
+     "abilityHealing": 4250,
+     "damagePerHit": 451.2,
+     "hitpoints": 10450,
+     "level": 19,
+     "townHall": 17
+    },
+    {
+     "abilityHealing": 4500,
+     "damagePerHit": 456,
+     "hitpoints": 10525,
+     "level": 20,
+     "townHall": 17
+    },
+    {
+     "abilityHealing": 4500,
+     "damagePerHit": 460.8,
+     "hitpoints": 10600,
+     "level": 21,
+     "townHall": 18
+    },
+    {
+     "abilityHealing": 4500,
+     "damagePerHit": 465.6,
+     "hitpoints": 10675,
+     "level": 22,
+     "townHall": 18
+    },
+    {
+     "abilityHealing": 4500,
+     "damagePerHit": 470.4,
+     "hitpoints": 10750,
+     "level": 23,
+     "townHall": 18
+    },
+    {
+     "abilityHealing": 4500,
+     "damagePerHit": 475.2,
+     "hitpoints": 10825,
+     "level": 24,
+     "townHall": 18
+    },
+    {
+     "abilityHealing": 4750,
+     "damagePerHit": 480,
+     "hitpoints": 10900,
+     "level": 25,
+     "townHall": 18
+    }
+   ],
+   "movementSpeed": 20,
+   "name": "Dragon Duke",
+   "range": 1.25
   },
   "dragonRider": {
    "attackInterval": 1.2,

@@ -205,6 +205,11 @@ nonisolated struct ArmyConfiguration: Equatable {
             return "Puoi usare un solo esemplare per ciascun eroe."
         }
 
+        if BattleEntityKind.heroKinds.reduce(0, { $0 + troopCount(for: $1) }) >
+            BattleEntityKind.maximumHeroesPerArmy {
+            return "Puoi portare al massimo \(BattleEntityKind.maximumHeroesPerArmy) eroi."
+        }
+
         if BattleEntityKind.siegeMachineKinds.reduce(0, { $0 + troopCount(for: $1) }) > 1 {
             return "Puoi usare una sola macchina d’assedio."
         }
@@ -253,7 +258,7 @@ nonisolated struct ArmyConfiguration: Equatable {
         case .stoneSlammer:
             return stoneSlammers
         case .hogRider, .valkyrie, .golem, .bowler, .miner, .pekka, .yeti, .rootRider, .electroDragon, .dragonRider, .lavaHound,
-             .grandWarden, .royalChampion, .lavaPup, .golemite, .skeleton, .bat, .battleBlimp, .flameFlinger, .siegeBarracks, .logLauncher:
+             .grandWarden, .royalChampion, .lavaPup, .golemite, .skeleton, .bat, .battleBlimp, .flameFlinger, .siegeBarracks, .logLauncher, .dragonDuke, .babyDragon:
             return advancedTroops[kind, default: 0]
         case .cannon, .archerTower, .mortar, .wizardTower, .infernoTower, .bombTower, .hiddenTesla, .giantBomb, .airBomb, .airSweeper, .airDefense,
              .townHall, .goldStorage, .wall,
@@ -302,10 +307,12 @@ nonisolated struct ArmyConfiguration: Equatable {
             .dragon,
             .electroDragon,
             .dragonRider,
+            .babyDragon,
             .barbarianKing,
             .archerQueen,
             .grandWarden,
             .royalChampion,
+            .dragonDuke,
             .wallWrecker,
             .stoneSlammer,
             .battleBlimp,

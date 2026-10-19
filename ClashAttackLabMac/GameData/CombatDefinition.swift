@@ -149,8 +149,8 @@ nonisolated struct CombatDefinition {
     let damageRampMultipliers: [Double]
 
     /// Optional damage emitted when this entity is destroyed.
-    let destructionDamage: Double
-    let destructionRadius: Double
+    var destructionDamage: Double
+    var destructionRadius: Double
     let destructionTargetLayer: AttackTargetLayer
 
     /// Hidden defenses become targetable inside this radius.
@@ -259,8 +259,22 @@ nonisolated struct CombatDefinition {
     var buildingAuraDamagePerSecond: Double = 0
     var buildingAuraRadius: Double = 0
 
-    /// Hit points healed every second (Electro Boots).
+    /// Hit points healed every second (Electro Boots, Fire Heart).
     var passiveHealingPerSecond: Double = 0
+
+    /// Defenses that target this hero within `counterRange` are hit back
+    /// for `counterDamage` every `counterCooldown` seconds, healing the
+    /// hero by `counterHealing` (Revenge Deck).
+    var counterDamage: Double = 0
+    var counterHealing: Double = 0
+    var counterRange: Double = 0
+    var counterCooldown: TimeInterval = 0
+
+    /// With no other attacking air troop within `tantrumRadius`, damage
+    /// and attack speed rise by these factors (Baby Dragon).
+    var tantrumRadius: Double = 0
+    var tantrumDamageMultiplier: Double = 1
+    var tantrumAttackSpeedMultiplier: Double = 1
 
     /// Troops inside the hero's `auraRadius` deal this much more damage
     /// (Rage Gem).

@@ -5,7 +5,7 @@ extension BattleEntityKind {
     /// on top of the original prototype army.
     nonisolated static let advancedTroops: [BattleEntityKind] = [
         .hogRider, .valkyrie, .golem, .bowler, .miner, .pekka, .yeti,
-        .rootRider, .electroDragon, .dragonRider, .lavaHound
+        .rootRider, .electroDragon, .dragonRider, .lavaHound, .babyDragon
     ]
 
     nonisolated var isAdvancedTroop: Bool {
@@ -14,8 +14,11 @@ extension BattleEntityKind {
 
     /// Heroes added for the real mode next to the King and the Queen.
     nonisolated static let advancedHeroes: [BattleEntityKind] = [
-        .grandWarden, .royalChampion
+        .grandWarden, .royalChampion, .dragonDuke
     ]
+
+    /// Heroes an army can bring into one battle.
+    nonisolated static let maximumHeroesPerArmy = 4
 
     nonisolated static let heroKinds: [BattleEntityKind] = [
         .barbarianKing, .archerQueen
@@ -109,6 +112,10 @@ nonisolated struct TroopStyle {
             return TroopStyle(displayName: "Caserma d'assedio", symbol: "SB", red: 0.55, green: 0.40, blue: 0.30, radius: 34)
         case .logLauncher:
             return TroopStyle(displayName: "Lanciatronchi", symbol: "LL", red: 0.50, green: 0.33, blue: 0.18, radius: 32)
+        case .dragonDuke:
+            return TroopStyle(displayName: "Duca Drago", symbol: "DD", red: 0.80, green: 0.25, blue: 0.30, radius: 36)
+        case .babyDragon:
+            return TroopStyle(displayName: "Drago neonato", symbol: "BD", red: 0.40, green: 0.75, blue: 0.35, radius: 26)
         default:
             return TroopStyle(displayName: "Truppa", symbol: "?", red: 0.5, green: 0.5, blue: 0.5, radius: 22)
         }
