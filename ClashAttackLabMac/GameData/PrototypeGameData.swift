@@ -16,6 +16,10 @@ nonisolated struct PrototypeGameData: GameDataProviding {
     /// Tiles a Log Launcher's log rolls; not in the catalog (estimate).
     static let logRollTiles = 10.0
 
+    /// Air troops this close keep a Baby Dragon calm, in world units;
+    /// not in the catalog (estimate: 4.5 tiles).
+    static let tantrumRadius = 180.0
+
     func spellDefinition(for kind: BattleSpellKind) -> SpellDefinition {
         switch kind {
         case .heal:
@@ -547,6 +551,70 @@ nonisolated struct PrototypeGameData: GameDataProviding {
             launcher.rollingLogWidth = 40
             launcher.hitPointDecayPerSecond = 100
             return launcher
+
+        case .dragonDuke:
+            // Flying hero riding a dragon: heavy, close-range, hits ground
+            // and air. Its equipment does the special work.
+            return CombatDefinition(
+                displayName: TroopStyle.style(for: .dragonDuke).displayName,
+                role: .troop,
+                maxHitPoints: 5_000,
+                movementSpeed: 100,
+                attackDamage: 200,
+                minimumAttackRange: 0,
+                attackRange: 50,
+                attackInterval: 1.2,
+                canMove: true,
+                projectileKind: .dragonFire,
+                projectileSpeed: 500,
+                splashRadius: 0,
+                selfDestructsOnAttack: false,
+                movementDomain: .air,
+                targetingProfile: TargetingProfile(
+                    preference: .anyBuilding,
+                    evidence: .documented
+                ),
+                heroAbility: HeroAbilityDefinition(
+                    displayName: "Furia reale",
+                    activationHealthFraction: 0.45,
+                    duration: 0,
+                    instantHealing: 1_000,
+                    damageMultiplier: 1,
+                    movementSpeedMultiplier: 1,
+                    attackSpeedMultiplier: 1,
+                    attackRangeMultiplier: 1,
+                    behaviorEvidence: .documented,
+                    tuningEvidence: .prototype
+                )
+            )
+
+        case .babyDragon:
+            // Breathes fire on everything; alone in the sky it throws a
+            // tantrum: twice the damage at one and a half times the pace.
+            var baby = CombatDefinition(
+                displayName: TroopStyle.style(for: .babyDragon).displayName,
+                role: .troop,
+                maxHitPoints: 1_200,
+                movementSpeed: 100,
+                attackDamage: 90,
+                minimumAttackRange: 0,
+                attackRange: 110,
+                attackInterval: 1,
+                canMove: true,
+                projectileKind: .dragonFire,
+                projectileSpeed: 500,
+                splashRadius: 30,
+                selfDestructsOnAttack: false,
+                movementDomain: .air,
+                targetingProfile: TargetingProfile(
+                    preference: .anyBuilding,
+                    evidence: .documented
+                )
+            )
+            baby.tantrumRadius = Self.tantrumRadius
+            baby.tantrumDamageMultiplier = 2
+            baby.tantrumAttackSpeedMultiplier = 1.5
+            return baby
 
         // Advanced troops: behaviours follow the game, numbers are
         // synthetic prototype values like the rest of this file.

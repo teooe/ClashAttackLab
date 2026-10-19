@@ -131,6 +131,9 @@ nonisolated struct ReferenceUnitLevel: Decodable {
     /// Troops released when this one dies (Golemites, Lava Pups).
     let spawnCount: Int?
 
+    /// Damage per hit of an enraged Baby Dragon.
+    let enragedDamagePerHit: Double?
+
     /// Troops a Siege Barracks lets out.
     let pekkasSpawned: Int?
     let wizardsSpawned: Int?
@@ -520,6 +523,11 @@ nonisolated struct ReferenceGameData: GameDataProviding {
         definition.auraDamageReduction = base.auraDamageReduction
         definition.releasesPayloadOnDeploy = base.releasesPayloadOnDeploy
         definition.rollingLogLength = base.rollingLogLength
+        definition.tantrumRadius = base.tantrumRadius
+        definition.tantrumAttackSpeedMultiplier = base.tantrumAttackSpeedMultiplier
+        definition.tantrumDamageMultiplier = level.enragedDamagePerHit
+            .flatMap { enraged in level.damagePerHit.map { enraged / $0 } }
+            ?? base.tantrumDamageMultiplier
         definition.rollingLogWidth = base.rollingLogWidth
         definition.ignoresTraps = base.ignoresTraps
         definition.resourceDamageMultiplier = base.resourceDamageMultiplier
@@ -819,6 +827,8 @@ extension BattleEntityKind {
         case .flameFlinger: return "flameFlinger"
         case .siegeBarracks: return "siegeBarracks"
         case .logLauncher: return "logLauncher"
+        case .dragonDuke: return "dragonDuke"
+        case .babyDragon: return "babyDragon"
         }
     }
 }

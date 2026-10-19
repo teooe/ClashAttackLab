@@ -417,6 +417,8 @@ nonisolated final class SimulationEngine {
             )
         }
 
+        applyRevengeCounters(defenseIndices: defenseIndices, pendingDamage: &pendingDamage)
+
         let defenderIndices = livingDefenderIndices()
         for defenderIndex in defenderIndices {
             actDefender(
@@ -1243,6 +1245,32 @@ nonisolated final class SimulationEngine {
         )
     }
 
+    /// Heroes with a Revenge Deck hit back at the closest defense aiming
+    /// at them and heal a little.
+    private func applyRevengeCounters(
+        defenseIndices: [Int],
+        pendingDamage: inout [UUID: Double]
+    ) {
+        for index in livingIndices(with: .troop) {
+            let hero = definition(for: entities[index].kind)
+            guard hero.counterDamage > 0, entities[index].counterCooldownRemaining <= 0 else {
+                continue
+            }
+            let attackers = defenseIndices.filter {
+                entities[$0].currentTargetID == entities[index].id &&
+                    distance(from: entities[$0].position, to: entities[index].position) <=
+                        hero.counterRange
+            }
+            guard !attackers.isEmpty else {
+                continue
+            }
+            let target = nearest(attackers, to: entities[index].position)
+            pendingDamage[entities[target].id, default: 0] += hero.counterDamage
+            heal(index, by: hero.counterHealing)
+            entities[index].counterCooldownRemaining = hero.counterCooldown
+        }
+    }
+
     // MARK: Clan Castle reinforcements
 
     /// Opens every Clan Castle an attacker has come close to, or that has
@@ -2044,6 +2072,10 @@ nonisolated final class SimulationEngine {
                 0,
                 entities[index].slowRemaining - deltaTime
             )
+            entities[index].counterCooldownRemaining = max(
+                0,
+                entities[index].counterCooldownRemaining - deltaTime
+            )
         }
     }
 
@@ -2644,12 +2676,31 @@ nonisolated final class SimulationEngine {
             )
         }
 
+        // A Baby Dragon alone in the sky throws a tantrum.
+        let own = definition(for: entity.kind)
+        if own.tantrumRadius > 0, !hasAirCompany(entity, within: own.tantrumRadius) {
+            damage *= own.tantrumDamageMultiplier
+            attackSpeed *= own.tantrumAttackSpeedMultiplier
+        }
+
         return CombatModifiers(
             damage: damage,
             movementSpeed: movementSpeed,
             attackSpeed: attackSpeed,
             attackRange: attackRange
         )
+    }
+
+    /// Another attacking air troop flies within `radius` of `entity`.
+    private func hasAirCompany(_ entity: BattleEntity, within radius: Double) -> Bool {
+        entities.contains { other in
+            other.id != entity.id &&
+                other.isAlive &&
+                !other.isDefender &&
+                definition(for: other.kind).role == .troop &&
+                definition(for: other.kind).movementDomain == .air &&
+                distance(from: other.position, to: entity.position) <= radius
+        }
     }
 
     /// Reinforcements slowed by the strongest cloud they stand in; spells

@@ -145,10 +145,15 @@ struct HeroesAndSpellsTests {
         let th15 = try rules(townHall: 15)
         var army = ArmyConfiguration.realDefault(for: th15)
 
-        for kind in BattleEntityKind.heroKinds {
+        // Four heroes at most: the Dragon Duke stays home by default.
+        for kind in BattleEntityKind.heroKinds.prefix(BattleEntityKind.maximumHeroesPerArmy) {
             #expect(army[troop: kind] == 1, "\(kind)")
         }
+        #expect(army[troop: .dragonDuke] == 0)
         #expect(army.isValid(under: th15))
+        army[troop: .dragonDuke] = 1
+        #expect(army.validationMessage(under: th15) == "Puoi portare al massimo 4 eroi.")
+        army[troop: .dragonDuke] = 0
 
         army[troop: .grandWarden] = 2
         #expect(army.validationMessage(under: th15) == "Puoi usare un solo esemplare per ciascun eroe.")

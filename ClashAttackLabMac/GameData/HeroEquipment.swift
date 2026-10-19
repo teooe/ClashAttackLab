@@ -19,6 +19,8 @@ nonisolated enum HeroEquipmentKind: String, Codable, CaseIterable, Hashable {
     case electroBoots
     case royalGem
     case hasteVial
+    case fireHeart
+    case revengeDeck
 
     var referenceKey: String {
         rawValue
@@ -34,6 +36,8 @@ nonisolated enum HeroEquipmentKind: String, Codable, CaseIterable, Hashable {
             return .grandWarden
         case .seekingShield, .rocketSpear, .electroBoots, .royalGem, .hasteVial:
             return .royalChampion
+        case .fireHeart, .revengeDeck:
+            return .dragonDuke
         }
     }
 
@@ -55,6 +59,8 @@ nonisolated enum HeroEquipmentKind: String, Codable, CaseIterable, Hashable {
         case .electroBoots: return "Stivali elettrici"
         case .royalGem: return "Gemma reale"
         case .hasteVial: return "Fiala della velocità"
+        case .fireHeart: return "Cuor di fuoco"
+        case .revengeDeck: return "Mazzo della vendetta"
         }
     }
 
@@ -68,7 +74,8 @@ nonisolated enum HeroEquipmentKind: String, Codable, CaseIterable, Hashable {
         .barbarianKing: [.giantGauntlet, .spikyBall],
         .archerQueen: [.giantArrow, .frozenArrow],
         .grandWarden: [.eternalTome, .fireball],
-        .royalChampion: [.rocketSpear, .electroBoots]
+        .royalChampion: [.rocketSpear, .electroBoots],
+        .dragonDuke: [.fireHeart, .revengeDeck]
     ]
 
     /// Heroes wear at most this many pieces at a time.
@@ -142,6 +149,8 @@ nonisolated struct ReferenceEquipmentAbility: Decodable {
     let attackRange: Double?
     let auraRadius: Double?
     let damageRadius: Double?
+    let maxCounterRange: Double?
+    let counterCooldown: Double?
 }
 
 nonisolated struct ReferenceEquipmentLevel: Decodable {
@@ -171,6 +180,9 @@ nonisolated struct ReferenceEquipmentLevel: Decodable {
     var healthRecovery: Double?
     var speedIncrease: Double?
     var abilityAttackSpeedIncrease: Double?
+    var damageOnDefeat: Double?
+    var counterDamage: Double?
+    var healPerCounter: Double?
 
     func overlaid(by next: ReferenceEquipmentLevel) -> ReferenceEquipmentLevel {
         var merged = next
@@ -199,6 +211,9 @@ nonisolated struct ReferenceEquipmentLevel: Decodable {
         merged.healthRecovery = next.healthRecovery ?? healthRecovery
         merged.speedIncrease = next.speedIncrease ?? speedIncrease
         merged.abilityAttackSpeedIncrease = next.abilityAttackSpeedIncrease ?? abilityAttackSpeedIncrease
+        merged.damageOnDefeat = next.damageOnDefeat ?? damageOnDefeat
+        merged.counterDamage = next.counterDamage ?? counterDamage
+        merged.healPerCounter = next.healPerCounter ?? healPerCounter
         return merged
     }
 }
@@ -293,8 +308,24 @@ extension ReferenceGameData {
                     (entry.ability.auraRadius ?? 0) * tileSize
                 )
             }
-            if piece == .electroBoots, let heal = stats.selfHealingPerSecond {
+            if piece == .electroBoots || piece == .fireHeart, let heal = stats.selfHealingPerSecond {
                 definition.passiveHealingPerSecond += heal
+            }
+            if let burst = stats.damageOnDefeat {
+                definition.destructionDamage = max(definition.destructionDamage, burst)
+                definition.destructionRadius = max(
+                    definition.destructionRadius,
+                    (entry.ability.damageRadius ?? 0) * tileSize
+                )
+            }
+            if let counter = stats.counterDamage {
+                definition.counterDamage += counter
+                definition.counterHealing += stats.healPerCounter ?? 0
+                definition.counterRange = max(
+                    definition.counterRange,
+                    (entry.ability.maxCounterRange ?? 0) * tileSize
+                )
+                definition.counterCooldown = entry.ability.counterCooldown ?? 1
             }
             if let boost = stats.damageIncreasePercent {
                 definition.auraDamageBonus = max(definition.auraDamageBonus, boost / 100)

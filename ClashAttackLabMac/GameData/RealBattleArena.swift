@@ -590,7 +590,9 @@ extension ArmyConfiguration {
                 add(kind, count: free / housing)
             }
         }
-        for hero in BattleEntityKind.heroKinds {
+        // The first four heroes unlocked, in the usual order.
+        for hero in BattleEntityKind.heroKinds.filter({ rules.allows($0) })
+            .prefix(BattleEntityKind.maximumHeroesPerArmy) {
             add(hero, count: 1)
         }
         add(.wallWrecker, count: 1)

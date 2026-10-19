@@ -48,6 +48,8 @@ UNITS = {
     "flameFlinger": "siege-machines/flame-flinger.json",
     "siegeBarracks": "siege-machines/siege-barracks.json",
     "logLauncher": "siege-machines/log-launcher.json",
+    "dragonDuke": "heroes/dragon-duke.json",
+    "babyDragon": "troops/baby-dragon.json",
     "cannon": "defenses/cannon.json",
     "archerTower": "defenses/archer-tower.json",
     "mortar": "defenses/mortar.json",
@@ -144,6 +146,8 @@ EQUIPMENT = {
     "electroBoots": "hero-equipment/electro-boots.json",
     "royalGem": "hero-equipment/royal-gem.json",
     "hasteVial": "hero-equipment/haste-vial.json",
+    "fireHeart": "hero-equipment/fire-heart.json",
+    "revengeDeck": "hero-equipment/revenge-deck.json",
 }
 
 HEROES = {
@@ -151,6 +155,7 @@ HEROES = {
     "archer-queen": "archerQueen",
     "grand-warden": "grandWarden",
     "royal-champion": "royalChampion",
+    "dragon-duke": "dragonDuke",
 }
 
 
@@ -359,6 +364,8 @@ def unit_entry(key, data, hero_halls):
                 "golemitesSpawned", level.get("pupsOnOffense")
             ),
             "pekkasSpawned": level.get("pekkasSpawned"),
+            "enragedDamagePerHit": level.get("stats", {})
+            .get("enraged", {}).get("damagePerShot"),
             "wizardsSpawned": level.get("wizardsSpawned"),
             "rampDamagePerHit": ramp,
             "troopCapacity": (

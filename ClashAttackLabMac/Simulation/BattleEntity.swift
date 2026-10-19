@@ -79,6 +79,8 @@ nonisolated enum BattleEntityKind: Hashable, Codable, CaseIterable {
     case flameFlinger
     case siegeBarracks
     case logLauncher
+    case dragonDuke
+    case babyDragon
 
     var isTrap: Bool {
         switch self {
@@ -132,6 +134,9 @@ nonisolated struct BattleEntity: Identifiable {
     /// stops.
     var encasedRemaining: TimeInterval = 0
     var encasedDamageReduction: Double = 0
+
+    /// Seconds before the hero can strike back again (Revenge Deck).
+    var counterCooldownRemaining: TimeInterval = 0
 
     /// Hidden defenses cannot attack or be targeted before activation.
     var isRevealed: Bool
