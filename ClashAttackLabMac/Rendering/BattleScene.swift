@@ -1169,7 +1169,7 @@ final class BattleScene: SKScene {
         case .stoneSlammer:
             return .systemCyan
         case .hogRider, .valkyrie, .golem, .bowler, .miner, .pekka, .yeti, .rootRider, .electroDragon, .dragonRider, .lavaHound,
-             .grandWarden, .royalChampion, .lavaPup, .golemite, .skeleton, .bat, .battleBlimp, .flameFlinger, .siegeBarracks, .logLauncher, .dragonDuke, .babyDragon:
+             .grandWarden, .royalChampion, .lavaPup, .golemite, .skeleton, .bat, .battleBlimp, .flameFlinger, .siegeBarracks, .logLauncher, .dragonDuke, .babyDragon, .healer, .frosty, .phoenix, .electroOwl, .unicorn:
             let style = TroopStyle.style(for: kind)
             return SKColor(red: style.red, green: style.green, blue: style.blue, alpha: 1)
         case .cannon, .archerTower, .mortar, .wizardTower, .infernoTower, .bombTower, .hiddenTesla, .giantBomb, .airBomb, .airSweeper, .airDefense,
@@ -1205,7 +1205,7 @@ final class BattleScene: SKScene {
         case .stoneSlammer:
             return "SP"
         case .hogRider, .valkyrie, .golem, .bowler, .miner, .pekka, .yeti, .rootRider, .electroDragon, .dragonRider, .lavaHound,
-             .grandWarden, .royalChampion, .lavaPup, .golemite, .skeleton, .bat, .battleBlimp, .flameFlinger, .siegeBarracks, .logLauncher, .dragonDuke, .babyDragon:
+             .grandWarden, .royalChampion, .lavaPup, .golemite, .skeleton, .bat, .battleBlimp, .flameFlinger, .siegeBarracks, .logLauncher, .dragonDuke, .babyDragon, .healer, .frosty, .phoenix, .electroOwl, .unicorn:
             return TroopStyle.style(for: kind).symbol
         case .cannon:
             return "C"
@@ -1336,7 +1336,7 @@ final class BattleScene: SKScene {
             )
 
         case .hogRider, .valkyrie, .golem, .bowler, .miner, .pekka, .yeti, .rootRider, .electroDragon, .dragonRider, .lavaHound,
-             .grandWarden, .royalChampion, .lavaPup, .golemite, .skeleton, .bat, .battleBlimp, .flameFlinger, .siegeBarracks, .logLauncher, .dragonDuke, .babyDragon:
+             .grandWarden, .royalChampion, .lavaPup, .golemite, .skeleton, .bat, .battleBlimp, .flameFlinger, .siegeBarracks, .logLauncher, .dragonDuke, .babyDragon, .healer, .frosty, .phoenix, .electroOwl, .unicorn:
             let style = TroopStyle.style(for: kind)
             return makeLabeledCircle(
                 radius: CGFloat(style.radius),

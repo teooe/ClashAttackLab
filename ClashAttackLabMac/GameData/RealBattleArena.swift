@@ -20,6 +20,9 @@ nonisolated struct BattleArena {
     /// Equipment the heroes wear; empty in the prototype.
     let heroEquipment: [BattleEntityKind: [HeroEquipmentKind]]
 
+    /// Pet each hero brings; empty in the prototype.
+    let heroPets: [BattleEntityKind: BattleEntityKind]
+
     private let catalog: ReferenceGameCatalog?
 
     static var prototype: BattleArena {
@@ -32,6 +35,7 @@ nonisolated struct BattleArena {
             sceneSize: CGSize(width: 1_100, height: 760),
             clanCastleTroops: nil,
             heroEquipment: [:],
+            heroPets: [:],
             catalog: nil
         )
     }
@@ -40,6 +44,7 @@ nonisolated struct BattleArena {
         for source: GameDataSource,
         clanCastleTroops: [BattleEntityKind]? = nil,
         heroEquipment: [BattleEntityKind: [HeroEquipmentKind]] = HeroEquipmentKind.defaultLoadouts,
+        heroPets: [BattleEntityKind: BattleEntityKind] = BattleEntityKind.defaultPets,
         catalog: () throws -> ReferenceGameCatalog = ReferenceGameCatalog.loadBundled
     ) throws -> BattleArena {
         switch source {
@@ -60,6 +65,7 @@ nonisolated struct BattleArena {
             )
             data.clanCastleTroops = clanCastleTroops
             data.heroEquipment = heroEquipment
+            data.heroPets = heroPets
             return BattleArena(
                 source: source,
                 navigationGrid: grid,
@@ -69,6 +75,7 @@ nonisolated struct BattleArena {
                 sceneSize: RealBattleMap.sceneSize,
                 clanCastleTroops: clanCastleTroops,
                 heroEquipment: heroEquipment,
+                heroPets: heroPets,
                 catalog: catalog
             )
         }
@@ -541,7 +548,7 @@ extension ArmyConfiguration {
                 (.archer, .rest)
             ])
         ]
-        return presets.compactMap { name, fill in
+        let filled = presets.compactMap { name, fill -> ArmySearchVariant? in
             guard let main = fill.first?.0, rules.allows(main) else {
                 return nil
             }
@@ -550,6 +557,38 @@ extension ArmyConfiguration {
                 configuration: filling(rules: rules, with: fill)
             )
         }
+        let player = playerArmy(for: rules).map {
+            ArmySearchVariant(name: playerArmyName, configuration: $0)
+        }
+        return (player.map { [$0] } ?? []) + filled
+    }
+
+    nonisolated static let playerArmyName = "La mia formazione"
+
+    /// The player's own Town Hall 15 attack: Dragons, Dragon Riders and
+    /// Balloons with Invisibility, a Log Launcher and four heroes with the
+    /// Dragon Duke; the Clan Castle brings two more Dragons, a Baby Dragon,
+    /// one more Invisibility and a Rage. Nil where it does not fit.
+    nonisolated static func playerArmy(for rules: ArmyCapacityRules) -> ArmyConfiguration? {
+        var army = ArmyConfiguration(
+            giants: 0,
+            barbarians: 0,
+            archers: 0,
+            wallBreakers: 0,
+            wizards: 0,
+            healSpells: 0,
+            rageSpells: 1,
+            dragons: 12
+        )
+        army[troop: .dragonRider] = 4
+        army[troop: .balloon] = 4
+        army[troop: .babyDragon] = 1
+        for hero in [BattleEntityKind.archerQueen, .dragonDuke, .grandWarden, .royalChampion] {
+            army[troop: hero] = 1
+        }
+        army[troop: .logLauncher] = 1
+        army[spell: .invisibility] = 12
+        return army.isValid(under: rules) ? army : nil
     }
 
     /// Adds troops in order until the camps are full, then the heroes, a

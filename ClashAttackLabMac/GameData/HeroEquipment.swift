@@ -21,6 +21,7 @@ nonisolated enum HeroEquipmentKind: String, Codable, CaseIterable, Hashable {
     case hasteVial
     case fireHeart
     case revengeDeck
+    case healerPuppet
 
     var referenceKey: String {
         rawValue
@@ -30,7 +31,7 @@ nonisolated enum HeroEquipmentKind: String, Codable, CaseIterable, Hashable {
         switch self {
         case .rageVial, .giantGauntlet, .spikyBall, .vampstache:
             return .barbarianKing
-        case .giantArrow, .frozenArrow, .invisibilityVial:
+        case .giantArrow, .frozenArrow, .invisibilityVial, .healerPuppet:
             return .archerQueen
         case .eternalTome, .fireball, .rageGem, .healingTome:
             return .grandWarden
@@ -61,6 +62,7 @@ nonisolated enum HeroEquipmentKind: String, Codable, CaseIterable, Hashable {
         case .hasteVial: return "Fiala della velocità"
         case .fireHeart: return "Cuor di fuoco"
         case .revengeDeck: return "Mazzo della vendetta"
+        case .healerPuppet: return "Pupazzo del guaritore"
         }
     }
 
@@ -69,11 +71,12 @@ nonisolated enum HeroEquipmentKind: String, Codable, CaseIterable, Hashable {
         allCases.filter { $0.hero == hero }
     }
 
-    /// Popular Town Hall 15 sets, used until the player picks their own.
+    /// The player's own Town Hall 15 sets (the King's is a popular one),
+    /// used until they pick others in the app.
     static let defaultLoadouts: [BattleEntityKind: [HeroEquipmentKind]] = [
         .barbarianKing: [.giantGauntlet, .spikyBall],
-        .archerQueen: [.giantArrow, .frozenArrow],
-        .grandWarden: [.eternalTome, .fireball],
+        .archerQueen: [.healerPuppet, .giantArrow],
+        .grandWarden: [.rageGem, .eternalTome],
         .royalChampion: [.rocketSpear, .electroBoots],
         .dragonDuke: [.fireHeart, .revengeDeck]
     ]
@@ -107,6 +110,42 @@ nonisolated enum HeroEquipmentStore {
         to defaults: UserDefaults = .standard
     ) {
         let stored = Dictionary(uniqueKeysWithValues: loadouts.map { ($0.key.referenceKey, $0.value) })
+        if let data = try? JSONEncoder().encode(stored) {
+            defaults.set(data, forKey: key)
+        }
+    }
+}
+
+/// Keeps the player's pet choice between launches.
+nonisolated enum HeroPetStore {
+    static let key = "ClashAttackLab.heroPets.v1"
+
+    static func load(from defaults: UserDefaults = .standard) -> [BattleEntityKind: BattleEntityKind] {
+        guard
+            let data = defaults.data(forKey: key),
+            let stored = try? JSONDecoder().decode([String: String].self, from: data)
+        else {
+            return BattleEntityKind.defaultPets
+        }
+        var pets: [BattleEntityKind: BattleEntityKind] = [:]
+        for hero in BattleEntityKind.heroKinds {
+            if
+                let name = stored[hero.referenceKey],
+                let pet = BattleEntityKind.petKinds.first(where: { $0.referenceKey == name })
+            {
+                pets[hero] = pet
+            }
+        }
+        return pets
+    }
+
+    static func save(
+        _ pets: [BattleEntityKind: BattleEntityKind],
+        to defaults: UserDefaults = .standard
+    ) {
+        let stored = Dictionary(uniqueKeysWithValues: pets.map {
+            ($0.key.referenceKey, $0.value.referenceKey)
+        })
         if let data = try? JSONEncoder().encode(stored) {
             defaults.set(data, forKey: key)
         }
@@ -183,6 +222,7 @@ nonisolated struct ReferenceEquipmentLevel: Decodable {
     var damageOnDefeat: Double?
     var counterDamage: Double?
     var healPerCounter: Double?
+    var summonedHealers: Int?
 
     func overlaid(by next: ReferenceEquipmentLevel) -> ReferenceEquipmentLevel {
         var merged = next
@@ -214,6 +254,7 @@ nonisolated struct ReferenceEquipmentLevel: Decodable {
         merged.damageOnDefeat = next.damageOnDefeat ?? damageOnDefeat
         merged.counterDamage = next.counterDamage ?? counterDamage
         merged.healPerCounter = next.healPerCounter ?? healPerCounter
+        merged.summonedHealers = next.summonedHealers ?? summonedHealers
         return merged
     }
 }
@@ -276,6 +317,7 @@ extension ReferenceGameData {
         var damageReduction = 0.0
         var selfHealing = 0.0
         var areaHealing = (perSecond: 0.0, radius: 0.0)
+        var summons: (kind: BattleEntityKind?, count: Int) = (nil, 0)
         var splash = 0.0
         let baseSpeed = hero.movementSpeed
         let baseProtectionRadius = ability.protectionRadius
@@ -348,10 +390,14 @@ extension ReferenceGameData {
             if let increase = stats.abilityAttackSpeedIncrease {
                 attackSpeedMultiplier = max(attackSpeedMultiplier, 1 + increase / 100)
             }
+            // Active pieces heal the hero while the ability runs.
+            selfHealing += stats.selfHealingPerSecond ?? 0
             if let reduction = stats.incomingDamageReduction {
                 damageReduction = max(damageReduction, reduction / 100)
-                selfHealing += stats.selfHealingPerSecond ?? 0
                 splash = max(splash, (entry.ability.areaDamageRadius ?? 0) * tileSize)
+            }
+            if let healers = stats.summonedHealers {
+                summons = (.healer, healers)
             }
 
             switch piece {
@@ -436,6 +482,8 @@ extension ReferenceGameData {
         equippedAbility.splashRadius = splash
         equippedAbility.areaHealingPerSecond = areaHealing.perSecond
         equippedAbility.areaHealingRadius = areaHealing.radius
+        equippedAbility.summonedTroop = summons.kind
+        equippedAbility.summonCount = summons.count
         ability = equippedAbility
         definition.heroAbility = ability
         return definition

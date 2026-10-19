@@ -1315,7 +1315,11 @@ final class AttackLabSession: ObservableObject {
 
         let newArena: BattleArena
         do {
-            newArena = try BattleArena.make(for: source, heroEquipment: heroEquipment)
+            newArena = try BattleArena.make(
+                for: source,
+                heroEquipment: heroEquipment,
+                heroPets: heroPets
+            )
         } catch {
             gameDataError =
                 "Dati reali non disponibili: \(error.localizedDescription)"
@@ -1431,7 +1435,8 @@ final class AttackLabSession: ObservableObject {
             let rebuilt = try? BattleArena.make(
                 for: gameDataSource,
                 clanCastleTroops: troops,
-                heroEquipment: heroEquipment
+                heroEquipment: heroEquipment,
+                heroPets: heroPets
             )
         else {
             return
@@ -1444,21 +1449,33 @@ final class AttackLabSession: ObservableObject {
     @Published private(set) var heroEquipment: [BattleEntityKind: [HeroEquipmentKind]] =
         HeroEquipmentStore.load()
 
-    /// Changes the heroes' equipment and reloads the base under attack
-    /// with the new hero statistics.
-    func applyHeroEquipment(_ loadouts: [BattleEntityKind: [HeroEquipmentKind]]) {
+    /// Pet each hero brings in real battles, kept between launches.
+    @Published private(set) var heroPets: [BattleEntityKind: BattleEntityKind] =
+        HeroPetStore.load()
+
+    /// Changes the heroes' equipment (and pets, when given) and reloads the
+    /// base under attack with the new hero statistics.
+    func applyHeroEquipment(
+        _ loadouts: [BattleEntityKind: [HeroEquipmentKind]],
+        pets: [BattleEntityKind: BattleEntityKind]? = nil
+    ) {
         guard !isManualPlanning else {
             return
         }
         cancelSearch()
         heroEquipment = loadouts
         HeroEquipmentStore.save(loadouts)
+        if let pets {
+            heroPets = pets
+            HeroPetStore.save(pets)
+        }
         guard
             arena.isReal,
             let rebuilt = try? BattleArena.make(
                 for: gameDataSource,
                 clanCastleTroops: arena.clanCastleTroops,
-                heroEquipment: loadouts
+                heroEquipment: loadouts,
+                heroPets: heroPets
             )
         else {
             return
@@ -1497,6 +1514,7 @@ final class AttackLabSession: ObservableObject {
             return
         }
         let current = heroEquipment
+        let pets = heroPets
         let source = gameDataSource
         let castleTroops = arena.clanCastleTroops
         let entities = baseEntities
@@ -1517,7 +1535,8 @@ final class AttackLabSession: ObservableObject {
                     let arena = try BattleArena.make(
                         for: source,
                         clanCastleTroops: castleTroops,
-                        heroEquipment: loadouts
+                        heroEquipment: loadouts,
+                        heroPets: pets
                     )
                     let evaluator = AttackPlanEvaluator(
                         baseEntities: entities,

@@ -49,7 +49,7 @@ struct RealBaseLayoutTests {
 
     @Test
     func reportsTheLineOfEveryMistake() {
-        #expect(parseError("townHall 1 1\nunicorno 3 3")?.line == 2)
+        #expect(parseError("townHall 1 1\nfantasma 3 3")?.line == 2)
         #expect(parseError("townHall 1 1\ncannon 3")?.line == 2)
         #expect(parseError("cannon a b")?.line == 1)
         #expect(parseError("wall 0 0 - 5 5")?.message.contains("orizzontali") == true)
@@ -201,7 +201,7 @@ struct RealBaseLayoutTests {
     func sessionRejectsBrokenFilesWithTheirLine() {
         let session = AttackLabSession()
         let count = session.realBases.count
-        let report = session.importRealBase(text: "townHall 20 20\nunicorno 5 5", fileName: "rotta")
+        let report = session.importRealBase(text: "townHall 20 20\nfantasma 5 5", fileName: "rotta")
 
         #expect(!report.imported)
         #expect(report.messages.first?.hasPrefix("Riga 2") == true)

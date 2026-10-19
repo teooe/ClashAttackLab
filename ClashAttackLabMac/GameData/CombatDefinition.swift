@@ -126,6 +126,10 @@ nonisolated struct HeroAbilityDefinition {
     /// second (Healing Tome).
     var areaHealingPerSecond: Double = 0
     var areaHealingRadius: Double = 0
+
+    /// Troops that join the hero when the ability starts (Healer Puppet).
+    var summonedTroop: BattleEntityKind?
+    var summonCount = 0
 }
 
 nonisolated struct CombatDefinition {
@@ -269,6 +273,21 @@ nonisolated struct CombatDefinition {
     var counterHealing: Double = 0
     var counterRange: Double = 0
     var counterCooldown: TimeInterval = 0
+
+    /// Hit points healed per second on the troop it follows, or on heroes
+    /// (Unicorn, Healer).
+    var healingPerSecond: Double = 0
+    var heroHealingPerSecond: Double = 0
+
+    /// Follows its owner hero and fights its target (pets, summoned
+    /// Healers).
+    var followsOwner = false
+
+    /// Pet the hero brings into battle.
+    var pet: BattleEntityKind?
+
+    /// Seconds of protection the Phoenix gives its hero when it would fall.
+    var reviveDuration: TimeInterval = 0
 
     /// With no other attacking air troop within `tantrumRadius`, damage
     /// and attack speed rise by these factors (Baby Dragon).

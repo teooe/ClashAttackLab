@@ -85,6 +85,11 @@ nonisolated struct ReferenceUnit: Decodable {
     let hitpointDecayPerSecond: Double?
     let lifetime: Double?
 
+    /// Chain attacks (Electro Owl): targets hit and the damage lost at
+    /// every link, as a negative percentage.
+    let chainTargets: Int?
+    let chainDamageDecayPercent: Double?
+
     let levels: [ReferenceUnitLevel]
 
     /// Number of copies a base may hold at the given Town Hall.
@@ -133,6 +138,13 @@ nonisolated struct ReferenceUnitLevel: Decodable {
 
     /// Damage per hit of an enraged Baby Dragon.
     let enragedDamagePerHit: Double?
+
+    /// Healing of Unicorns and Healers, on troops and on heroes.
+    let healingPerSecond: Double?
+    let heroHealingPerSecond: Double?
+
+    /// Seconds of protection a Phoenix gives its hero.
+    let reviveDuration: Double?
 
     /// Troops a Siege Barracks lets out.
     let pekkasSpawned: Int?
@@ -293,6 +305,9 @@ nonisolated struct ReferenceGameData: GameDataProviding {
 
     /// Equipment each hero wears; heroes left out wear none.
     var heroEquipment: [BattleEntityKind: [HeroEquipmentKind]] = [:]
+
+    /// Pet each hero brings; heroes left out bring none.
+    var heroPets: [BattleEntityKind: BattleEntityKind] = [:]
 
     /// Common defensive filling: Dragons, then Wizards, then Archers for
     /// the space left.
@@ -524,6 +539,15 @@ nonisolated struct ReferenceGameData: GameDataProviding {
         definition.releasesPayloadOnDeploy = base.releasesPayloadOnDeploy
         definition.rollingLogLength = base.rollingLogLength
         definition.tantrumRadius = base.tantrumRadius
+        definition.followsOwner = base.followsOwner
+        definition.healingPerSecond = level.healingPerSecond ?? base.healingPerSecond
+        definition.heroHealingPerSecond = level.heroHealingPerSecond ??
+            level.healingPerSecond ?? base.heroHealingPerSecond
+        definition.reviveDuration = level.reviveDuration ?? base.reviveDuration
+        if let targets = unit.chainTargets, targets > 1 {
+            definition.chainTargetCount = targets
+            definition.chainDamageMultiplier = 1 + (unit.chainDamageDecayPercent ?? 0) / 100
+        }
         definition.tantrumAttackSpeedMultiplier = base.tantrumAttackSpeedMultiplier
         definition.tantrumDamageMultiplier = level.enragedDamagePerHit
             .flatMap { enraged in level.damagePerHit.map { enraged / $0 } }
@@ -546,6 +570,13 @@ nonisolated struct ReferenceGameData: GameDataProviding {
         }
         if kind.isHero {
             definition = equipped(definition, kind: kind)
+            if
+                let pet = heroPets[kind],
+                let petUnit = catalog.unit(for: pet),
+                petUnit.unlockTownHall <= profile.townHall
+            {
+                definition.pet = pet
+            }
         }
         return definition
     }
@@ -829,6 +860,11 @@ extension BattleEntityKind {
         case .logLauncher: return "logLauncher"
         case .dragonDuke: return "dragonDuke"
         case .babyDragon: return "babyDragon"
+        case .healer: return "healer"
+        case .frosty: return "frosty"
+        case .phoenix: return "phoenix"
+        case .electroOwl: return "electroOwl"
+        case .unicorn: return "unicorn"
         }
     }
 }

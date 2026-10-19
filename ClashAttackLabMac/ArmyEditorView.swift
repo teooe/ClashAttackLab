@@ -6,17 +6,20 @@ struct ArmyEditorView: View {
 
     private let rules: ArmyCapacityRules
     private let defaultArmy: ArmyConfiguration
+    private let presets: [ArmySearchVariant]
     private let onApply: (ArmyConfiguration) -> Void
 
     init(
         configuration: ArmyConfiguration,
         rules: ArmyCapacityRules = .prototype,
         defaultArmy: ArmyConfiguration = .prototypeDefault,
+        presets: [ArmySearchVariant] = [],
         onApply: @escaping (ArmyConfiguration) -> Void
     ) {
         _draft = State(initialValue: configuration)
         self.rules = rules
         self.defaultArmy = defaultArmy
+        self.presets = presets
         self.onApply = onApply
     }
 
@@ -316,6 +319,17 @@ struct ArmyEditorView: View {
                 }
 
                 Spacer()
+
+                if !presets.isEmpty {
+                    Menu("Formazioni") {
+                        ForEach(presets.indices, id: \.self) { index in
+                            Button(presets[index].name) {
+                                draft = presets[index].configuration
+                            }
+                        }
+                    }
+                    .fixedSize()
+                }
 
                 Button("Ripristina") {
                     draft = defaultArmy

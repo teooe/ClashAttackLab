@@ -218,7 +218,7 @@ struct ClanCastleReinforcementTextTests {
                 return nil
             }
         }
-        #expect(line(of: "townHall 20 20\nrinforzi unicorno 2") == 2)
+        #expect(line(of: "townHall 20 20\nrinforzi fantasma 2") == 2)
         #expect(line(of: "townHall 20 20\nrinforzi dragon 99") == 2)
         #expect(line(of: "townHall 20 20\nrinforzi") == 2)
     }

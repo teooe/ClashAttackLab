@@ -616,6 +616,118 @@ nonisolated struct PrototypeGameData: GameDataProviding {
             baby.tantrumAttackSpeedMultiplier = 1.5
             return baby
 
+        // Pets and summoned Healers follow their hero.
+        case .healer:
+            var healer = CombatDefinition(
+                displayName: TroopStyle.style(for: .healer).displayName,
+                role: .troop,
+                maxHitPoints: 1_000,
+                movementSpeed: 80,
+                attackDamage: 0,
+                minimumAttackRange: 0,
+                attackRange: 200,
+                attackInterval: 0.7,
+                canMove: true,
+                projectileKind: nil,
+                projectileSpeed: 0,
+                splashRadius: 0,
+                selfDestructsOnAttack: false,
+                movementDomain: .air,
+                targetingProfile: nil
+            )
+            healer.healingPerSecond = 50
+            healer.heroHealingPerSecond = 45
+            healer.followsOwner = true
+            return healer
+
+        case .frosty:
+            var frosty = CombatDefinition(
+                displayName: TroopStyle.style(for: .frosty).displayName,
+                role: .troop,
+                maxHitPoints: 2_000,
+                movementSpeed: 120,
+                attackDamage: 100,
+                minimumAttackRange: 0,
+                attackRange: 140,
+                attackInterval: 1.2,
+                canMove: true,
+                projectileKind: .airBolt,
+                projectileSpeed: 600,
+                splashRadius: 0,
+                selfDestructsOnAttack: false,
+                targetingProfile: nil
+            )
+            frosty.followsOwner = true
+            return frosty
+
+        case .phoenix:
+            var phoenix = CombatDefinition(
+                displayName: TroopStyle.style(for: .phoenix).displayName,
+                role: .troop,
+                maxHitPoints: 2_500,
+                movementSpeed: 80,
+                attackDamage: 150,
+                minimumAttackRange: 0,
+                attackRange: 100,
+                attackInterval: 1,
+                canMove: true,
+                projectileKind: .fireball,
+                projectileSpeed: 500,
+                splashRadius: 40,
+                selfDestructsOnAttack: false,
+                movementDomain: .air,
+                targetingProfile: nil
+            )
+            phoenix.followsOwner = true
+            phoenix.reviveDuration = 8
+            return phoenix
+
+        case .electroOwl:
+            var owl = CombatDefinition(
+                displayName: TroopStyle.style(for: .electroOwl).displayName,
+                role: .troop,
+                maxHitPoints: 1_500,
+                movementSpeed: 100,
+                attackDamage: 120,
+                minimumAttackRange: 0,
+                attackRange: 240,
+                attackInterval: 1.4,
+                canMove: true,
+                projectileKind: .airBolt,
+                projectileSpeed: 800,
+                splashRadius: 0,
+                selfDestructsOnAttack: false,
+                movementDomain: .air,
+                targetingProfile: nil
+            )
+            owl.followsOwner = true
+            owl.chainTargetCount = 2
+            owl.chainRange = 120
+            owl.chainDamageMultiplier = 0.8
+            return owl
+
+        case .unicorn:
+            var unicorn = CombatDefinition(
+                displayName: TroopStyle.style(for: .unicorn).displayName,
+                role: .troop,
+                maxHitPoints: 1_200,
+                movementSpeed: 80,
+                attackDamage: 0,
+                minimumAttackRange: 0,
+                attackRange: 100,
+                attackInterval: 1,
+                canMove: true,
+                projectileKind: nil,
+                projectileSpeed: 0,
+                splashRadius: 0,
+                selfDestructsOnAttack: false,
+                targetingProfile: nil
+            )
+            unicorn.healingPerSecond = 50
+            unicorn.heroHealingPerSecond = 50
+            unicorn.followsOwner = true
+            return unicorn
+
         // Advanced troops: behaviours follow the game, numbers are
         // synthetic prototype values like the rest of this file.
         case .hogRider:

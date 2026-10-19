@@ -81,6 +81,11 @@ nonisolated enum BattleEntityKind: Hashable, Codable, CaseIterable {
     case logLauncher
     case dragonDuke
     case babyDragon
+    case healer
+    case frosty
+    case phoenix
+    case electroOwl
+    case unicorn
 
     var isTrap: Bool {
         switch self {
@@ -137,6 +142,13 @@ nonisolated struct BattleEntity: Identifiable {
 
     /// Seconds before the hero can strike back again (Revenge Deck).
     var counterCooldownRemaining: TimeInterval = 0
+
+    /// Hero a pet or a summoned Healer follows.
+    var ownerID: UUID?
+
+    /// Waiting out of the fight, like the Phoenix's egg: neither acts nor
+    /// can be hit.
+    var isDormant = false
 
     /// Hidden defenses cannot attack or be targeted before activation.
     var isRevealed: Bool
