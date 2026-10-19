@@ -106,7 +106,7 @@ nonisolated struct TroopStyle {
         case .electroDragon:
             return TroopStyle(displayName: "Elettrodrago", symbol: "ED", red: 0.25, green: 0.55, blue: 0.95, radius: 36)
         case .dragonRider:
-            return TroopStyle(displayName: "Cavaliere del drago", symbol: "CD", red: 0.75, green: 0.25, blue: 0.20, radius: 34)
+            return TroopStyle(displayName: "Cavalcadraghi", symbol: "CD", red: 0.75, green: 0.25, blue: 0.20, radius: 34)
         case .lavaHound:
             return TroopStyle(displayName: "Mastino lavico", symbol: "LH", red: 0.85, green: 0.30, blue: 0.10, radius: 38)
         case .grandWarden:

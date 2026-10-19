@@ -371,6 +371,10 @@ struct ContentView: View {
     private var actionButtons: some View {
         HStack(spacing: 8) {
             Menu {
+                Button("La mia strategia · Campionessa sull'Aquila") {
+                    session.loadPlayerStrategy()
+                }
+                Divider()
                 Button("Ottimizza deploy · esercito invariato") {
                     session.findBestAttack()
                 }

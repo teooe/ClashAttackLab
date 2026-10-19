@@ -46,6 +46,13 @@ Questa pagina elenca cosa viene simulato e quali valori sono stime, cioè numeri
 - **Duca Drago:** eroe volante dal TH15, con Cuor di fuoco (cura ed esplosione quando cade) e Mazzo della vendetta (contrattacca le difese che lo colpiscono). Si portano al massimo 4 eroi.
 - **Drago neonato:** raddoppia il danno quando non ha altre truppe aeree vicine.
 - **Famigli:** Polaris, Fenice, Gufo elettrico e Unicorno seguono il loro eroe. La Fenice lo protegge 8 s quando sta per cadere. I Frostmiti di Polaris non sono ancora simulati.
+- **La mia strategia** (menu **Trova attacco**): costruisce su qualsiasi base l'attacco del giocatore.
+  1. La Campionessa entra dal punto più vicino all'Artiglieria Aquila e la punta; ogni 4 s riceve un'Invisibilità lungo il percorso, e quando finiscono attiva l'abilità.
+  2. La Regina entra verso le Spazzarie e usa l'abilità.
+  3. Le truppe entrano dal lato del Municipio insieme al Sorvegliante; la Furia cade sul loro percorso.
+  4. Per ultimo il Duca Drago.
+
+  Il piano diventa il punto di partenza delle ricerche, compresa quella evolutiva.
 - **Formazioni pronte:** il pulsante **Formazioni** nell'editor dell'esercito carica gli eserciti pronti. Tra questi c'è **La mia formazione**: 12 Draghi, 4 Cavalcadraghi, 4 Mongolfiere, 1 Drago neonato, Lanciatronchi, Regina, Duca Drago, Sorvegliante e Campionessa, 12 Invisibilità e 1 Furia (Castello compreso).
 - **Eroi:**
   - Re, Regina, Gran Sorvegliante e Campionessa;

@@ -417,7 +417,8 @@ extension AttackPlan {
             wallWreckers: deploymentCount(for: .wallWrecker),
             stoneSlammers: deploymentCount(for: .stoneSlammer)
         )
-        for kind in BattleEntityKind.advancedTroops + BattleEntityKind.advancedHeroes {
+        for kind in BattleEntityKind.advancedTroops + BattleEntityKind.advancedHeroes +
+            BattleEntityKind.advancedSiegeMachines {
             army[troop: kind] = deploymentCount(for: kind)
         }
         for kind in ArmyConfiguration.advancedSpellKinds {

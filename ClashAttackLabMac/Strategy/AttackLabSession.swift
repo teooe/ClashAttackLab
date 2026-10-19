@@ -1097,6 +1097,30 @@ final class AttackLabSession: ObservableObject {
         scene.loadAttackPlan(plan)
     }
 
+    /// Builds the player's own strategy for the current army and base and
+    /// puts it first, so searches start from it.
+    @discardableResult
+    func loadPlayerStrategy() -> AttackPlan? {
+        cancelSearch()
+        guard
+            !isManualPlanning,
+            let plan = PlayerStrategyPlanner(
+                navigationGrid: navigationGrid,
+                latestOrderTime: latestOrderTime
+            ).plan(for: armyConfiguration, against: baseEntities)
+        else {
+            return nil
+        }
+        candidatePlans = [plan] + candidatePlans.filter { $0.name != plan.name }
+        activePlan = plan
+        selectedPlanID = plan.id
+        evaluations = []
+        scenarioAnalysis = nil
+        lastSimulationResult = nil
+        scene.loadAttackPlan(plan)
+        return plan
+    }
+
     func editSavedPlan(_ plan: AttackPlan) {
         cancelSearch()
         guard !isManualPlanning else { return }
