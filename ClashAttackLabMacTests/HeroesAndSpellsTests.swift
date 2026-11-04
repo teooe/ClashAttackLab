@@ -108,7 +108,7 @@ struct HeroesAndSpellsTests {
         #expect(jump.duration == 100)
         #expect(!jump.boostsTroops)
 
-        #expect(invisibility.hidesDefenses)
+        #expect(invisibility.hidesTroops)
         #expect(invisibility.radius == 4 * 40)
         #expect(invisibility.duration == 4.25)
 
@@ -293,13 +293,39 @@ struct HeroesAndSpellsTests {
     }
 
     @Test
-    func invisibleDefensesCannotBeTargeted() throws {
+    func invisibleTroopsCannotBeTargeted() throws {
         let data = try referenceData()
-        let cannon = BattleEntity(kind: .cannon, position: position(column: 20, row: 25))
-        let storage = BattleEntity(kind: .goldStorage, position: position(column: 32, row: 25))
-        let giant = DeploymentOrder(kind: .giant, position: position(column: 12, row: 25), deploymentTime: 0)
+        let cannon = BattleEntity(kind: .cannon, position: position(column: 25, row: 25))
+        let start = position(column: 19, row: 25)
+
+        func giantLoss(invisible: Bool) throws -> Double {
+            let giant = DeploymentOrder(kind: .giant, position: start, deploymentTime: 0)
+            let plan = AttackPlan(
+                name: "Invisibile",
+                deployments: [giant],
+                spellDeployments: invisible
+                    ? [SpellDeploymentOrder(kind: .invisibility, position: start, deploymentTime: 0)]
+                    : []
+            )
+            let battle = engine(entities: [cannon], plan: plan, gameData: data)
+            // The Giant stays inside the 4-tile cloud for these 2 seconds.
+            advance(battle, seconds: 2)
+            let walker = try #require(battle.entities.first { $0.id == giant.entityID })
+            return data.definition(for: .giant).maxHitPoints - walker.hitPoints
+        }
+
+        #expect(try giantLoss(invisible: false) > 0)
+        #expect(try giantLoss(invisible: true) == 0)
+    }
+
+    @Test
+    func invisibleTroopsStillSeeDefenses() throws {
+        let data = try referenceData()
+        let cannon = BattleEntity(kind: .cannon, position: position(column: 25, row: 25))
+        let storage = BattleEntity(kind: .goldStorage, position: position(column: 25, row: 40))
+        let giant = DeploymentOrder(kind: .giant, position: position(column: 19, row: 25), deploymentTime: 0)
         let plan = AttackPlan(
-            name: "Invisible",
+            name: "Invisibile",
             deployments: [giant],
             spellDeployments: [
                 SpellDeploymentOrder(kind: .invisibility, position: cannon.position, deploymentTime: 0)
@@ -308,13 +334,8 @@ struct HeroesAndSpellsTests {
         let battle = engine(entities: [cannon, storage], plan: plan, gameData: data)
         advance(battle, seconds: 0.5)
 
-        let hidden = try #require(battle.entities.first { $0.id == giant.entityID })
-        #expect(hidden.currentTargetID == storage.id)
-
-        // Once the spell fades, the Giant goes back to the defense.
-        advance(battle, seconds: 5)
-        let visible = try #require(battle.entities.first { $0.id == giant.entityID })
-        #expect(visible.currentTargetID == cannon.id)
+        let walker = try #require(battle.entities.first { $0.id == giant.entityID })
+        #expect(walker.currentTargetID == cannon.id)
     }
 
     @Test
