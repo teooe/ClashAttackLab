@@ -311,11 +311,12 @@ nonisolated final class SimulationEngine {
         }
     }
 
-    /// Defenses at `position` cannot be targeted (Invisibility Spell).
+    /// Attacking troops at `position` cannot be seen by defenses
+    /// (Invisibility Spell).
     private func isHiddenBySpell(_ position: WorldPosition) -> Bool {
         activeSpells.contains { spell in
             let spellData = spellDefinition(for: spell.kind)
-            return spellData.hidesDefenses &&
+            return spellData.hidesTroops &&
                 distance(from: position, to: spell.position) <= spellData.radius
         }
     }
@@ -385,8 +386,7 @@ nonisolated final class SimulationEngine {
         let wallIndices = livingIndices(with: .wall)
         let objectiveIndices = defenseIndices + buildingIndices
         let visibleDefenseIndices = defenseIndices.filter {
-            !isHiddenBySpell(entities[$0].position) &&
-                !isEntangled(entities[$0].position)
+            !isEntangled(entities[$0].position)
         }
         let reachableBuildingIndices = buildingIndices.filter {
             !isEntangled(entities[$0].position)
@@ -1522,6 +1522,7 @@ nonisolated final class SimulationEngine {
         let candidates = possibleTargets.filter {
             !entities[$0].isUnderground &&
                 entities[$0].invisibleRemaining <= 0 &&
+                !isHiddenBySpell(entities[$0].position) &&
                 defenderDefinition.attackTargetLayer.accepts(
                     definition(for: entities[$0].kind).movementDomain
                 )
@@ -1704,6 +1705,7 @@ nonisolated final class SimulationEngine {
             entities.indices.contains(index) &&
                 !entities[index].isUnderground &&
                 entities[index].invisibleRemaining <= 0 &&
+                !isHiddenBySpell(entities[index].position) &&
                 targetLayer.accepts(
                     definition(for: entities[index].kind).movementDomain
                 )

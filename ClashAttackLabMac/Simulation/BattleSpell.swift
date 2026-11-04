@@ -42,9 +42,9 @@ nonisolated struct SpellDefinition {
     /// Ground troops inside the spell cross walls (Jump Spell).
     var letsTroopsJumpWalls = false
 
-    /// Defenses inside the spell cannot be targeted by troops
-    /// (Invisibility Spell).
-    var hidesDefenses = false
+    /// Attacking troops inside the spell cannot be targeted by defenses or
+    /// Clan Castle reinforcements (Invisibility Spell).
+    var hidesTroops = false
 
     /// Clan Castle reinforcements inside the spell take this much damage
     /// per second once the cloud is fully grown, and move and attack at

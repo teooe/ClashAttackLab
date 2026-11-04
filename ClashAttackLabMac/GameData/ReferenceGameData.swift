@@ -689,7 +689,7 @@ nonisolated struct ReferenceGameData: GameDataProviding {
             movementSpeedBonus: movementSpeedBonus
         )
         definition.letsTroopsJumpWalls = base.letsTroopsJumpWalls
-        definition.hidesDefenses = base.hidesDefenses
+        definition.hidesTroops = base.hidesTroops
         definition.defenderDamagePerSecond =
             level.damagePerSecond ?? base.defenderDamagePerSecond
         definition.defenderSpeedMultiplier = level.speedDecreasePercent

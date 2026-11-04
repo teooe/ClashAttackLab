@@ -100,7 +100,7 @@ nonisolated struct PrototypeGameData: GameDataProviding {
                 attackSpeedMultiplier: 1, disablesDefenses: false,
                 behaviorEvidence: .documented, tuningEvidence: .prototype
             )
-            spell.hidesDefenses = true
+            spell.hidesTroops = true
             return spell
         case .haste:
             // Speed only: unlike Rage it adds no damage.
