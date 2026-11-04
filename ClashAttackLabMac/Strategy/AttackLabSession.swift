@@ -1097,6 +1097,17 @@ final class AttackLabSession: ObservableObject {
         scene.loadAttackPlan(plan)
     }
 
+    /// The plan loaded in the battle scene, written as steps to follow by
+    /// hand, plus the same steps as plain text.
+    func activePlanInstructions() -> (title: String, steps: [PlanInstructionStep], text: String) {
+        let writer = PlanInstructions(
+            navigationGrid: navigationGrid,
+            base: baseEntities,
+            gameData: gameData
+        )
+        return (activePlan.name, writer.steps(for: activePlan), writer.text(for: activePlan))
+    }
+
     /// Builds the player's own strategy for the current army and base and
     /// puts it first, so searches start from it.
     @discardableResult
