@@ -851,7 +851,7 @@ struct ContentView: View {
         case .cannon, .archerTower, .mortar, .wizardTower, .infernoTower, .bombTower, .hiddenTesla, .giantBomb, .airBomb, .airSweeper, .airDefense,
              .townHall, .goldStorage, .wall,
              .goldMine, .elixirCollector, .darkElixirDrill, .elixirStorage, .darkElixirStorage, .clanCastle, .armyCamp, .barracks, .darkBarracks, .laboratory, .spellFactory, .darkSpellFactory, .workshop, .heroHall, .petHouse, .blacksmith, .builderHut, .helperHut,
-             .xBow, .eagleArtillery, .scattershot, .spellTower, .monolith, .bomb, .springTrap, .seekingAirMine:
+             .xBow, .eagleArtillery, .scattershot, .spellTower, .monolith, .multiArcherTower, .ricochetCannon, .multiGearTower, .bomb, .springTrap, .seekingAirMine:
             return "Edificio"
         }
     }
@@ -886,7 +886,7 @@ struct ContentView: View {
         case .cannon, .archerTower, .mortar, .wizardTower, .infernoTower, .bombTower, .hiddenTesla, .giantBomb, .airBomb, .airSweeper, .airDefense,
              .townHall, .goldStorage, .wall,
              .goldMine, .elixirCollector, .darkElixirDrill, .elixirStorage, .darkElixirStorage, .clanCastle, .armyCamp, .barracks, .darkBarracks, .laboratory, .spellFactory, .darkSpellFactory, .workshop, .heroHall, .petHouse, .blacksmith, .builderHut, .helperHut,
-             .xBow, .eagleArtillery, .scattershot, .spellTower, .monolith, .bomb, .springTrap, .seekingAirMine:
+             .xBow, .eagleArtillery, .scattershot, .spellTower, .monolith, .multiArcherTower, .ricochetCannon, .multiGearTower, .bomb, .springTrap, .seekingAirMine:
             return "?"
         }
     }
@@ -922,7 +922,7 @@ struct ContentView: View {
         case .cannon, .archerTower, .mortar, .wizardTower, .infernoTower, .bombTower, .hiddenTesla, .giantBomb, .airBomb, .airSweeper, .airDefense,
              .townHall, .goldStorage, .wall,
              .goldMine, .elixirCollector, .darkElixirDrill, .elixirStorage, .darkElixirStorage, .clanCastle, .armyCamp, .barracks, .darkBarracks, .laboratory, .spellFactory, .darkSpellFactory, .workshop, .heroHall, .petHouse, .blacksmith, .builderHut, .helperHut,
-             .xBow, .eagleArtillery, .scattershot, .spellTower, .monolith, .bomb, .springTrap, .seekingAirMine:
+             .xBow, .eagleArtillery, .scattershot, .spellTower, .monolith, .multiArcherTower, .ricochetCannon, .multiGearTower, .bomb, .springTrap, .seekingAirMine:
             return .gray
         }
     }

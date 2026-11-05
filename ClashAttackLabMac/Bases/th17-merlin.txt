@@ -1,0 +1,278 @@
+# Base TH17 trascritta da due screenshot di scouting in guerra ("6. ¥MERLIN¥").
+# Posizioni approssimative (errore di circa una casella), lette dalla vista
+# isometrica: l'angolo in alto del gioco è l'angolo in alto a sinistra della
+# mappa, l'angolo sinistro del gioco è quello in basso a sinistra.
+# Colonna 0 = bordo sinistro, riga 0 = bordo in alto; ogni edificio si
+# indica con l'angolo in alto a sinistra del suo ingombro.
+# Tesla nascoste e trappole non si vedono in scouting: in fondo al file
+# sono stimate. Non trascritti: Stendardi degli eroi, decorazioni, la
+# Capanna di Bob e gli eroi in difesa.
+nome TH17 Merlin
+livello 17
+
+# Difese
+townHall 26 15
+clanCastle 21 21
+monolith 15 27
+scattershot 17 22
+scattershot 20 25
+infernoTower 19 12
+infernoTower 31 24
+infernoTower 10 32
+xBow 24 10
+xBow 28 10
+xBow 32 14
+xBow 32 18
+multiGearTower 30 6
+ricochetCannon 17 3
+ricochetCannon 32 10
+multiArcherTower 28 3
+multiArcherTower 40 12
+multiArcherTower 6 14
+multiArcherTower 27 34
+airDefense 22 6
+airDefense 36 18
+airDefense 10 21
+airSweeper 22 17
+airSweeper 26 21
+spellTower 18 19
+spellTower 24 26
+wizardTower 14 4
+wizardTower 34 6
+wizardTower 7 25
+wizardTower 38 27
+wizardTower 17 35
+mortar 11 5
+mortar 11 14
+mortar 29 31
+mortar 38 31
+archerTower 25 5
+archerTower 36 12
+cannon 37 9
+cannon 24 31
+builderHut 6 18
+builderHut 5 22
+builderHut 21 37
+builderHut 2 39
+builderHut 24 39
+
+# Altri edifici
+armyCamp 6 5
+armyCamp 6 9
+armyCamp 33 34
+armyCamp 38 34
+barracks 37 3
+blacksmith 0 32
+darkBarracks 14 40
+darkElixirDrill 10 9
+darkElixirDrill 11 18
+darkElixirDrill 34 31
+darkElixirStorage 27 0
+darkSpellFactory 0 35
+elixirCollector 40 2
+elixirCollector 41 25
+elixirCollector 41 28
+elixirCollector 41 31
+elixirCollector 18 40
+elixirCollector 28 40
+elixirCollector 31 40
+elixirStorage 24 0
+elixirStorage 34 1
+elixirStorage 41 9
+elixirStorage 39 21
+goldMine 15 0
+goldMine 9 1
+goldMine 12 1
+goldMine 3 10
+goldMine 2 13
+goldMine 2 18
+goldMine 2 22
+goldStorage 19 0
+goldStorage 30 0
+goldStorage 40 6
+goldStorage 38 15
+helperHut 41 17
+heroHall 3 1
+laboratory 34 39
+petHouse 5 39
+spellFactory 2 26
+workshop 37 38
+
+# Muri
+wall 1 1 - 2 1
+wall 38 2
+wall 22 5
+wall 24 5
+wall 14 7
+wall 18 7 - 21 7
+wall 29 7
+wall 39 7
+wall 21 8
+wall 14 9
+wall 16 9 - 21 9
+wall 23 9
+wall 26 9 - 30 9
+wall 14 10
+wall 16 10
+wall 23 10
+wall 14 11
+wall 16 11
+wall 18 11 - 19 11
+wall 23 11
+wall 14 12
+wall 16 12
+wall 18 12
+wall 23 12
+wall 14 13
+wall 16 13
+wall 23 13
+wall 34 13
+wall 10 14
+wall 16 14
+wall 23 14
+wall 31 14
+wall 10 15
+wall 14 15
+wall 23 15
+wall 25 15
+wall 31 15
+wall 10 16
+wall 18 16 - 25 16
+wall 31 16
+wall 5 17
+wall 8 17
+wall 10 17
+wall 21 17
+wall 25 17
+wall 31 17
+wall 16 18
+wall 21 18
+wall 25 18
+wall 31 18
+wall 15 19
+wall 21 19
+wall 25 19
+wall 28 19
+wall 31 19
+wall 21 20 - 22 20
+wall 24 20
+wall 28 20
+wall 31 20
+wall 8 21
+wall 17 21
+wall 29 21 - 31 21
+wall 8 22
+wall 8 23
+wall 24 23 - 25 23
+wall 28 23
+wall 30 23 - 31 23
+wall 8 24 - 9 24
+wall 28 24
+wall 30 24
+wall 6 25
+wall 10 25 - 11 25
+wall 16 25
+wall 19 25
+wall 28 25
+wall 6 26
+wall 10 26
+wall 19 26
+wall 28 26
+wall 6 27
+wall 19 27
+wall 6 28
+wall 14 28
+wall 19 28
+wall 6 29
+wall 10 29
+wall 12 29
+wall 14 29
+wall 19 29
+wall 22 29
+wall 25 29
+wall 37 29
+wall 6 30
+wall 10 30
+wall 14 30
+wall 36 30 - 37 30
+wall 6 31
+wall 10 31
+wall 15 31
+wall 17 31
+wall 27 31 - 28 31
+wall 6 32
+wall 15 32
+wall 17 32
+wall 22 32
+wall 28 32
+wall 22 33
+wall 10 34
+wall 13 34
+wall 16 34 - 20 34
+wall 31 34
+wall 13 35 - 16 35
+wall 20 35 - 21 35
+wall 31 35
+wall 12 36
+wall 20 36 - 21 36
+wall 31 36
+wall 15 37
+wall 1 38
+wall 20 38
+wall 27 38 - 28 38
+wall 1 39
+wall 10 39 - 20 39
+wall 28 39
+wall 32 39
+wall 4 43 - 26 43
+
+# Tesla nascoste e trappole: STIMATE, non visibili negli screenshot.
+# Messe con le regole ricorrenti nelle guide alle basi TH17: Tesla
+# attorno al Municipio, mine aeree dietro le Difese aeree e nel nucleo,
+# bombe aeree nel secondo anello, bombe giganti sui percorsi del nucleo,
+# trappole a molla e bombe vicino alle difese esterne.
+hiddenTesla 21 14
+hiddenTesla 24 21
+hiddenTesla 32 22
+hiddenTesla 26 23
+hiddenTesla 13 26
+seekingAirMine 25 9
+seekingAirMine 22 13
+seekingAirMine 27 14
+seekingAirMine 36 16
+seekingAirMine 23 19
+seekingAirMine 14 22
+seekingAirMine 30 22
+seekingAirMine 18 26
+seekingAirMine 13 31
+airBomb 23 3
+airBomb 29 8
+airBomb 40 9
+airBomb 24 14
+airBomb 37 15
+airBomb 23 20
+airBomb 7 22
+giantBomb 15 7
+giantBomb 37 7
+giantBomb 21 10
+giantBomb 35 10
+giantBomb 14 20
+giantBomb 36 22
+giantBomb 23 29
+springTrap 13 4
+springTrap 10 5
+springTrap 33 6
+springTrap 11 13
+springTrap 7 24
+springTrap 37 27
+springTrap 37 31
+springTrap 28 33
+springTrap 16 37
+bomb 25 4
+bomb 28 6
+bomb 36 9
+bomb 35 12
+bomb 39 12
+bomb 5 14
+bomb 23 31
+bomb 26 34

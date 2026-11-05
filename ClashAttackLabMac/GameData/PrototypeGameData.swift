@@ -1545,6 +1545,72 @@ nonisolated struct PrototypeGameData: GameDataProviding {
             definition.targetMaxHitPointDamageFraction = 0.12
             return definition
 
+        case .multiArcherTower:
+            // Three archers, each shooting its own target.
+            var definition = CombatDefinition(
+                displayName: "Torre multi-arciere",
+                role: .defense,
+                maxHitPoints: 5_000,
+                movementSpeed: 0,
+                attackDamage: 60,
+                minimumAttackRange: 0,
+                attackRange: 400,
+                attackInterval: 0.6,
+                canMove: false,
+                projectileKind: .arrow,
+                projectileSpeed: 700,
+                splashRadius: 0,
+                selfDestructsOnAttack: false,
+                attackTargetLayer: .both,
+                targetingProfile: nil
+            )
+            definition.extraTargetCount = 2
+            return definition
+
+        case .ricochetCannon:
+            // Every cannonball bounces once to a second ground troop.
+            var definition = CombatDefinition(
+                displayName: "Cannone a rimbalzo",
+                role: .defense,
+                maxHitPoints: 5_400,
+                movementSpeed: 0,
+                attackDamage: 288,
+                minimumAttackRange: 0,
+                attackRange: 360,
+                attackInterval: 0.8,
+                canMove: false,
+                projectileKind: .cannonball,
+                projectileSpeed: 650,
+                splashRadius: 0,
+                selfDestructsOnAttack: false,
+                attackTargetLayer: .ground,
+                targetingProfile: nil
+            )
+            definition.chainTargetCount = 2
+            definition.chainRange = 140
+            definition.chainDamageMultiplier = 0.7
+            return definition
+
+        case .multiGearTower:
+            // Modeled in its long-range mode, the default one.
+            return CombatDefinition(
+                displayName: "Torre multi-ingranaggio",
+                role: .defense,
+                maxHitPoints: 4_000,
+                movementSpeed: 0,
+                attackDamage: 350,
+                minimumAttackRange: 0,
+                attackRange: 480,
+                attackInterval: 1,
+                canMove: false,
+                projectileKind: .arrow,
+                projectileSpeed: 800,
+                splashRadius: 0,
+                selfDestructsOnAttack: false,
+                attackTargetLayer: .both,
+                targetingProfile: nil
+            )
+
         case .bomb:
             return CombatDefinition(
                 displayName: "Bomba",
