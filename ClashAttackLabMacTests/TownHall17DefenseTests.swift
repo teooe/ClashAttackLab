@@ -123,5 +123,10 @@ struct TownHall17DefenseTests {
         }
         #expect(base.buildings.filter { $0.kind == .airSweeper }.count == 2)
         #expect(base.buildings.filter { $0.kind == .wall }.count > 150)
+        // Estimated hidden defenses, within the Town Hall 17 limits.
+        #expect(base.buildings.filter { $0.kind == .hiddenTesla }.count == 5)
+        #expect(base.buildings.filter { $0.kind == .seekingAirMine }.count == 9)
+        #expect(base.buildings.filter { $0.kind == .airBomb }.count == 7)
+        #expect(!base.issues(catalog: catalog).contains { $0.text.contains("permessi") && $0.text.contains("Tesla") })
     }
 }

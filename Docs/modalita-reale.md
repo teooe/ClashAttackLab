@@ -8,7 +8,7 @@ Questa pagina elenca cosa viene simulato e quali valori sono stime, cioè numeri
 - **Mappa:** 44 × 44 caselle costruibili, più un bordo di 3 caselle dove schierare. La battaglia dura 3 minuti.
 - **Ostacoli:** muri ed edifici bloccano il passaggio. Le truppe di terra li aggirano, oppure abbattono i muri quando conviene.
 - **Basi:** tre basi generate per ogni Municipio, quelle incluse nell'app e quelle importate (vedi [importare una base](importare-una-base.md)).
-- **Base TH17 Merlin:** trascritta da due screenshot di scouting. Le posizioni sono approssimative (circa una casella). Mancano Tesla e trappole, che in scouting non si vedono.
+- **Base TH17 Merlin:** trascritta da due screenshot di scouting. Le posizioni sono approssimative (circa una casella). Tesla e trappole, che in scouting non si vedono, sono stimate con le regole più comuni delle guide alle basi TH17: Tesla attorno al Municipio, mine aeree dietro le Difese aeree e nel nucleo, bombe aeree nel secondo anello.
 
 ## Difese e trappole
 

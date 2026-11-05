@@ -4,8 +4,9 @@
 # mappa, l'angolo sinistro del gioco è quello in basso a sinistra.
 # Colonna 0 = bordo sinistro, riga 0 = bordo in alto; ogni edificio si
 # indica con l'angolo in alto a sinistra del suo ingombro.
-# Non trascritti: Tesla nascoste e trappole (invisibili in scouting),
-# Stendardi degli eroi, decorazioni, la Capanna di Bob e gli eroi in difesa.
+# Tesla nascoste e trappole non si vedono in scouting: in fondo al file
+# sono stimate. Non trascritti: Stendardi degli eroi, decorazioni, la
+# Capanna di Bob e gli eroi in difesa.
 nome TH17 Merlin
 livello 17
 
@@ -224,3 +225,54 @@ wall 10 39 - 20 39
 wall 28 39
 wall 32 39
 wall 4 43 - 26 43
+
+# Tesla nascoste e trappole: STIMATE, non visibili negli screenshot.
+# Messe con le regole ricorrenti nelle guide alle basi TH17: Tesla
+# attorno al Municipio, mine aeree dietro le Difese aeree e nel nucleo,
+# bombe aeree nel secondo anello, bombe giganti sui percorsi del nucleo,
+# trappole a molla e bombe vicino alle difese esterne.
+hiddenTesla 21 14
+hiddenTesla 24 21
+hiddenTesla 32 22
+hiddenTesla 26 23
+hiddenTesla 13 26
+seekingAirMine 25 9
+seekingAirMine 22 13
+seekingAirMine 27 14
+seekingAirMine 36 16
+seekingAirMine 23 19
+seekingAirMine 14 22
+seekingAirMine 30 22
+seekingAirMine 18 26
+seekingAirMine 13 31
+airBomb 23 3
+airBomb 29 8
+airBomb 40 9
+airBomb 24 14
+airBomb 37 15
+airBomb 23 20
+airBomb 7 22
+giantBomb 15 7
+giantBomb 37 7
+giantBomb 21 10
+giantBomb 35 10
+giantBomb 14 20
+giantBomb 36 22
+giantBomb 23 29
+springTrap 13 4
+springTrap 10 5
+springTrap 33 6
+springTrap 11 13
+springTrap 7 24
+springTrap 37 27
+springTrap 37 31
+springTrap 28 33
+springTrap 16 37
+bomb 25 4
+bomb 28 6
+bomb 36 9
+bomb 35 12
+bomb 39 12
+bomb 5 14
+bomb 23 31
+bomb 26 34
