@@ -53,13 +53,16 @@ Questa pagina elenca cosa viene simulato e quali valori sono stime, cioè numeri
 - **Drago neonato:** raddoppia il danno quando non ha altre truppe aeree vicine.
 - **Famigli:** Polaris, Fenice, Gufo elettrico e Unicorno seguono il loro eroe. La Fenice lo protegge 8 s quando sta per cadere. I Frostmiti di Polaris non sono ancora simulati.
 - **La mia strategia** (menu **Trova attacco**): costruisce su qualsiasi base l'attacco del giocatore.
-  1. La Campionessa entra dal punto più vicino all'Artiglieria Aquila e la punta; ogni 4 s riceve un'Invisibilità lungo il percorso, e quando finiscono attiva l'abilità.
-  2. La Regina entra verso le Spazzarie e usa l'abilità.
-  3. Le truppe entrano dal lato del Municipio insieme al Sorvegliante; la Furia cade sul loro percorso.
-  4. Per ultimo il Duca Drago.
+  1. La Campionessa punta l'Artiglieria Aquila. Dal TH17, dove l'Aquila non c'è più, punta il Monolito ed entra dall'angolo più vicino. Ogni 4 s riceve un'Invisibilità lungo il percorso e attiva l'abilità con l'ultima. Se l'esercito ha un Richiamo, la riprende appena le resta il 30% della vita.
+  2. La Regina entra verso le Spazzarie e usa subito l'abilità.
+  3. Le truppe entrano dal lato del Municipio insieme alla macchina d'assedio, al Sorvegliante e al Duca Drago. Le truppe del Castello viaggiano nel Carro volante. L'abilità del Duca parte da sola quando sta per cadere.
+  4. La Campionessa richiamata torna in campo 20 s dopo le truppe, dallo stesso lato.
 
   Il piano diventa il punto di partenza delle ricerche, compresa quella evolutiva.
-- **Formazioni pronte:** il pulsante **Formazioni** nell'editor dell'esercito carica gli eserciti pronti. Tra questi c'è **La mia formazione**: 12 Draghi, 4 Cavalcadraghi, 4 Mongolfiere, 1 Drago neonato, Lanciatronchi, Regina, Duca Drago, Sorvegliante e Campionessa, 12 Invisibilità e 1 Furia (Castello compreso).
+- **Formazioni pronte:** il pulsante **Formazioni** nell'editor dell'esercito carica gli eserciti pronti. Tra questi c'è **La mia formazione**:
+  - fino al TH16: 12 Draghi, 4 Cavalcadraghi, 4 Mongolfiere, 1 Drago neonato, Lanciatronchi, 12 Invisibilità e 1 Furia;
+  - dal TH17: 10 Draghi, 6 Cavalcadraghi, 2 Draghi neonati, Carro volante, 10 Invisibilità e 1 Richiamo;
+  - in entrambe: Regina, Duca Drago, Sorvegliante e Campionessa. I numeri comprendono il Castello (2 Draghi, 1 Drago neonato e 1 Invisibilità).
 - **Eroi:**
   - Re, Regina, Gran Sorvegliante e Campionessa;
   - l'aura del Sorvegliante riduce del 20% il danno subito dalle truppe vicine.

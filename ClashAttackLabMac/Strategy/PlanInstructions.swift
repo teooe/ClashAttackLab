@@ -107,11 +107,26 @@ nonisolated struct PlanInstructions {
             var last = index
             while
                 last + 1 < spells.count,
-                spells[last + 1].kind == first.kind
+                spells[last + 1].kind == first.kind,
+                spells[last + 1].followsEntityID == nil
             {
                 last += 1
             }
             let name = spellName(first.kind)
+            if
+                let followed = first.followsEntityID,
+                let unit = plan.deployments.first(where: { $0.entityID == followed })
+            {
+                let percent = Int(((first.castBelowHealthFraction ?? 0) * 100).rounded())
+                events.append((
+                    first.deploymentTime,
+                    events.count,
+                    "\(name) su \(troopName(unit.kind)) quando le resta circa il \(percent)% della vita" +
+                        " (al più tardi a ~\(Int(first.deploymentTime.rounded())) s)"
+                ))
+                index += 1
+                continue
+            }
             if last == index {
                 events.append((
                     first.deploymentTime,

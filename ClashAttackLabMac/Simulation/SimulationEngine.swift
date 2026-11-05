@@ -623,62 +623,89 @@ nonisolated final class SimulationEngine {
     }
 
     private func deployScheduledSpells() {
+        // Spells waiting on a unit's health go as soon as it is low enough.
+        for index in pendingSpellDeployments.indices.reversed() {
+            let order = pendingSpellDeployments[index]
+            guard
+                let followed = order.followsEntityID,
+                let fraction = order.castBelowHealthFraction,
+                let unit = entities.first(where: { $0.id == followed && $0.isAlive }),
+                unit.hitPoints <= definition(for: unit.kind).maxHitPoints * fraction
+            else {
+                continue
+            }
+            pendingSpellDeployments.remove(at: index)
+            cast(order, at: unit.position)
+        }
         while
             let next = pendingSpellDeployments.first,
             next.deploymentTime <= elapsedTime
         {
-            let definition = spellDefinition(for: next.kind)
             pendingSpellDeployments.removeFirst()
-            if definition.dealsInstantDamage {
-                var damage: [UUID: Double] = [:]
-                for index in entities.indices where entities[index].isAlive {
-                    let targetDefinition = gameData.definition(for: entities[index].kind)
-                    let role = targetDefinition.role
-                    let isStandardTarget = role == .defense || role == .building
-                    let isEarthquakeWall = next.kind == .earthquake && role == .wall
-                    guard (isStandardTarget || isEarthquakeWall) &&
-                        distance(from: entities[index].position, to: next.position) <= definition.radius
-                    else { continue }
-                    let wallMultiplier = role == .wall ? 4.0 : 1.0
-                    damage[entities[index].id, default: 0] +=
-                        definition.impactDamage(
-                            forMaxHitPoints: targetDefinition.maxHitPoints
-                        ) * wallMultiplier
-                }
-                apply(damage)
-            } else {
-                activeSpells.append(ActiveBattleSpell(id: next.id, kind: next.kind, position: next.position, remainingDuration: definition.duration))
-                if definition.recallCapacity > 0 {
-                    recallTroops(
-                        around: next.position,
-                        radius: definition.radius,
-                        capacity: definition.recallCapacity
+            let followed = next.followsEntityID.flatMap { id in
+                entities.first { $0.id == id && $0.isAlive }
+            }
+            cast(next, at: followed?.position ?? next.position)
+        }
+    }
+
+    private func cast(_ order: SpellDeploymentOrder, at position: WorldPosition) {
+        let next = SpellDeploymentOrder(
+            id: order.id,
+            kind: order.kind,
+            position: position,
+            deploymentTime: order.deploymentTime
+        )
+        let definition = spellDefinition(for: next.kind)
+        if definition.dealsInstantDamage {
+            var damage: [UUID: Double] = [:]
+            for index in entities.indices where entities[index].isAlive {
+                let targetDefinition = gameData.definition(for: entities[index].kind)
+                let role = targetDefinition.role
+                let isStandardTarget = role == .defense || role == .building
+                let isEarthquakeWall = next.kind == .earthquake && role == .wall
+                guard (isStandardTarget || isEarthquakeWall) &&
+                    distance(from: entities[index].position, to: next.position) <= definition.radius
+                else { continue }
+                let wallMultiplier = role == .wall ? 4.0 : 1.0
+                damage[entities[index].id, default: 0] +=
+                    definition.impactDamage(
+                        forMaxHitPoints: targetDefinition.maxHitPoints
+                    ) * wallMultiplier
+            }
+            apply(damage)
+        } else {
+            activeSpells.append(ActiveBattleSpell(id: next.id, kind: next.kind, position: next.position, remainingDuration: definition.duration))
+            if definition.recallCapacity > 0 {
+                recallTroops(
+                    around: next.position,
+                    radius: definition.radius,
+                    capacity: definition.recallCapacity
+                )
+            }
+            if let troop = definition.summonedTroop, definition.summonCount > 0 {
+                summon(troop, count: definition.summonCount, around: next.position, spellID: next.id)
+            }
+            if definition.encasesTroops {
+                for index in livingIndices(with: .troop) where distance(
+                    from: entities[index].position,
+                    to: next.position
+                ) <= definition.radius {
+                    entities[index].encasedRemaining = max(
+                        entities[index].encasedRemaining,
+                        definition.duration
+                    )
+                    entities[index].encasedDamageReduction = max(
+                        entities[index].encasedRemaining > 0 ? entities[index].encasedDamageReduction : 0,
+                        definition.troopDamageReduction
                     )
                 }
-                if let troop = definition.summonedTroop, definition.summonCount > 0 {
-                    summon(troop, count: definition.summonCount, around: next.position, spellID: next.id)
-                }
-                if definition.encasesTroops {
-                    for index in livingIndices(with: .troop) where distance(
-                        from: entities[index].position,
-                        to: next.position
-                    ) <= definition.radius {
-                        entities[index].encasedRemaining = max(
-                            entities[index].encasedRemaining,
-                            definition.duration
-                        )
-                        entities[index].encasedDamageReduction = max(
-                            entities[index].encasedRemaining > 0 ? entities[index].encasedDamageReduction : 0,
-                            definition.troopDamageReduction
-                        )
-                    }
-                }
             }
-            recordEvent(
-                .spellCast,
-                "\(definition.displayName) lanciata"
-            )
         }
+        recordEvent(
+            .spellCast,
+            "\(definition.displayName) lanciata"
+        )
     }
 
     /// Spreads summoned troops on rings around the spell's centre.
