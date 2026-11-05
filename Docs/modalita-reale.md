@@ -1,6 +1,6 @@
 # Cosa simula la modalità Reale
 
-La modalità **Reale** usa i dati del gioco (pacchetto `clash-of-clans-data` 0.18.0) al livello massimo sbloccato dal Municipio scelto, da 7 a 18.
+La modalità **Reale** usa i dati del gioco (pacchetto `clash-of-clans-data` 0.19.1) al livello massimo sbloccato dal Municipio scelto, da 7 a 18.
 Questa pagina elenca cosa viene simulato e quali valori sono stime, cioè numeri che i dati non riportano.
 
 ## Campo di battaglia
