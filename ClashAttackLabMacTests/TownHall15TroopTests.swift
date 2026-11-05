@@ -59,7 +59,7 @@ struct TownHall15TroopTests {
         let hound = data.definition(for: .lavaHound)
 
         #expect(hog.role == .troop)
-        #expect(hog.maxHitPoints == 1_230)
+        #expect(hog.maxHitPoints == 1_350) // October 2026 buff
         #expect(hog.attackDamage == 200)
         #expect(isClose(hog.movementSpeed, 24.0 / 8 * 40))
         #expect(isClose(hog.attackRange, 0.6 * 40))

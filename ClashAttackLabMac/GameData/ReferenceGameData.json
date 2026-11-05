@@ -379,146 +379,146 @@
     {
      "blacksmith": 0,
      "damageOnDefeat": 1000,
-     "dpsIncrease": 10,
-     "hitpointIncrease": 900,
+     "dpsIncrease": 0,
+     "hitpointIncrease": 830,
      "level": 1,
      "selfHealingPerSecond": 50
     },
     {
      "blacksmith": 1,
      "damageOnDefeat": 1000,
-     "dpsIncrease": 12,
-     "hitpointIncrease": 1200,
+     "dpsIncrease": 0,
+     "hitpointIncrease": 1100,
      "level": 2,
      "selfHealingPerSecond": 50
     },
     {
      "blacksmith": 1,
      "damageOnDefeat": 1350,
-     "dpsIncrease": 14,
-     "hitpointIncrease": 1450,
+     "dpsIncrease": 0,
+     "hitpointIncrease": 1350,
      "level": 3,
      "selfHealingPerSecond": 70
     },
     {
      "blacksmith": 1,
      "damageOnDefeat": 1350,
-     "dpsIncrease": 16,
-     "hitpointIncrease": 1750,
+     "dpsIncrease": 0,
+     "hitpointIncrease": 1600,
      "level": 4,
      "selfHealingPerSecond": 70
     },
     {
      "blacksmith": 1,
      "damageOnDefeat": 1350,
-     "dpsIncrease": 18,
-     "hitpointIncrease": 2000,
+     "dpsIncrease": 0,
+     "hitpointIncrease": 1850,
      "level": 5,
      "selfHealingPerSecond": 70
     },
     {
      "blacksmith": 1,
      "damageOnDefeat": 1700,
-     "dpsIncrease": 20,
-     "hitpointIncrease": 2300,
+     "dpsIncrease": 0,
+     "hitpointIncrease": 2100,
      "level": 6,
      "selfHealingPerSecond": 90
     },
     {
      "blacksmith": 1,
      "damageOnDefeat": 1700,
-     "dpsIncrease": 22,
-     "hitpointIncrease": 2600,
+     "dpsIncrease": 0,
+     "hitpointIncrease": 2400,
      "level": 7,
      "selfHealingPerSecond": 90
     },
     {
      "blacksmith": 1,
      "damageOnDefeat": 1700,
-     "dpsIncrease": 24,
-     "hitpointIncrease": 2850,
+     "dpsIncrease": 0,
+     "hitpointIncrease": 2600,
      "level": 8,
      "selfHealingPerSecond": 90
     },
     {
      "blacksmith": 1,
      "damageOnDefeat": 2000,
-     "dpsIncrease": 26,
-     "hitpointIncrease": 3150,
+     "dpsIncrease": 0,
+     "hitpointIncrease": 2900,
      "level": 9,
      "selfHealingPerSecond": 110
     },
     {
      "blacksmith": 3,
      "damageOnDefeat": 2000,
-     "dpsIncrease": 28,
-     "hitpointIncrease": 3400,
+     "dpsIncrease": 0,
+     "hitpointIncrease": 3150,
      "level": 10,
      "selfHealingPerSecond": 110
     },
     {
      "blacksmith": 3,
      "damageOnDefeat": 2000,
-     "dpsIncrease": 30,
-     "hitpointIncrease": 3700,
+     "dpsIncrease": 0,
+     "hitpointIncrease": 3400,
      "level": 11,
      "selfHealingPerSecond": 110
     },
     {
      "blacksmith": 3,
      "damageOnDefeat": 2350,
-     "dpsIncrease": 32,
-     "hitpointIncrease": 4000,
+     "dpsIncrease": 0,
+     "hitpointIncrease": 3700,
      "level": 12,
-     "selfHealingPerSecond": 130
+     "selfHealingPerSecond": 120
     },
     {
      "blacksmith": 5,
      "damageOnDefeat": 2350,
-     "dpsIncrease": 34,
-     "hitpointIncrease": 4250,
+     "dpsIncrease": 0,
+     "hitpointIncrease": 3900,
      "level": 13,
-     "selfHealingPerSecond": 130
+     "selfHealingPerSecond": 120
     },
     {
      "blacksmith": 5,
      "damageOnDefeat": 2350,
-     "dpsIncrease": 36,
-     "hitpointIncrease": 4550,
+     "dpsIncrease": 0,
+     "hitpointIncrease": 4200,
      "level": 14,
-     "selfHealingPerSecond": 130
+     "selfHealingPerSecond": 120
     },
     {
      "blacksmith": 5,
      "damageOnDefeat": 2700,
-     "dpsIncrease": 38,
-     "hitpointIncrease": 4800,
+     "dpsIncrease": 0,
+     "hitpointIncrease": 4400,
      "level": 15,
-     "selfHealingPerSecond": 155
+     "selfHealingPerSecond": 130
     },
     {
      "blacksmith": 7,
      "damageOnDefeat": 2700,
-     "dpsIncrease": 40,
-     "hitpointIncrease": 5100,
+     "dpsIncrease": 0,
+     "hitpointIncrease": 4700,
      "level": 16,
-     "selfHealingPerSecond": 155
+     "selfHealingPerSecond": 130
     },
     {
      "blacksmith": 7,
      "damageOnDefeat": 2700,
-     "dpsIncrease": 42,
-     "hitpointIncrease": 5450,
+     "dpsIncrease": 0,
+     "hitpointIncrease": 5000,
      "level": 17,
-     "selfHealingPerSecond": 155
+     "selfHealingPerSecond": 130
     },
     {
      "blacksmith": 7,
      "damageOnDefeat": 3000,
-     "dpsIncrease": 45,
-     "hitpointIncrease": 5600,
+     "dpsIncrease": 0,
+     "hitpointIncrease": 5150,
      "level": 18,
-     "selfHealingPerSecond": 175
+     "selfHealingPerSecond": 140
     }
    ],
    "name": "Fire Heart",
@@ -731,189 +731,189 @@
      "blacksmith": 1,
      "dpsIncrease": 35,
      "level": 1,
-     "slowDown": 25,
+     "slowDown": 30,
      "slowDownDuration": 0.75
     },
     {
      "blacksmith": 1,
      "dpsIncrease": 40,
      "level": 2,
-     "slowDown": 25,
+     "slowDown": 30,
      "slowDownDuration": 1
     },
     {
      "blacksmith": 1,
      "dpsIncrease": 45,
      "level": 3,
-     "slowDown": 30,
+     "slowDown": 35,
      "slowDownDuration": 1
     },
     {
      "blacksmith": 1,
      "dpsIncrease": 50,
      "level": 4,
-     "slowDown": 30,
+     "slowDown": 35,
      "slowDownDuration": 1
     },
     {
      "blacksmith": 1,
      "dpsIncrease": 55,
      "level": 5,
-     "slowDown": 30,
+     "slowDown": 35,
      "slowDownDuration": 1.25
     },
     {
      "blacksmith": 1,
      "dpsIncrease": 60,
      "level": 6,
-     "slowDown": 35,
+     "slowDown": 40,
      "slowDownDuration": 1.25
     },
     {
      "blacksmith": 1,
      "dpsIncrease": 66,
      "level": 7,
-     "slowDown": 35,
+     "slowDown": 40,
      "slowDownDuration": 1.25
     },
     {
      "blacksmith": 1,
      "dpsIncrease": 72,
      "level": 8,
-     "slowDown": 35,
+     "slowDown": 40,
      "slowDownDuration": 1.5
     },
     {
      "blacksmith": 1,
      "dpsIncrease": 78,
      "level": 9,
-     "slowDown": 37,
+     "slowDown": 42,
      "slowDownDuration": 1.5
     },
     {
      "blacksmith": 1,
      "dpsIncrease": 85,
      "level": 10,
-     "slowDown": 37,
+     "slowDown": 42,
      "slowDownDuration": 1.5
     },
     {
      "blacksmith": 1,
      "dpsIncrease": 92,
      "level": 11,
-     "slowDown": 37,
+     "slowDown": 42,
      "slowDownDuration": 1.75
     },
     {
      "blacksmith": 1,
      "dpsIncrease": 99,
      "level": 12,
-     "slowDown": 40,
+     "slowDown": 45,
      "slowDownDuration": 1.75
     },
     {
      "blacksmith": 3,
      "dpsIncrease": 105,
      "level": 13,
-     "slowDown": 40,
+     "slowDown": 45,
      "slowDownDuration": 1.75
     },
     {
      "blacksmith": 3,
      "dpsIncrease": 111,
      "level": 14,
-     "slowDown": 40,
+     "slowDown": 45,
      "slowDownDuration": 2
     },
     {
      "blacksmith": 3,
      "dpsIncrease": 117,
      "level": 15,
-     "slowDown": 45,
+     "slowDown": 50,
      "slowDownDuration": 2
     },
     {
      "blacksmith": 5,
      "dpsIncrease": 122,
      "level": 16,
-     "slowDown": 45,
+     "slowDown": 50,
      "slowDownDuration": 2
     },
     {
      "blacksmith": 5,
      "dpsIncrease": 127,
      "level": 17,
-     "slowDown": 45,
+     "slowDown": 50,
      "slowDownDuration": 2.25
     },
     {
      "blacksmith": 5,
      "dpsIncrease": 132,
      "level": 18,
-     "slowDown": 50,
+     "slowDown": 55,
      "slowDownDuration": 2.25
     },
     {
      "blacksmith": 7,
      "dpsIncrease": 136,
      "level": 19,
-     "slowDown": 50,
+     "slowDown": 55,
      "slowDownDuration": 2.25
     },
     {
      "blacksmith": 7,
      "dpsIncrease": 140,
      "level": 20,
-     "slowDown": 50,
+     "slowDown": 55,
      "slowDownDuration": 2.5
     },
     {
      "blacksmith": 7,
-     "dpsIncrease": 144,
+     "dpsIncrease": 145,
      "level": 21,
-     "slowDown": 55,
+     "slowDown": 60,
      "slowDownDuration": 2.5
     },
     {
      "blacksmith": 8,
-     "dpsIncrease": 148,
+     "dpsIncrease": 150,
      "level": 22,
-     "slowDown": 55,
+     "slowDown": 60,
      "slowDownDuration": 2.5
     },
     {
      "blacksmith": 8,
-     "dpsIncrease": 152,
+     "dpsIncrease": 155,
      "level": 23,
-     "slowDown": 55,
+     "slowDown": 60,
      "slowDownDuration": 2.75
     },
     {
      "blacksmith": 8,
-     "dpsIncrease": 156,
-     "level": 24,
-     "slowDown": 60,
-     "slowDownDuration": 2.75
-    },
-    {
-     "blacksmith": 9,
      "dpsIncrease": 160,
-     "level": 25,
-     "slowDown": 60,
+     "level": 24,
+     "slowDown": 65,
      "slowDownDuration": 2.75
     },
     {
      "blacksmith": 9,
-     "dpsIncrease": 164,
+     "dpsIncrease": 165,
+     "level": 25,
+     "slowDown": 65,
+     "slowDownDuration": 2.75
+    },
+    {
+     "blacksmith": 9,
+     "dpsIncrease": 170,
      "level": 26,
-     "slowDown": 60,
+     "slowDown": 65,
      "slowDownDuration": 3
     },
     {
      "blacksmith": 9,
-     "dpsIncrease": 168,
+     "dpsIncrease": 175,
      "level": 27,
-     "slowDown": 65,
+     "slowDown": 70,
      "slowDownDuration": 3
     }
    ],
@@ -3279,7 +3279,7 @@
    "movementSpeed": "in-game speed (8 = 1 tile per second)",
    "time": "seconds"
   },
-  "version": "0.18.0"
+  "version": "0.19.1"
  },
  "spells": {
   "batSpell": {
@@ -10213,49 +10213,49 @@
     },
     {
      "damagePerHit": 155,
-     "hitpoints": 810,
+     "hitpoints": 870,
      "level": 8,
      "townHall": 12
     },
     {
      "damagePerHit": 165,
-     "hitpoints": 890,
+     "hitpoints": 960,
      "level": 9,
      "townHall": 12
     },
     {
      "damagePerHit": 176,
-     "hitpoints": 970,
+     "hitpoints": 1050,
      "level": 10,
      "townHall": 13
     },
     {
      "damagePerHit": 187,
-     "hitpoints": 1080,
+     "hitpoints": 1150,
      "level": 11,
      "townHall": 14
     },
     {
      "damagePerHit": 200,
-     "hitpoints": 1230,
+     "hitpoints": 1350,
      "level": 12,
      "townHall": 15
     },
     {
      "damagePerHit": 213,
-     "hitpoints": 1380,
+     "hitpoints": 1500,
      "level": 13,
      "townHall": 16
     },
     {
      "damagePerHit": 225,
-     "hitpoints": 1500,
+     "hitpoints": 1600,
      "level": 14,
      "townHall": 17
     },
     {
      "damagePerHit": 250,
-     "hitpoints": 1750,
+     "hitpoints": 1950,
      "level": 15,
      "townHall": 18
     }
@@ -10720,13 +10720,13 @@
     },
     {
      "damagePerHit": 297.5,
-     "hitpoints": 1750,
+     "hitpoints": 1850,
      "level": 11,
      "townHall": 17
     },
     {
      "damagePerHit": 331.5,
-     "hitpoints": 2050,
+     "hitpoints": 2150,
      "level": 12,
      "townHall": 18
     }
@@ -11081,37 +11081,37 @@
      "townHall": 11
     },
     {
-     "damagePerHit": 1098,
+     "damagePerHit": 1188.0,
      "hitpoints": 6300,
      "level": 8,
      "townHall": 12
     },
     {
-     "damagePerHit": 1224,
+     "damagePerHit": 1323.0,
      "hitpoints": 6700,
      "level": 9,
      "townHall": 13
     },
     {
-     "damagePerHit": 1350,
+     "damagePerHit": 1458.0,
      "hitpoints": 7200,
      "level": 10,
      "townHall": 15
     },
     {
-     "damagePerHit": 1458,
+     "damagePerHit": 1575.0,
      "hitpoints": 7700,
      "level": 11,
      "townHall": 16
     },
     {
-     "damagePerHit": 1566,
+     "damagePerHit": 1692.0,
      "hitpoints": 8200,
      "level": 12,
      "townHall": 17
     },
     {
-     "damagePerHit": 1692,
+     "damagePerHit": 1827.0,
      "hitpoints": 8800,
      "level": 13,
      "townHall": 18
@@ -12522,7 +12522,7 @@
     325,
     325,
     325,
-    400
+    325
    ],
    "levels": [
     {

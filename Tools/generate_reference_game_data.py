@@ -22,7 +22,7 @@ import tarfile
 import tempfile
 
 PACKAGE = "clash-of-clans-data"
-VERSION = "0.18.0"
+VERSION = "0.19.1"
 OUTPUT = os.path.join(
     os.path.dirname(os.path.abspath(__file__)),
     "..",
