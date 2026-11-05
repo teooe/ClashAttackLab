@@ -258,7 +258,9 @@ nonisolated struct EvolutionaryAttackSearch {
                     id: spell.id,
                     kind: spell.kind,
                     position: clampedToGrid(moved),
-                    deploymentTime: spell.deploymentTime
+                    deploymentTime: spell.deploymentTime,
+                    followsEntityID: spell.followsEntityID,
+                    castBelowHealthFraction: spell.castBelowHealthFraction
                 )
             case 4:
                 // Cast one spell at another moment.
@@ -271,7 +273,9 @@ nonisolated struct EvolutionaryAttackSearch {
                     position: spell.position,
                     deploymentTime: clampedTime(
                         spell.deploymentTime + Double(Int.random(in: -8...8, using: &random)) * 0.5
-                    )
+                    ),
+                    followsEntityID: spell.followsEntityID,
+                    castBelowHealthFraction: spell.castBelowHealthFraction
                 )
             default:
                 // Fire a hero ability at another moment, or leave it to

@@ -570,6 +570,9 @@ extension ArmyConfiguration {
     /// Dragon Duke; the Clan Castle brings two more Dragons, a Baby Dragon,
     /// one more Invisibility and a Rage. Nil where it does not fit.
     nonisolated static func playerArmy(for rules: ArmyCapacityRules) -> ArmyConfiguration? {
+        if rules.allows(.skyWagon), let army = playerSkyWagonArmy(for: rules) {
+            return army
+        }
         var army = ArmyConfiguration(
             giants: 0,
             barbarians: 0,
@@ -588,6 +591,36 @@ extension ArmyConfiguration {
         }
         army[troop: .logLauncher] = 1
         army[spell: .invisibility] = 12
+        return army.isValid(under: rules) ? army : nil
+    }
+
+    /// Clan Castle troops of the player's armies: two Dragons and a Baby
+    /// Dragon, riding the Sky Wagon from Town Hall 17.
+    nonisolated static let playerCastleTroops: [BattleEntityKind] = [.dragon, .dragon, .babyDragon]
+
+    /// The player's Town Hall 17 attack: 8 Dragons, 6 Dragon Riders, a Baby
+    /// Dragon, 9 Invisibility and a Recall, four heroes; the Clan Castle
+    /// brings a Sky Wagon with two Dragons and a Baby Dragon, and one more
+    /// Invisibility. Nil where it does not fit.
+    nonisolated static func playerSkyWagonArmy(for rules: ArmyCapacityRules) -> ArmyConfiguration? {
+        var army = ArmyConfiguration(
+            giants: 0,
+            barbarians: 0,
+            archers: 0,
+            wallBreakers: 0,
+            wizards: 0,
+            healSpells: 0,
+            rageSpells: 0,
+            dragons: 10
+        )
+        army[troop: .dragonRider] = 6
+        army[troop: .babyDragon] = 2
+        for hero in [BattleEntityKind.archerQueen, .dragonDuke, .grandWarden, .royalChampion] {
+            army[troop: hero] = 1
+        }
+        army[troop: .skyWagon] = 1
+        army[spell: .invisibility] = 10
+        army[spell: .recall] = 1
         return army.isValid(under: rules) ? army : nil
     }
 

@@ -2,21 +2,35 @@ import Foundation
 
 /// The player's own attack, rebuilt on any base:
 ///
-/// 1. the Royal Champion walks to the Eagle Artillery under a chain of
-///    Invisibility Spells and fires her ability when they run out;
+/// 1. the Royal Champion walks to the Eagle Artillery (the Monolith from
+///    Town Hall 17, where the Eagle is gone, entering from the nearest
+///    corner) under a chain of Invisibility Spells and fires her ability
+///    with the last one; a Recall Spell, if the army has one, takes her
+///    back just before she falls;
 /// 2. the Archer Queen follows towards the Air Sweepers and uses her
-///    ability on them;
-/// 3. the rest of the army, with the Grand Warden, heads for the Town
-///    Hall, the Rage Spell landing on their way;
-/// 4. the Dragon Duke comes last in support.
+///    ability on them at once;
+/// 3. the rest of the army, the siege machine with the Clan Castle troops
+///    on board, the Grand Warden and the Dragon Duke head for the Town
+///    Hall together, the Rage Spell landing on their way; the Duke's
+///    ability fires by itself when he is about to fall;
+/// 4. a recalled Champion comes back later with the troops.
 nonisolated struct PlayerStrategyPlanner {
     static let planName = "La mia strategia"
 
     /// Seconds between two Invisibility Spells on the Champion.
     static let invisibilityInterval: TimeInterval = 4
 
+    /// The Champion's health share at which the Recall Spell takes her.
+    static let recallHealthFraction = 0.3
+
+    /// Seconds after the army before a recalled Champion comes back.
+    static let championReturnDelay: TimeInterval = 20
+
     let navigationGrid: NavigationGrid
     let latestOrderTime: TimeInterval
+
+    /// Clan Castle troops riding the Sky Wagon, taken from the army.
+    var castleTroops: [BattleEntityKind] = ArmyConfiguration.playerCastleTroops
 
     func plan(
         for army: ArmyConfiguration,
@@ -25,7 +39,9 @@ nonisolated struct PlayerStrategyPlanner {
         guard let townHall = base.first(where: { $0.kind == .townHall }) ?? base.first else {
             return nil
         }
-        let eagle = base.first { $0.kind == .eagleArtillery } ??
+        let realEagle = base.first { $0.kind == .eagleArtillery }
+        let eagle = realEagle ??
+            base.first { $0.kind == .monolith } ??
             AttackPlanGenerator.overgrowthTarget(in: base) ??
             townHall
         let sweepers = base.filter { $0.kind == .airSweeper }
@@ -40,7 +56,10 @@ nonisolated struct PlayerStrategyPlanner {
         }
 
         // 1. Champion and the Invisibility chain.
-        let championStart = edgeCell(nearest: eagle.position)
+        // Without an Eagle she enters from the corner nearest her target.
+        let championStart = realEagle == nil
+            ? cornerCell(nearest: eagle.position)
+            : edgeCell(nearest: eagle.position)
         var championID: UUID?
         if army[troop: .royalChampion] > 0 {
             let order = DeploymentOrder(kind: .royalChampion, position: championStart, deploymentTime: 0)
@@ -60,7 +79,22 @@ nonisolated struct PlayerStrategyPlanner {
         }
         clock = 2 + Double(invisibilities) * Self.invisibilityInterval
         if let championID {
-            abilities.append(HeroAbilityOrder(entityID: championID, activationTime: time(clock)))
+            // Her ability goes with the last Invisibility.
+            let ability = invisibilities > 0
+                ? 2.5 + Double(invisibilities - 1) * Self.invisibilityInterval
+                : clock
+            abilities.append(HeroAbilityOrder(entityID: championID, activationTime: time(ability)))
+        }
+        let recallsChampion = championID != nil && army[spell: .recall] > 0
+        if let championID, recallsChampion {
+            // Just before she falls, or when her ability is over at the latest.
+            spells.append(SpellDeploymentOrder(
+                kind: .recall,
+                position: eagle.position,
+                deploymentTime: time(clock + 10),
+                followsEntityID: championID,
+                castBelowHealthFraction: Self.recallHealthFraction
+            ))
         }
 
         // 2. Queen towards the Air Sweepers.
@@ -71,7 +105,7 @@ nonisolated struct PlayerStrategyPlanner {
             }?.position ?? eagle.position
             let order = DeploymentOrder(kind: .archerQueen, position: edgeCell(nearest: goal), deploymentTime: time(clock))
             deployments.append(order)
-            abilities.append(HeroAbilityOrder(entityID: order.entityID, activationTime: time(clock + 6)))
+            abilities.append(HeroAbilityOrder(entityID: order.entityID, activationTime: time(clock + 1)))
         }
 
         // 3. The army and the Warden towards the Town Hall.
@@ -93,7 +127,19 @@ nonisolated struct PlayerStrategyPlanner {
             ))
         }
         for kind in BattleEntityKind.siegeMachineKinds where army[troop: kind] > 0 {
-            deployments.append(DeploymentOrder(kind: kind, position: troopStart, deploymentTime: time(clock)))
+            let machine = DeploymentOrder(kind: kind, position: troopStart, deploymentTime: time(clock))
+            deployments.append(machine)
+            // The Clan Castle troops ride the Sky Wagon.
+            if kind == .skyWagon {
+                for rider in castleTroops {
+                    guard let index = deployments.lastIndex(where: {
+                        $0.kind == rider && $0.carrierID == nil && !$0.kind.isHero
+                    }) else {
+                        continue
+                    }
+                    deployments[index].carrierID = machine.entityID
+                }
+            }
         }
         let troopsDone = clock + Double(troopKinds.count) * 0.2
         if army[troop: .grandWarden] > 0 {
@@ -109,14 +155,25 @@ nonisolated struct PlayerStrategyPlanner {
             ))
         }
 
-        // 4. Dragon Duke in support, then any other hero.
+        // The Dragon Duke goes with them; his ability waits for his health
+        // to drop. Then any other hero.
         let lateHeroes = [BattleEntityKind.dragonDuke, .barbarianKing]
             .filter { army[troop: $0] > 0 }
         for (index, hero) in lateHeroes.enumerated() {
             deployments.append(DeploymentOrder(
                 kind: hero,
                 position: troopStart,
-                deploymentTime: time(troopsDone + 6 + Double(index) * 2)
+                deploymentTime: time(troopsDone + 0.5 + Double(index) * 2)
+            ))
+        }
+
+        // 4. The recalled Champion comes back with the troops, later.
+        if let championID, recallsChampion {
+            deployments.append(DeploymentOrder(
+                kind: .royalChampion,
+                position: troopStart,
+                deploymentTime: time(troopsDone + Self.championReturnDelay),
+                recalledFrom: championID
             ))
         }
 
@@ -162,6 +219,20 @@ nonisolated struct PlayerStrategyPlanner {
             }
         }
         return best.map { navigationGrid.worldPosition(for: $0) } ?? position
+    }
+
+    /// The deployment cell in the map corner closest to `position`.
+    private func cornerCell(nearest position: WorldPosition) -> WorldPosition {
+        let minimumX = navigationGrid.origin.x
+        let minimumY = navigationGrid.origin.y
+        let maximumX = minimumX + Double(navigationGrid.columns) * navigationGrid.cellSize
+        let maximumY = minimumY + Double(navigationGrid.rows) * navigationGrid.cellSize
+        let corners = [
+            WorldPosition(x: minimumX, y: minimumY), WorldPosition(x: maximumX, y: minimumY),
+            WorldPosition(x: minimumX, y: maximumY), WorldPosition(x: maximumX, y: maximumY)
+        ]
+        let corner = corners.min { distance($0, position) < distance($1, position) } ?? position
+        return edgeCell(nearest: corner)
     }
 
     /// The deployment cell closest to `position`, so spread troops stay

@@ -169,7 +169,9 @@ nonisolated struct OffensiveSpellPlanOptimizer {
                 id: order.id,
                 kind: order.kind,
                 position: proposed,
-                deploymentTime: order.deploymentTime
+                deploymentTime: order.deploymentTime,
+                followsEntityID: order.followsEntityID,
+                castBelowHealthFraction: order.castBelowHealthFraction
             )
             let currentImpact = impact(
                 of: order,

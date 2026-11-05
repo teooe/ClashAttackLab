@@ -109,7 +109,9 @@ nonisolated struct AttackPlanRefiner {
                         original.deploymentTime,
                         multiplier: 1,
                         offset: alternative.time
-                    )
+                    ),
+                    followsEntityID: original.followsEntityID,
+                    castBelowHealthFraction: original.castBelowHealthFraction
                 )
                 variants.append(AttackPlan(
                     name: "\(sourcePlan.name) · magia \(spellIndex + 1) \(alternative.label)",
@@ -257,7 +259,9 @@ nonisolated struct AttackPlanRefiner {
                     order.deploymentTime,
                     multiplier: tempoMultiplier,
                     offset: spellTimeOffset
-                )
+                ),
+                followsEntityID: order.followsEntityID,
+                castBelowHealthFraction: order.castBelowHealthFraction
             )
         }
 

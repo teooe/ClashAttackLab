@@ -42,12 +42,23 @@ nonisolated struct SpellDeploymentOrder: Identifiable, Codable {
     let position: WorldPosition
     let deploymentTime: TimeInterval
 
+    /// A spell aimed at one of the attacker's own units: it lands where
+    /// that unit is, as soon as the unit's health falls to
+    /// `castBelowHealthFraction` of its maximum, and at `deploymentTime` at
+    /// the latest (a Recall Spell saving a hero just before it falls).
+    var followsEntityID: UUID?
+    var castBelowHealthFraction: Double?
+
     init(
         id: UUID = UUID(),
         kind: BattleSpellKind,
         position: WorldPosition,
-        deploymentTime: TimeInterval
+        deploymentTime: TimeInterval,
+        followsEntityID: UUID? = nil,
+        castBelowHealthFraction: Double? = nil
     ) {
+        self.followsEntityID = followsEntityID
+        self.castBelowHealthFraction = castBelowHealthFraction
         self.id = id
         self.kind = kind
         self.position = position
@@ -333,7 +344,9 @@ nonisolated struct ManualAttackPlan: Identifiable {
                 id: order.id,
                 kind: order.kind,
                 position: order.position,
-                deploymentTime: min(latestOrderTime, max(0, time))
+                deploymentTime: min(latestOrderTime, max(0, time)),
+                followsEntityID: order.followsEntityID,
+                castBelowHealthFraction: order.castBelowHealthFraction
             )
         }
     }
