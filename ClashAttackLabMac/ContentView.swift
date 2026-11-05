@@ -7,6 +7,7 @@ struct ContentView: View {
     @StateObject private var session = AttackLabSession()
     @State private var showingArmyBuilder = false
     @State private var showingHeroEquipment = false
+    @State private var instructions: (title: String, steps: [PlanInstructionStep], text: String)?
     @State private var showingBaseLibrary = false
     @State private var showingSavedBaseLibrary = false
     @State private var showingPlanLibrary = false
@@ -327,6 +328,18 @@ struct ContentView: View {
                 session.applyArmyConfiguration(configuration)
             }
         }
+        .sheet(isPresented: Binding(
+            get: { instructions != nil },
+            set: { if !$0 { instructions = nil } }
+        )) {
+            if let instructions {
+                PlanInstructionsView(
+                    title: instructions.title,
+                    steps: instructions.steps,
+                    text: instructions.text
+                )
+            }
+        }
         .sheet(isPresented: $showingHeroEquipment) {
             HeroEquipmentEditorView(
                 loadouts: session.heroEquipment,
@@ -438,6 +451,13 @@ struct ContentView: View {
                 Label("Piani", systemImage: "tray.full")
             }
             .help("Piani salvati")
+
+            Button {
+                instructions = session.activePlanInstructions()
+            } label: {
+                Label("Istruzioni", systemImage: "list.number")
+            }
+            .help("Il piano caricato come passi da seguire a mano")
 
             Button {
                 showingAttackHistory = true
