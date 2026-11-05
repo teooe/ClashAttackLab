@@ -26,7 +26,7 @@ Questa pagina elenca cosa viene simulato e quali valori sono stime, cioè numeri
 ## Esercito dell'attaccante
 
 - **Capacità:** campi militari e fabbriche degli incantesimi del Municipio, più il proprio Castello del clan. Al TH15 sono 50 posti truppa e 3 incantesimi in più.
-- **Approssimazione:** le truppe del Castello si schierano come le altre, una alla volta, e non tutte insieme in un solo punto come nel gioco.
+- **Truppe del Castello in una macchina d'assedio:** nel piano si possono mettere dentro una macchina d'assedio. Restano a bordo e scendono tutte insieme dove la macchina cade.
 - **Esercito predefinito:** riempie il Castello come quello difensivo: fino a 2 Draghi, 2 Stregoni, poi Arcieri.
 
 ## Truppe
@@ -47,6 +47,7 @@ Questa pagina elenca cosa viene simulato e quali valori sono stime, cioè numeri
   - Lanciafiamme: raffiche a lunga gittata sulle difese, si consuma col tempo;
   - Caserma d'assedio: fa uscire subito un P.E.K.K.A e 11 Stregoni, poi fa da esca per 30 s;
   - Lanciatronchi: ogni 3 s rotola un tronco verso il Municipio che colpisce muri (danno ×4) ed edifici sulla sua strada, poi avanza finché un muro o un edificio non lo ferma.
+  - Carro volante (dal TH17): vola verso le difese e ogni 8 s sgancia su quella che attacca un barile di Sgherri, una Mongolfiera e un Drago neonato (5 barili al TH17). Le truppe dei barili hanno il livello massimo del Municipio, non quello indicato dal Carro.
 - **Danno alla morte delle truppe:** Golem e Dirigibile danneggiano gli edifici entro 2 caselle dal loro bordo.
 - **Duca Drago:** eroe volante dal TH15, con Cuor di fuoco (cura ed esplosione quando cade) e Mazzo della vendetta (contrattacca le difese che lo colpiscono). Si portano al massimo 4 eroi.
 - **Drago neonato:** raddoppia il danno quando non ha altre truppe aeree vicine.
@@ -78,12 +79,13 @@ Li scegli con il pulsante **Equipaggiamento**. **Trova attacco → Confronta equ
 
 ## Incantesimi
 
-- **Disponibili:** Cura, Furia, Gelo, Fulmine, Terremoto, Salto, Invisibilità, Velocità, Veleno, Rampicante, Blocco di ghiaccio, Scheletri, Pipistrelli.
+- **Disponibili:** Cura, Furia, Gelo, Fulmine, Terremoto, Salto, Invisibilità, Velocità, Veleno, Rampicante, Blocco di ghiaccio, Scheletri, Pipistrelli, Richiamo.
 - **Su chi agiscono:**
   - il Veleno colpisce e rallenta solo i rinforzi del Castello;
   - il Gelo ferma anche i rinforzi;
   - il Rampicante ferma le difese e nasconde gli edifici;
   - il Blocco di ghiaccio protegge le truppe ma le tiene ferme.
+  - il Richiamo toglie dal campo truppe ed eroi nel raggio di 5 caselle, dai più vicini al centro, fino alla sua capienza (113 posti al TH17; ogni eroe vale 25). I famigli escono con il loro eroe, le macchine d'assedio restano. Nel piano un ordine «rimetti in campo» li riporta con la vita che avevano e l'abilità ancora usata, se l'avevano usata.
 - **Esercito predefinito:** nelle armate reali predefinite c'è sempre un Veleno, che i piani lanciano sul Castello del clan.
 
 ## Valori stimati
@@ -111,7 +113,7 @@ Altre semplificazioni:
 
 ## Non ancora simulati
 
-- **Truppe:** Mini Yeti (mancano i dati), Frostmiti di Polaris, truppe super, Trapano da battaglia e Carro volante, che arrivano dal TH16.
+- **Truppe:** Mini Yeti (mancano i dati), Frostmiti di Polaris, truppe super e Trapano da battaglia, che arriva dal TH16.
 - **Difese:** Artiglieria infernale del Municipio 17, Sputafuoco, eroi in difesa sugli Stendardi, Torre della vendetta e Super Torre dello Stregone del TH18.
-- **Incantesimi:** Richiamo, Rianimazione, Totem, Clonazione, Rabbia (Angry Spell).
+- **Incantesimi:** Rianimazione, Totem, Clonazione, Rabbia (Angry Spell).
 - **Equipaggiamenti:** quelli che evocano truppe (marionette, Specchio magico) e alcuni pezzi recenti.

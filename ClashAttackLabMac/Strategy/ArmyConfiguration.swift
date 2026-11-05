@@ -100,7 +100,7 @@ nonisolated struct ArmyConfiguration: Equatable {
     /// Spells added for the real mode; their counts live in
     /// `advancedSpells`.
     static let advancedSpellKinds: [BattleSpellKind] = [
-        .jump, .invisibility, .haste, .poison, .overgrowth, .iceBlock, .skeletonSpell, .batSpell
+        .jump, .invisibility, .haste, .poison, .overgrowth, .iceBlock, .skeletonSpell, .batSpell, .recall
     ]
 
     /// Count of one troop kind; settable for every kind in `troopKinds`.
@@ -142,7 +142,7 @@ nonisolated struct ArmyConfiguration: Equatable {
             case .freeze: freezeSpells = newValue
             case .lightning: lightningSpells = newValue
             case .earthquake: earthquakeSpells = newValue
-            case .jump, .invisibility, .haste, .poison, .overgrowth, .iceBlock, .skeletonSpell, .batSpell:
+            case .jump, .invisibility, .haste, .poison, .overgrowth, .iceBlock, .skeletonSpell, .batSpell, .recall:
                 advancedSpells[kind] = newValue == 0 ? nil : newValue
             }
         }
@@ -258,7 +258,7 @@ nonisolated struct ArmyConfiguration: Equatable {
         case .stoneSlammer:
             return stoneSlammers
         case .hogRider, .valkyrie, .golem, .bowler, .miner, .pekka, .yeti, .rootRider, .electroDragon, .dragonRider, .lavaHound,
-             .grandWarden, .royalChampion, .lavaPup, .golemite, .skeleton, .bat, .battleBlimp, .flameFlinger, .siegeBarracks, .logLauncher, .dragonDuke, .babyDragon, .healer, .frosty, .phoenix, .electroOwl, .unicorn:
+             .grandWarden, .royalChampion, .lavaPup, .golemite, .skeleton, .bat, .battleBlimp, .flameFlinger, .siegeBarracks, .logLauncher, .dragonDuke, .babyDragon, .healer, .frosty, .phoenix, .electroOwl, .unicorn, .skyWagon, .minion:
             return advancedTroops[kind, default: 0]
         case .cannon, .archerTower, .mortar, .wizardTower, .infernoTower, .bombTower, .hiddenTesla, .giantBomb, .airBomb, .airSweeper, .airDefense,
              .townHall, .goldStorage, .wall,
@@ -280,7 +280,7 @@ nonisolated struct ArmyConfiguration: Equatable {
             return lightningSpells
         case .earthquake:
             return earthquakeSpells
-        case .jump, .invisibility, .haste, .poison, .overgrowth, .iceBlock, .skeletonSpell, .batSpell:
+        case .jump, .invisibility, .haste, .poison, .overgrowth, .iceBlock, .skeletonSpell, .batSpell, .recall:
             return advancedSpells[kind, default: 0]
         }
     }
@@ -318,7 +318,8 @@ nonisolated struct ArmyConfiguration: Equatable {
             .battleBlimp,
             .flameFlinger,
             .siegeBarracks,
-            .logLauncher
+            .logLauncher,
+            .skyWagon
         ]
         var remaining = Dictionary(
             uniqueKeysWithValues: preferredOrder.map { ($0, troopCount(for: $0)) }
@@ -390,7 +391,7 @@ nonisolated struct ArmyCapacityRules: Equatable {
         spellHousing: [
             .heal: 1, .rage: 1, .freeze: 1, .lightning: 1, .earthquake: 1,
             .jump: 2, .invisibility: 1, .haste: 1, .poison: 1,
-            .overgrowth: 2, .iceBlock: 1, .skeletonSpell: 1, .batSpell: 1
+            .overgrowth: 2, .iceBlock: 1, .skeletonSpell: 1, .batSpell: 1, .recall: 2
         ],
         unlockedTroops: nil,
         unlockedSpells: nil,

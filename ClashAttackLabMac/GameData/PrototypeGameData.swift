@@ -170,6 +170,16 @@ nonisolated struct PrototypeGameData: GameDataProviding {
             spell.summonedTroop = .bat
             spell.summonCount = 22
             return spell
+        case .recall:
+            var spell = SpellDefinition(
+                displayName: SpellStyle.style(for: .recall).displayName, radius: 200, duration: 0,
+                healingPerSecond: 0, instantDamage: 0,
+                damageMultiplier: 1, movementSpeedMultiplier: 1,
+                attackSpeedMultiplier: 1, disablesDefenses: false,
+                behaviorEvidence: .documented, tuningEvidence: .prototype
+            )
+            spell.recallCapacity = 113
+            return spell
         }
     }
 
@@ -551,6 +561,54 @@ nonisolated struct PrototypeGameData: GameDataProviding {
             launcher.rollingLogWidth = 40
             launcher.hitPointDecayPerSecond = 100
             return launcher
+
+        case .skyWagon:
+            // Flies to the defenses and drops a barrel of air troops on
+            // them every few seconds; the Clan Castle troops it carries
+            // come out when it falls.
+            var wagon = CombatDefinition(
+                displayName: TroopStyle.style(for: .skyWagon).displayName,
+                role: .troop,
+                maxHitPoints: 3_600,
+                movementSpeed: 75,
+                attackDamage: 8,
+                minimumAttackRange: 0,
+                attackRange: 220,
+                attackInterval: 8,
+                canMove: true,
+                projectileKind: .bomb,
+                projectileSpeed: 380,
+                splashRadius: 60,
+                selfDestructsOnAttack: false,
+                movementDomain: .air,
+                attackTargetLayer: .ground,
+                targetingProfile: TargetingProfile(
+                    preference: .defenses,
+                    evidence: .documented
+                )
+            )
+            wagon.barrelPayload = [.minion, .minion, .balloon, .babyDragon]
+            wagon.barrelCount = 4
+            return wagon
+
+        case .minion:
+            return CombatDefinition(
+                displayName: TroopStyle.style(for: .minion).displayName,
+                role: .troop,
+                maxHitPoints: 100,
+                movementSpeed: 150,
+                attackDamage: 60,
+                minimumAttackRange: 0,
+                attackRange: 110,
+                attackInterval: 1,
+                canMove: true,
+                projectileKind: .airBolt,
+                projectileSpeed: 600,
+                splashRadius: 0,
+                selfDestructsOnAttack: false,
+                movementDomain: .air,
+                targetingProfile: nil
+            )
 
         case .dragonDuke:
             // Flying hero riding a dragon: heavy, close-range, hits ground

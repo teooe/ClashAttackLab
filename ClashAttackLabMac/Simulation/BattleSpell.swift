@@ -15,6 +15,7 @@ nonisolated enum BattleSpellKind: Hashable, Codable, CaseIterable {
     case iceBlock
     case skeletonSpell
     case batSpell
+    case recall
 }
 
 /// Separates documented spell behavior from temporary tuning values.
@@ -62,6 +63,10 @@ nonisolated struct SpellDefinition {
     /// (Ice Block Spell).
     var encasesTroops = false
     var troopDamageReduction: Double = 0
+
+    /// Recall Spell: housing space of attacking troops and heroes it takes
+    /// back to the deployment bar, with the hit points they have left.
+    var recallCapacity = 0
 
     /// Troops summoned where the spell lands (Skeleton and Bat Spells).
     var summonedTroop: BattleEntityKind?

@@ -23,6 +23,14 @@ nonisolated final class SimulationEngine {
     var recordedAttackPlan: AttackPlan { attackPlan }
     private var pendingSpellDeployments: [SpellDeploymentOrder] = []
     private var releasedSiegeMachineIDs: Set<UUID> = []
+
+    /// Clan Castle troops riding a siege machine, by the machine's entity
+    /// ID; they come out where it falls.
+    private var carriedDeployments: [UUID: [DeploymentOrder]] = [:]
+
+    /// Troops and heroes a Recall Spell took off the field, by entity ID,
+    /// as they were when recalled.
+    private var recalledUnits: [UUID: BattleEntity] = [:]
     private(set) var releasedPayloadTroopCount = 0
 
     /// Seconds between two reinforcements leaving a triggered Clan Castle.
@@ -61,7 +69,9 @@ nonisolated final class SimulationEngine {
     }
 
     var deployedTroopCount: Int {
-        attackPlan.deployments.count - pendingDeployments.count +
+        attackPlan.deployments.filter { $0.recalledFrom == nil }.count -
+            pendingDeployments.filter { $0.recalledFrom == nil }.count -
+            carriedDeployments.values.reduce(0) { $0 + $1.count } +
             releasedPayloadTroopCount + summonedTroopCount
     }
 
@@ -227,11 +237,21 @@ nonisolated final class SimulationEngine {
         movementPaths = [:]
         projectiles = []
         activeSpells = []
-        pendingDeployments = attackPlan.orderedDeployments
+        let carrierIDs = Set(attackPlan.deployments.filter { $0.kind.isSiegeMachine }.map(\.entityID))
+        pendingDeployments = attackPlan.orderedDeployments.filter {
+            $0.carrierID.map { !carrierIDs.contains($0) } ?? true
+        }
+        carriedDeployments = Dictionary(
+            grouping: attackPlan.orderedDeployments.filter {
+                $0.carrierID.map { carrierIDs.contains($0) } ?? false
+            },
+            by: { $0.carrierID! }
+        )
         pendingHeroAbilityOrders = attackPlan.orderedHeroAbilityOrders
         pendingSpellDeployments =
             attackPlan.orderedSpellDeployments
         releasedSiegeMachineIDs = []
+        recalledUnits = [:]
         releasedPayloadTroopCount = 0
         garrisonReleased = [:]
         nextGarrisonRelease = [:]
@@ -474,33 +494,132 @@ nonisolated final class SimulationEngine {
             let next = pendingDeployments.first,
             next.deploymentTime <= elapsedTime
         {
-            let definition = definition(for: next.kind)
-            entities.append(
-                BattleEntity(
-                    id: next.entityID,
-                    kind: next.kind,
-                    position: next.position,
-                    hitPoints: definition.maxHitPoints
-                )
-            )
             pendingDeployments.removeFirst()
-            deployedHousingSpace += definition.housingSpace
-            recordEvent(
-                .deployment,
-                "\(definition.displayName) schierato"
-            )
-            if let pet = definition.pet {
-                spawnFollower(pet, index: 0, owner: next.entityID, at: next.position)
+            if let source = next.recalledFrom {
+                redeployRecalled(source, at: next.position)
+                continue
             }
-            if definition.releasesPayloadOnDeploy, !definition.siegePayload.isEmpty {
-                releasedSiegeMachineIDs.insert(next.entityID)
-                releaseSiegePayload(
-                    definition.siegePayload,
-                    at: next.position,
-                    sourceID: next.entityID
-                )
-            }
+            deploy(next, at: next.position)
         }
+    }
+
+    /// Puts a recalled troop back with the hit points it had left; its
+    /// hero ability stays used if it was.
+    private func redeployRecalled(_ entityID: UUID, at position: WorldPosition) {
+        guard let unit = recalledUnits.removeValue(forKey: entityID) else {
+            return
+        }
+        let definition = definition(for: unit.kind)
+        var entity = BattleEntity(
+            id: unit.id,
+            kind: unit.kind,
+            position: position,
+            hitPoints: unit.hitPoints
+        )
+        entity.heroAbilityUsed = unit.heroAbilityUsed
+        entities.append(entity)
+        movementPaths[unit.id] = []
+        recordEvent(
+            .deployment,
+            "\(definition.displayName) rimesso in campo dal Richiamo"
+        )
+        if let pet = definition.pet {
+            spawnFollower(pet, index: 1, owner: unit.id, at: position)
+        }
+    }
+
+    /// Recall Spell: takes the attacking troops and heroes in the radius
+    /// off the field, nearest first, up to the spell's housing capacity.
+    /// Pets leave with their heroes; siege machines stay.
+    private func recallTroops(around center: WorldPosition, radius: Double, capacity: Int) {
+        let candidates = livingIndices(with: .troop)
+            .filter { index in
+                let kind = entities[index].kind
+                return !entities[index].isDefender &&
+                    !kind.isSiegeMachine &&
+                    !definition(for: kind).followsOwner &&
+                    distance(from: entities[index].position, to: center) <= radius
+            }
+            .sorted {
+                distance(from: entities[$0].position, to: center) <
+                    distance(from: entities[$1].position, to: center)
+            }
+        var used = 0
+        var removed: Set<UUID> = []
+        for index in candidates {
+            let housing = max(definition(for: entities[index].kind).housingSpace, 1)
+            guard used + housing <= capacity else {
+                continue
+            }
+            used += housing
+            recalledUnits[entities[index].id] = entities[index]
+            removed.insert(entities[index].id)
+        }
+        guard !removed.isEmpty else {
+            return
+        }
+        let pets = entities.filter { $0.ownerID.map(removed.contains) ?? false }.map(\.id)
+        let gone = removed.union(pets)
+        entities.removeAll { gone.contains($0.id) }
+        for id in gone {
+            movementPaths[id] = nil
+        }
+        recordEvent(
+            .spellCast,
+            "Richiamo: \(removed.count) truppe tornano nella barra"
+        )
+    }
+
+    private func deploy(_ order: DeploymentOrder, at position: WorldPosition) {
+        let definition = definition(for: order.kind)
+        entities.append(
+            BattleEntity(
+                id: order.entityID,
+                kind: order.kind,
+                position: position,
+                hitPoints: definition.maxHitPoints
+            )
+        )
+        deployedHousingSpace += definition.housingSpace
+        recordEvent(
+            .deployment,
+            "\(definition.displayName) schierato"
+        )
+        if let pet = definition.pet {
+            spawnFollower(pet, index: 0, owner: order.entityID, at: position)
+        }
+        if definition.releasesPayloadOnDeploy, !definition.siegePayload.isEmpty {
+            releasedSiegeMachineIDs.insert(order.entityID)
+            releaseSiegePayload(
+                definition.siegePayload,
+                at: position,
+                sourceID: order.entityID
+            )
+        }
+    }
+
+    /// Lets the Clan Castle troops out of a fallen siege machine, spread
+    /// around the spot where it fell.
+    private func releaseCarriedTroops(of carrierID: UUID, at position: WorldPosition) {
+        guard let carried = carriedDeployments.removeValue(forKey: carrierID) else {
+            return
+        }
+        for (offset, order) in carried.enumerated() {
+            let angle = Double(offset) * 2 * Double.pi / Double(max(carried.count, 1))
+            let radius = navigationGrid.cellSize * 0.4
+            let spot = payloadSpawnPosition(
+                near: WorldPosition(
+                    x: position.x + cos(angle) * radius,
+                    y: position.y + sin(angle) * radius
+                ),
+                domain: definition(for: order.kind).movementDomain
+            )
+            deploy(order, at: spot)
+        }
+        recordEvent(
+            .siegePayloadReleased,
+            "Truppe del Castello uscite: \(carried.count)"
+        )
     }
 
     private func deployScheduledSpells() {
@@ -529,6 +648,13 @@ nonisolated final class SimulationEngine {
                 apply(damage)
             } else {
                 activeSpells.append(ActiveBattleSpell(id: next.id, kind: next.kind, position: next.position, remainingDuration: definition.duration))
+                if definition.recallCapacity > 0 {
+                    recallTroops(
+                        around: next.position,
+                        radius: definition.radius,
+                        capacity: definition.recallCapacity
+                    )
+                }
                 if let troop = definition.summonedTroop, definition.summonCount > 0 {
                     summon(troop, count: definition.summonCount, around: next.position, spellID: next.id)
                 }
@@ -2088,6 +2214,21 @@ nonisolated final class SimulationEngine {
                     modifiers.attackSpeed
             }
         }
+        if
+            !attackerDefinition.barrelPayload.isEmpty,
+            entities[attackerIndex].barrelsDropped < attackerDefinition.barrelCount
+        {
+            // Sky Wagon: every attack drops a barrel of troops on the target.
+            let barrel = entities[attackerIndex].barrelsDropped
+            entities[attackerIndex].barrelsDropped += 1
+            releaseSiegePayload(
+                attackerDefinition.barrelPayload,
+                at: target.position,
+                sourceID: attacker.id,
+                firstIndex: barrel * attackerDefinition.barrelPayload.count,
+                event: "\(attackerDefinition.displayName): barile \(barrel + 1) con \(attackerDefinition.barrelPayload.count) truppe"
+            )
+        }
         entities[attackerIndex].lastAttackedTargetID = target.id
         entities[attackerIndex].consecutiveAttacksOnTarget =
             repeatedAttackIndex + 1
@@ -2317,6 +2458,7 @@ nonisolated final class SimulationEngine {
         var payloadsToRelease: [
             (UUID, WorldPosition, [BattleEntityKind])
         ] = []
+        var carriersToRelease: [(UUID, WorldPosition)] = []
         var resolvedDestructionEffects: Set<UUID> = []
 
         while !damageQueue.isEmpty {
@@ -2401,6 +2543,10 @@ nonisolated final class SimulationEngine {
                     "\(entityDefinition.displayName) \(suffix)"
                 )
 
+                if carriedDeployments[entityID] != nil {
+                    carriersToRelease.append((entityID, entities[index].position))
+                }
+
                 // Reinforcements never add troops to the attacking army.
                 let payload = entities[index].isDefender
                     ? []
@@ -2461,6 +2607,9 @@ nonisolated final class SimulationEngine {
         for (sourceID, position, payload) in payloadsToRelease {
             releaseSiegePayload(payload, at: position, sourceID: sourceID)
         }
+        for (carrierID, position) in carriersToRelease {
+            releaseCarriedTroops(of: carrierID, at: position)
+        }
     }
 
     private func queueDestructionDamage(
@@ -2488,11 +2637,13 @@ nonisolated final class SimulationEngine {
     private func releaseSiegePayload(
         _ payload: [BattleEntityKind],
         at position: WorldPosition,
-        sourceID: UUID
+        sourceID: UUID,
+        firstIndex: Int = 0,
+        event: String? = nil
     ) {
         recordEvent(
             .siegePayloadReleased,
-            "\(definition(for: entities.first { $0.id == sourceID }?.kind ?? .wallWrecker).displayName) distrutto: rilasciate \(payload.count) truppe"
+            event ?? "\(definition(for: entities.first { $0.id == sourceID }?.kind ?? .wallWrecker).displayName) distrutto: rilasciate \(payload.count) truppe"
         )
         for (offset, kind) in payload.enumerated() {
             let angle = Double(offset) *
@@ -2509,7 +2660,7 @@ nonisolated final class SimulationEngine {
             )
             entities.append(
                 BattleEntity(
-                    id: payloadEntityID(sourceID: sourceID, index: offset),
+                    id: payloadEntityID(sourceID: sourceID, index: firstIndex + offset),
                     kind: kind,
                     position: spawnPosition,
                     hitPoints: payloadDefinition.maxHitPoints

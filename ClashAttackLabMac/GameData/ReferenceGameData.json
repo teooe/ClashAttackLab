@@ -3999,6 +3999,54 @@
    ],
    "name": "Rage Spell"
   },
+  "recall": {
+   "housingSpace": 2,
+   "levels": [
+    {
+     "level": 1,
+     "radius": 5,
+     "recalledCapacity": 83,
+     "townHall": 11
+    },
+    {
+     "level": 2,
+     "radius": 5,
+     "recalledCapacity": 89,
+     "townHall": 13
+    },
+    {
+     "level": 3,
+     "radius": 5,
+     "recalledCapacity": 95,
+     "townHall": 14
+    },
+    {
+     "level": 4,
+     "radius": 5,
+     "recalledCapacity": 101,
+     "townHall": 15
+    },
+    {
+     "level": 5,
+     "radius": 5,
+     "recalledCapacity": 107,
+     "townHall": 16
+    },
+    {
+     "level": 6,
+     "radius": 5,
+     "recalledCapacity": 113,
+     "townHall": 17
+    },
+    {
+     "level": 7,
+     "radius": 5,
+     "recalledCapacity": 120,
+     "townHall": 18
+    }
+   ],
+   "name": "Recall Spell"
+  },
   "skeletonSpell": {
    "housingSpace": 1,
    "levels": [
@@ -10735,6 +10783,99 @@
    "name": "Miner",
    "range": 0.5
   },
+  "minion": {
+   "attackInterval": 1,
+   "housingSpace": 2,
+   "levels": [
+    {
+     "damagePerHit": 38,
+     "hitpoints": 58,
+     "level": 1,
+     "townHall": 7
+    },
+    {
+     "damagePerHit": 41,
+     "hitpoints": 63,
+     "level": 2,
+     "townHall": 7
+    },
+    {
+     "damagePerHit": 44,
+     "hitpoints": 68,
+     "level": 3,
+     "townHall": 8
+    },
+    {
+     "damagePerHit": 47,
+     "hitpoints": 73,
+     "level": 4,
+     "townHall": 8
+    },
+    {
+     "damagePerHit": 50,
+     "hitpoints": 78,
+     "level": 5,
+     "townHall": 9
+    },
+    {
+     "damagePerHit": 54,
+     "hitpoints": 84,
+     "level": 6,
+     "townHall": 10
+    },
+    {
+     "damagePerHit": 58,
+     "hitpoints": 90,
+     "level": 7,
+     "townHall": 11
+    },
+    {
+     "damagePerHit": 62,
+     "hitpoints": 96,
+     "level": 8,
+     "townHall": 12
+    },
+    {
+     "damagePerHit": 66,
+     "hitpoints": 102,
+     "level": 9,
+     "townHall": 13
+    },
+    {
+     "damagePerHit": 70,
+     "hitpoints": 108,
+     "level": 10,
+     "townHall": 14
+    },
+    {
+     "damagePerHit": 74,
+     "hitpoints": 114,
+     "level": 11,
+     "townHall": 15
+    },
+    {
+     "damagePerHit": 78,
+     "hitpoints": 120,
+     "level": 12,
+     "townHall": 16
+    },
+    {
+     "damagePerHit": 84,
+     "hitpoints": 130,
+     "level": 13,
+     "townHall": 17
+    },
+    {
+     "damagePerHit": 92,
+     "hitpoints": 140,
+     "level": 14,
+     "townHall": 18
+    }
+   ],
+   "movementSpeed": 32,
+   "name": "Minion",
+   "range": 2.75
+  },
   "monolith": {
    "attackInterval": 1.5,
    "countByTownHall": [
@@ -11955,6 +12096,63 @@
    "lifetime": 30,
    "movementSpeed": 0,
    "name": "Siege Barracks"
+  },
+  "skyWagon": {
+   "attackInterval": 8,
+   "housingSpace": 1,
+   "levels": [
+    {
+     "barrelCount": 4,
+     "barrelTroops": {
+      "babyDragon": 1,
+      "balloon": 1,
+      "minion": 2
+     },
+     "damagePerHit": 8,
+     "hitpoints": 3600,
+     "level": 1,
+     "townHall": 17
+    },
+    {
+     "barrelCount": 4,
+     "barrelTroops": {
+      "babyDragon": 1,
+      "balloon": 1,
+      "minion": 3
+     },
+     "damagePerHit": 16,
+     "hitpoints": 3800,
+     "level": 2,
+     "townHall": 17
+    },
+    {
+     "barrelCount": 5,
+     "barrelTroops": {
+      "babyDragon": 1,
+      "balloon": 1,
+      "minion": 4
+     },
+     "damagePerHit": 24,
+     "hitpoints": 4000,
+     "level": 3,
+     "townHall": 17
+    },
+    {
+     "barrelCount": 5,
+     "barrelTroops": {
+      "babyDragon": 1,
+      "balloon": 1,
+      "minion": 4
+     },
+     "damagePerHit": 32,
+     "hitpoints": 4200,
+     "level": 4,
+     "townHall": 18
+    }
+   ],
+   "movementSpeed": 16,
+   "name": "Sky Wagon",
+   "range": 5.5
   },
   "spellFactory": {
    "countByTownHall": [
