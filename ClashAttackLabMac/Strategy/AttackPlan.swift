@@ -333,9 +333,7 @@ nonisolated struct ManualAttackPlan: Identifiable {
                 id: order.id,
                 kind: order.kind,
                 position: order.position,
-                deploymentTime: min(latestOrderTime, max(0, time)),
-                carrierID: order.carrierID,
-                recalledFrom: order.recalledFrom
+                deploymentTime: min(latestOrderTime, max(0, time))
             )
         }
     }
