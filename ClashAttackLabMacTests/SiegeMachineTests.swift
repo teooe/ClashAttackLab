@@ -83,8 +83,12 @@ struct SiegeMachineTests {
 
     @Test
     func armiesTakeOneSiegeMachineOutsideTheCamps() throws {
-        let rules = ArmyCapacityRules.real(townHall: 15, catalog: try ReferenceGameCatalog.loadBundled())
-        for kind in BattleEntityKind.advancedSiegeMachines {
+        let catalog = try ReferenceGameCatalog.loadBundled()
+        let rules = ArmyCapacityRules.real(townHall: 15, catalog: catalog)
+        // The Sky Wagon arrives at Town Hall 17.
+        #expect(!rules.allows(.skyWagon))
+        #expect(ArmyCapacityRules.real(townHall: 17, catalog: catalog).allows(.skyWagon))
+        for kind in BattleEntityKind.advancedSiegeMachines where kind != .skyWagon {
             #expect(rules.allows(kind), "\(kind)")
             #expect(rules.housing(for: kind) == 0, "\(kind)")
             #expect(ArmyConfiguration.troopKinds.contains(kind))

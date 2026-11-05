@@ -120,19 +120,23 @@ struct SkyWagonTests {
         let plan = AttackPlan(name: "Carro", deployments: [wagon] + riders)
         let run = engine([airDefense, storage], plan, gameData: data)
 
-        advance(run, seconds: 0.1)
-        if run.entities.contains(where: { $0.id == wagon.entityID && $0.isAlive }) {
-            #expect(!run.entities.contains { $0.kind == .dragon })
+        // Step until the riders appear, then look at them at once.
+        var ticks = 0
+        while ticks < 6 * 60, !riders.allSatisfy({ rider in run.entities.contains { $0.id == rider.entityID } }) {
+            if run.entities.contains(where: { $0.id == wagon.entityID && $0.isAlive }) {
+                #expect(!run.entities.contains { $0.kind == .dragon })
+            }
+            run.advance(by: 1.0 / 60.0)
+            ticks += 1
         }
-        advance(run, seconds: 5)
 
         let fallen = try #require(run.entities.first { $0.id == wagon.entityID })
         #expect(!fallen.isAlive)
         for rider in riders {
             let troop = try #require(run.entities.first { $0.id == rider.entityID }, "\(rider.kind)")
             let gap = hypot(troop.position.x - fallen.position.x, troop.position.y - fallen.position.y)
-            // Near the wreck, far from the order's own corner.
-            #expect(gap < grid.cellSize * 6, "\(rider.kind) \(gap)")
+            // At the wreck, far from the order's own corner.
+            #expect(gap < grid.cellSize * 2, "\(rider.kind) \(gap)")
         }
         #expect(run.deployedTroopCount >= 4)
     }
