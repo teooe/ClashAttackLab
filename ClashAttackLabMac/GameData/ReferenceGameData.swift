@@ -90,6 +90,12 @@ nonisolated struct ReferenceUnit: Decodable {
     let chainTargets: Int?
     let chainDamageDecayPercent: Double?
 
+    /// Defenses that shoot several targets at once (Multi-Archer Tower).
+    let targetsPerShot: Int?
+
+    /// Reach of a defense's bouncing shot (Ricochet Cannon), in tiles.
+    let chainRange: Double?
+
     let levels: [ReferenceUnitLevel]
 
     /// Number of copies a base may hold at the given Town Hall.
@@ -129,6 +135,9 @@ nonisolated struct ReferenceUnitLevel: Decodable {
 
     /// Monolith bonus damage as a percentage of the target's hit points.
     let bonusDamagePercent: Double?
+
+    /// Damage of the bounce of a Ricochet Cannon shot.
+    let secondaryDamagePerHit: Double?
 
     /// Housing space a Spring Trap can throw off the battlefield.
     let springCapacity: Int?
@@ -548,6 +557,21 @@ nonisolated struct ReferenceGameData: GameDataProviding {
             definition.chainTargetCount = targets
             definition.chainDamageMultiplier = 1 + (unit.chainDamageDecayPercent ?? 0) / 100
         }
+        definition.extraTargetCount = base.extraTargetCount
+        if role == .defense {
+            if let targets = unit.targetsPerShot, targets > 1 {
+                definition.extraTargetCount = targets - 1
+            }
+            if
+                let reach = unit.chainRange,
+                let bounce = level.secondaryDamagePerHit,
+                let damage = level.damagePerHit, damage > 0
+            {
+                definition.chainTargetCount = 2
+                definition.chainRange = reach * tileSize
+                definition.chainDamageMultiplier = bounce / damage
+            }
+        }
         definition.tantrumAttackSpeedMultiplier = base.tantrumAttackSpeedMultiplier
         definition.tantrumDamageMultiplier = level.enragedDamagePerHit
             .flatMap { enraged in level.damagePerHit.map { enraged / $0 } }
@@ -834,6 +858,9 @@ extension BattleEntityKind {
         case .scattershot: return "scattershot"
         case .spellTower: return "spellTower"
         case .monolith: return "monolith"
+        case .multiArcherTower: return "multiArcherTower"
+        case .ricochetCannon: return "ricochetCannon"
+        case .multiGearTower: return "multiGearTower"
         case .bomb: return "bomb"
         case .springTrap: return "springTrap"
         case .seekingAirMine: return "seekingAirMine"

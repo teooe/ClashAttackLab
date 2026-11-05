@@ -86,6 +86,9 @@ nonisolated enum BattleEntityKind: Hashable, Codable, CaseIterable {
     case phoenix
     case electroOwl
     case unicorn
+    case multiArcherTower
+    case ricochetCannon
+    case multiGearTower
 
     var isTrap: Bool {
         switch self {

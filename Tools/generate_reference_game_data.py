@@ -92,6 +92,9 @@ UNITS = {
     "scattershot": "defenses/scattershot.json",
     "spellTower": "defenses/spell-tower.json",
     "monolith": "defenses/monolith.json",
+    "multiArcherTower": "defenses/multi-archer-tower.json",
+    "ricochetCannon": "defenses/ricochet-cannon.json",
+    "multiGearTower": "defenses/multi-gear-tower.json",
     "bomb": "traps/bomb.json",
     "springTrap": "traps/spring-trap.json",
     "seekingAirMine": "traps/seeking-air-mine.json",
@@ -319,6 +322,8 @@ def unit_entry(key, data, hero_halls):
         "hitpointDecayPerSecond": data.get("hpDecayPerSecond"),
         "chainTargets": data.get("numberOfTargets"),
         "chainDamageDecayPercent": data.get("chainDamageDecay"),
+        "targetsPerShot": normal_mode.get("numberOfTargets"),
+        "chainRange": normal_mode.get("chainRange"),
         "lifetime": data.get("lifetime"),
     })
 
@@ -367,6 +372,7 @@ def unit_entry(key, data, hero_halls):
             "pushStrength": stats.get("pushStrength"),
             "abilityHealing": level.get("healthRecovery"),
             "bonusDamagePercent": stats.get("bonusDamagePercent"),
+            "secondaryDamagePerHit": stats.get("secondaryChainDamagePerShot"),
             "springCapacity": level.get("springCapacity"),
             "spawnCount": level.get(
                 "golemitesSpawned", level.get("pupsOnOffense")

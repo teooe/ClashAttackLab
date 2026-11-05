@@ -209,12 +209,19 @@ nonisolated struct CombatDefinition {
     /// surfaces to attack (Miner).
     var burrowsWhileMoving = false
 
-    /// Chain attacks hit up to `chainTargetCount` buildings in total, each
+    /// Chain attacks hit up to `chainTargetCount` targets in total, each
     /// within `chainRange` of the previous one, every link dealing
-    /// `chainDamageMultiplier` times the damage of the link before.
+    /// `chainDamageMultiplier` times the damage of the link before. Troops
+    /// chain between buildings (Electro Dragon); defenses chain between
+    /// troops (Ricochet Cannon).
     var chainTargetCount = 1
     var chainRange: Double = 0
     var chainDamageMultiplier: Double = 1
+
+    /// Defenses that shoot several targets at once (Multi-Archer Tower)
+    /// hit this many other targets in range with every shot, at full
+    /// damage.
+    var extraTargetCount = 0
 
     /// Other troops within `auraRadius` take `auraDamageReduction` less
     /// damage (Grand Warden's Life Aura, modeled as damage reduction).

@@ -1175,7 +1175,7 @@ final class BattleScene: SKScene {
         case .cannon, .archerTower, .mortar, .wizardTower, .infernoTower, .bombTower, .hiddenTesla, .giantBomb, .airBomb, .airSweeper, .airDefense,
              .townHall, .goldStorage, .wall,
              .goldMine, .elixirCollector, .darkElixirDrill, .elixirStorage, .darkElixirStorage, .clanCastle, .armyCamp, .barracks, .darkBarracks, .laboratory, .spellFactory, .darkSpellFactory, .workshop, .heroHall, .petHouse, .blacksmith, .builderHut, .helperHut,
-             .xBow, .eagleArtillery, .scattershot, .spellTower, .monolith, .bomb, .springTrap, .seekingAirMine:
+             .xBow, .eagleArtillery, .scattershot, .spellTower, .monolith, .multiArcherTower, .ricochetCannon, .multiGearTower, .bomb, .springTrap, .seekingAirMine:
             return .systemCyan
         }
     }
@@ -1245,6 +1245,12 @@ final class BattleScene: SKScene {
             return "TS"
         case .monolith:
             return "MN"
+        case .multiArcherTower:
+            return "MT"
+        case .ricochetCannon:
+            return "CR"
+        case .multiGearTower:
+            return "MI"
         case .bomb:
             return "BO"
         case .springTrap:
@@ -1478,6 +1484,27 @@ final class BattleScene: SKScene {
                 size: CGSize(width: 72, height: 72),
                 color: .darkGray,
                 text: "MN"
+            )
+
+        case .multiArcherTower:
+            return makeLabeledRectangle(
+                size: CGSize(width: 72, height: 72),
+                color: .systemBrown,
+                text: "MT"
+            )
+
+        case .ricochetCannon:
+            return makeLabeledRectangle(
+                size: CGSize(width: 72, height: 72),
+                color: .systemIndigo,
+                text: "CR"
+            )
+
+        case .multiGearTower:
+            return makeLabeledRectangle(
+                size: CGSize(width: 72, height: 72),
+                color: .systemTeal,
+                text: "MI"
             )
 
         case .bomb:

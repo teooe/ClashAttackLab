@@ -8,11 +8,16 @@ Questa pagina elenca cosa viene simulato e quali valori sono stime, cioè numeri
 - **Mappa:** 44 × 44 caselle costruibili, più un bordo di 3 caselle dove schierare. La battaglia dura 3 minuti.
 - **Ostacoli:** muri ed edifici bloccano il passaggio. Le truppe di terra li aggirano, oppure abbattono i muri quando conviene.
 - **Basi:** tre basi generate per ogni Municipio, quelle incluse nell'app e quelle importate (vedi [importare una base](importare-una-base.md)).
+- **Base TH17 Merlin:** trascritta da due screenshot di scouting. Le posizioni sono approssimative (circa una casella). Mancano Tesla e trappole, che in scouting non si vedono.
 
 ## Difese e trappole
 
 - **Valori reali:** danni, punti vita, gittate, raffiche, zone cieche e raggi di attivazione vengono dai dati del gioco.
 - **Difese del TH15 e trappole:** Balestra, Artiglieria Aquila (si sveglia dopo un certo numero di truppe schierate), Scattershot, Torre degli Incantesimi, Monolito, bombe, trappole a molla, mine aeree. Dal Municipio 14 anche le Capanne del costruttore armate.
+- **Difese del TH16 e TH17:**
+  - Torre multi-arciere: ogni colpo prende i 3 bersagli più vicini, aerei o di terra;
+  - Cannone a rimbalzo: il colpo rimbalza su una seconda truppa di terra entro 3,5 caselle, con il 70% del danno;
+  - Torre multi-ingranaggio: simulata nella modalità a lunga gittata (12 caselle).
 - **Castello del clan:**
   - si apre quando un attaccante arriva a 13 caselle; i rinforzi escono uno ogni 0,4 s, tutti insieme se il Castello cade;
   - se la base non indica la riga `rinforzi`, il Castello contiene fino a 2 Draghi, poi 2 Stregoni, poi Arcieri per lo spazio rimasto. Al TH15 sono 50 posti;
@@ -107,5 +112,6 @@ Altre semplificazioni:
 ## Non ancora simulati
 
 - **Truppe:** Mini Yeti (mancano i dati), Frostmiti di Polaris, truppe super, Trapano da battaglia e Carro volante, che arrivano dal TH16.
+- **Difese:** Artiglieria infernale del Municipio 17, Sputafuoco, eroi in difesa sugli Stendardi, Torre della vendetta e Super Torre dello Stregone del TH18.
 - **Incantesimi:** Richiamo, Rianimazione, Totem, Clonazione, Rabbia (Angry Spell).
 - **Equipaggiamenti:** quelli che evocano truppe (marionette, Specchio magico) e alcuni pezzi recenti.

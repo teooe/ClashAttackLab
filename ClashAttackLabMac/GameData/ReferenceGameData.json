@@ -10935,6 +10935,105 @@
    "size": 3,
    "splashRadius": 1.5
   },
+  "multiArcherTower": {
+   "attackInterval": 0.6,
+   "countByTownHall": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    2,
+    3,
+    3
+   ],
+   "levels": [
+    {
+     "damagePerHit": 60,
+     "hitpoints": 5000,
+     "level": 1,
+     "townHall": 16
+    },
+    {
+     "damagePerHit": 65,
+     "hitpoints": 5200,
+     "level": 2,
+     "townHall": 16
+    },
+    {
+     "damagePerHit": 70,
+     "hitpoints": 5400,
+     "level": 3,
+     "townHall": 17
+    },
+    {
+     "damagePerHit": 73,
+     "hitpoints": 5500,
+     "level": 4,
+     "townHall": 18
+    }
+   ],
+   "name": "Multi-Archer Tower",
+   "range": 10,
+   "size": 3,
+   "targetsPerShot": 3
+  },
+  "multiGearTower": {
+   "attackInterval": 1,
+   "countByTownHall": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    1
+   ],
+   "levels": [
+    {
+     "damagePerHit": 350,
+     "hitpoints": 4000,
+     "level": 1,
+     "townHall": 17
+    },
+    {
+     "damagePerHit": 370,
+     "hitpoints": 4200,
+     "level": 2,
+     "townHall": 17
+    },
+    {
+     "damagePerHit": 390,
+     "hitpoints": 4350,
+     "level": 3,
+     "townHall": 18
+    }
+   ],
+   "name": "Multi-Gear Tower",
+   "range": 12,
+   "size": 3
+  },
   "pekka": {
    "attackInterval": 1.8,
    "housingSpace": 25,
@@ -11185,6 +11284,63 @@
    "movementSpeed": 16,
    "name": "Phoenix",
    "range": 2.5
+  },
+  "ricochetCannon": {
+   "attackInterval": 0.8,
+   "chainRange": 3.5,
+   "countByTownHall": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    2,
+    3,
+    3
+   ],
+   "levels": [
+    {
+     "damagePerHit": 288,
+     "hitpoints": 5400,
+     "level": 1,
+     "secondaryDamagePerHit": 201.6,
+     "townHall": 16
+    },
+    {
+     "damagePerHit": 312,
+     "hitpoints": 5700,
+     "level": 2,
+     "secondaryDamagePerHit": 218.4,
+     "townHall": 16
+    },
+    {
+     "damagePerHit": 324,
+     "hitpoints": 6000,
+     "level": 3,
+     "secondaryDamagePerHit": 226.8,
+     "townHall": 17
+    },
+    {
+     "damagePerHit": 329.6,
+     "hitpoints": 6100,
+     "level": 4,
+     "secondaryDamagePerHit": 230.72,
+     "townHall": 18
+    }
+   ],
+   "name": "Ricochet Cannon",
+   "range": 9,
+   "size": 3
   },
   "rootRider": {
    "attackInterval": 2.2,

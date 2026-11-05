@@ -1083,11 +1083,72 @@ nonisolated final class SimulationEngine {
             return
         }
 
+        let wasReady = entities[defenseIndex].attackCooldown <= 0
         performAttackIfPossible(
             attackerIndex: defenseIndex,
             targetIndex: targetIndex,
             pendingDamage: &pendingDamage
         )
+        if
+            definition.extraTargetCount > 0,
+            wasReady,
+            entities[defenseIndex].attackCooldown > 0
+        {
+            strikeExtraTargets(
+                from: defenseIndex,
+                besides: targetIndex,
+                among: possibleTargets,
+                definition: definition,
+                pendingDamage: &pendingDamage
+            )
+        }
+    }
+
+    /// Multi-target defenses: every shot also hits the nearest other
+    /// troops the defense can see in range.
+    private func strikeExtraTargets(
+        from defenseIndex: Int,
+        besides targetIndex: Int,
+        among candidateIndices: [Int],
+        definition defenseDefinition: CombatDefinition,
+        pendingDamage: inout [UUID: Double]
+    ) {
+        let defensePosition = entities[defenseIndex].position
+        let others = candidateIndices
+            .filter { index in
+                guard
+                    index != targetIndex,
+                    entities.indices.contains(index),
+                    isTargetableByDefense(index, layer: defenseDefinition.attackTargetLayer)
+                else {
+                    return false
+                }
+                let gap = distance(from: defensePosition, to: entities[index].position)
+                return gap >= defenseDefinition.minimumAttackRange &&
+                    gap <= defenseDefinition.attackRange
+            }
+            .sorted {
+                let first = distance(from: defensePosition, to: entities[$0].position)
+                let second = distance(from: defensePosition, to: entities[$1].position)
+                return first == second
+                    ? entities[$0].id.uuidString < entities[$1].id.uuidString
+                    : first < second
+            }
+            .prefix(defenseDefinition.extraTargetCount)
+        let damage = defenseDefinition.attackDamage *
+            combatModifiers(for: entities[defenseIndex]).damage
+        for index in others {
+            pendingDamage[entities[index].id, default: 0] += damage
+        }
+    }
+
+    /// A living troop a defense of the given layer can see and shoot.
+    private func isTargetableByDefense(_ index: Int, layer: AttackTargetLayer) -> Bool {
+        entities[index].isAlive &&
+            !entities[index].isUnderground &&
+            entities[index].invisibleRemaining <= 0 &&
+            !isHiddenBySpell(entities[index].position) &&
+            layer.accepts(definition(for: entities[index].kind).movementDomain)
     }
 
     private func actTroop(
@@ -2042,8 +2103,23 @@ nonisolated final class SimulationEngine {
         definition attackerDefinition: CombatDefinition,
         pendingDamage: inout [UUID: Double]
     ) {
-        guard definition(for: entities[firstTargetIndex].kind).countsForDestruction else {
+        // Troops chain between buildings; defenses chain between the
+        // attacking troops they can shoot.
+        let chainsBuildings = definition(for: entities[firstTargetIndex].kind).countsForDestruction
+        let chainsTroops = attackerDefinition.role == .defense &&
+            definition(for: entities[firstTargetIndex].kind).role == .troop &&
+            !entities[firstTargetIndex].isDefender
+        guard chainsBuildings || chainsTroops else {
             return
+        }
+        func canLink(_ index: Int) -> Bool {
+            if chainsBuildings {
+                return entities[index].isAlive &&
+                    definition(for: entities[index].kind).countsForDestruction
+            }
+            return !entities[index].isDefender &&
+                definition(for: entities[index].kind).role == .troop &&
+                isTargetableByDefense(index, layer: attackerDefinition.attackTargetLayer)
         }
 
         var hitIDs: Set<UUID> = [entities[firstTargetIndex].id]
@@ -2051,9 +2127,8 @@ nonisolated final class SimulationEngine {
         var damage = firstDamage
         for _ in 1..<attackerDefinition.chainTargetCount {
             let candidates = entities.indices.filter { index in
-                entities[index].isAlive &&
-                    !hitIDs.contains(entities[index].id) &&
-                    definition(for: entities[index].kind).countsForDestruction &&
+                !hitIDs.contains(entities[index].id) &&
+                    canLink(index) &&
                     distance(
                         from: entities[index].position,
                         to: linkPosition
