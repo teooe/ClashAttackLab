@@ -342,6 +342,8 @@ nonisolated struct AttackPlanGenerator {
             return 15
         case .batSpell:
             return 17
+        case .recall:
+            return 15
         }
     }
 

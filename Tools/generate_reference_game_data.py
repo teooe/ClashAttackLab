@@ -135,6 +135,7 @@ SPELLS = {
     "iceBlock": "spells/ice-block-spell.json",
     "skeletonSpell": "spells/skeleton-spell.json",
     "batSpell": "spells/bat-spell.json",
+    "recall": "spells/recall-spell.json",
 }
 
 
@@ -458,6 +459,8 @@ def spell_entry(key, data):
             values["summonCount"] = level["skeletonsGenerated"]
         elif key == "batSpell":
             values["summonCount"] = level["batsGenerated"]
+        elif key == "recall":
+            values["recalledCapacity"] = level["recalledCapacity"]
         levels.append(compact(values))
 
     return {

@@ -27,6 +27,10 @@ nonisolated final class SimulationEngine {
     /// Clan Castle troops riding a siege machine, by the machine's entity
     /// ID; they come out where it falls.
     private var carriedDeployments: [UUID: [DeploymentOrder]] = [:]
+
+    /// Troops and heroes a Recall Spell took off the field, by entity ID,
+    /// as they were when recalled.
+    private var recalledUnits: [UUID: BattleEntity] = [:]
     private(set) var releasedPayloadTroopCount = 0
 
     /// Seconds between two reinforcements leaving a triggered Clan Castle.
@@ -65,7 +69,8 @@ nonisolated final class SimulationEngine {
     }
 
     var deployedTroopCount: Int {
-        attackPlan.deployments.count - pendingDeployments.count -
+        attackPlan.deployments.filter { $0.recalledFrom == nil }.count -
+            pendingDeployments.filter { $0.recalledFrom == nil }.count -
             carriedDeployments.values.reduce(0) { $0 + $1.count } +
             releasedPayloadTroopCount + summonedTroopCount
     }
@@ -232,7 +237,7 @@ nonisolated final class SimulationEngine {
         movementPaths = [:]
         projectiles = []
         activeSpells = []
-        let carrierIDs = Set(attackPlan.deployments.filter(\.kind.isSiegeMachine).map(\.entityID))
+        let carrierIDs = Set(attackPlan.deployments.filter { $0.kind.isSiegeMachine }.map(\.entityID))
         pendingDeployments = attackPlan.orderedDeployments.filter {
             $0.carrierID.map { !carrierIDs.contains($0) } ?? true
         }
@@ -246,6 +251,7 @@ nonisolated final class SimulationEngine {
         pendingSpellDeployments =
             attackPlan.orderedSpellDeployments
         releasedSiegeMachineIDs = []
+        recalledUnits = [:]
         releasedPayloadTroopCount = 0
         garrisonReleased = [:]
         nextGarrisonRelease = [:]
@@ -489,8 +495,79 @@ nonisolated final class SimulationEngine {
             next.deploymentTime <= elapsedTime
         {
             pendingDeployments.removeFirst()
+            if let source = next.recalledFrom {
+                redeployRecalled(source, at: next.position)
+                continue
+            }
             deploy(next, at: next.position)
         }
+    }
+
+    /// Puts a recalled troop back with the hit points it had left; its
+    /// hero ability stays used if it was.
+    private func redeployRecalled(_ entityID: UUID, at position: WorldPosition) {
+        guard let unit = recalledUnits.removeValue(forKey: entityID) else {
+            return
+        }
+        let definition = definition(for: unit.kind)
+        var entity = BattleEntity(
+            id: unit.id,
+            kind: unit.kind,
+            position: position,
+            hitPoints: unit.hitPoints
+        )
+        entity.heroAbilityUsed = unit.heroAbilityUsed
+        entities.append(entity)
+        movementPaths[unit.id] = []
+        recordEvent(
+            .deployment,
+            "\(definition.displayName) rimesso in campo dal Richiamo"
+        )
+        if let pet = definition.pet {
+            spawnFollower(pet, index: 1, owner: unit.id, at: position)
+        }
+    }
+
+    /// Recall Spell: takes the attacking troops and heroes in the radius
+    /// off the field, nearest first, up to the spell's housing capacity.
+    /// Pets leave with their heroes; siege machines stay.
+    private func recallTroops(around center: WorldPosition, radius: Double, capacity: Int) {
+        let candidates = livingIndices(with: .troop)
+            .filter { index in
+                let kind = entities[index].kind
+                return !entities[index].isDefender &&
+                    !kind.isSiegeMachine &&
+                    !definition(for: kind).followsOwner &&
+                    distance(from: entities[index].position, to: center) <= radius
+            }
+            .sorted {
+                distance(from: entities[$0].position, to: center) <
+                    distance(from: entities[$1].position, to: center)
+            }
+        var used = 0
+        var removed: Set<UUID> = []
+        for index in candidates {
+            let housing = max(definition(for: entities[index].kind).housingSpace, 1)
+            guard used + housing <= capacity else {
+                continue
+            }
+            used += housing
+            recalledUnits[entities[index].id] = entities[index]
+            removed.insert(entities[index].id)
+        }
+        guard !removed.isEmpty else {
+            return
+        }
+        let pets = entities.filter { $0.ownerID.map(removed.contains) ?? false }.map(\.id)
+        let gone = removed.union(pets)
+        entities.removeAll { gone.contains($0.id) }
+        for id in gone {
+            movementPaths[id] = nil
+        }
+        recordEvent(
+            .spellCast,
+            "Richiamo: \(removed.count) truppe tornano nella barra"
+        )
     }
 
     private func deploy(_ order: DeploymentOrder, at position: WorldPosition) {
@@ -571,6 +648,13 @@ nonisolated final class SimulationEngine {
                 apply(damage)
             } else {
                 activeSpells.append(ActiveBattleSpell(id: next.id, kind: next.kind, position: next.position, remainingDuration: definition.duration))
+                if definition.recallCapacity > 0 {
+                    recallTroops(
+                        around: next.position,
+                        radius: definition.radius,
+                        capacity: definition.recallCapacity
+                    )
+                }
                 if let troop = definition.summonedTroop, definition.summonCount > 0 {
                     summon(troop, count: definition.summonCount, around: next.position, spellID: next.id)
                 }

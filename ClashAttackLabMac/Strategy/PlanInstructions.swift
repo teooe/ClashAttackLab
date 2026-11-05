@@ -49,12 +49,22 @@ nonisolated struct PlanInstructions {
             group = nil
         }
         // Clan Castle troops riding a siege machine are part of its step.
-        let carriers = Set(plan.deployments.filter(\.kind.isSiegeMachine).map(\.entityID))
+        let carriers = Set(plan.deployments.filter { $0.kind.isSiegeMachine }.map(\.entityID))
         func isCarried(_ order: DeploymentOrder) -> Bool {
             order.carrierID.map(carriers.contains) ?? false
         }
         for order in plan.orderedDeployments where !isCarried(order) {
             let side = sideDescription(order.position)
+            if order.recalledFrom != nil {
+                closeGroup()
+                events.append((
+                    order.deploymentTime,
+                    events.count,
+                    "\(troopName(order.kind)) di nuovo in campo dal Richiamo \(side)" +
+                        landmark(near: order.position, prefix: ", vicino a")
+                ))
+                continue
+            }
             if
                 let current = group,
                 current.kind == order.kind,

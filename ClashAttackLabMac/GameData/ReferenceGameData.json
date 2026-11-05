@@ -3999,6 +3999,54 @@
    ],
    "name": "Rage Spell"
   },
+  "recall": {
+   "housingSpace": 2,
+   "levels": [
+    {
+     "level": 1,
+     "radius": 5,
+     "recalledCapacity": 83,
+     "townHall": 11
+    },
+    {
+     "level": 2,
+     "radius": 5,
+     "recalledCapacity": 89,
+     "townHall": 13
+    },
+    {
+     "level": 3,
+     "radius": 5,
+     "recalledCapacity": 95,
+     "townHall": 14
+    },
+    {
+     "level": 4,
+     "radius": 5,
+     "recalledCapacity": 101,
+     "townHall": 15
+    },
+    {
+     "level": 5,
+     "radius": 5,
+     "recalledCapacity": 107,
+     "townHall": 16
+    },
+    {
+     "level": 6,
+     "radius": 5,
+     "recalledCapacity": 113,
+     "townHall": 17
+    },
+    {
+     "level": 7,
+     "radius": 5,
+     "recalledCapacity": 120,
+     "townHall": 18
+    }
+   ],
+   "name": "Recall Spell"
+  },
   "skeletonSpell": {
    "housingSpace": 1,
    "levels": [

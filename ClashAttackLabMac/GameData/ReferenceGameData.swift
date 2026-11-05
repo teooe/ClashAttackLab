@@ -233,6 +233,9 @@ nonisolated struct ReferenceSpellLevel: Decodable {
 
     /// Skeleton and Bat Spells: troops summoned.
     let summonCount: Int?
+
+    /// Recall Spell: housing space it takes back.
+    let recalledCapacity: Int?
 }
 
 // MARK: - Level selection
@@ -707,7 +710,7 @@ nonisolated struct ReferenceGameData: GameDataProviding {
         case .poison:
             // Real values; only the damage ramp is estimated.
             tuningEvidence = .approximation
-        case .jump, .invisibility, .overgrowth, .iceBlock, .skeletonSpell, .batSpell:
+        case .jump, .invisibility, .overgrowth, .iceBlock, .skeletonSpell, .batSpell, .recall:
             break
         }
 
@@ -728,6 +731,7 @@ nonisolated struct ReferenceGameData: GameDataProviding {
         )
         definition.letsTroopsJumpWalls = base.letsTroopsJumpWalls
         definition.hidesTroops = base.hidesTroops
+        definition.recallCapacity = level.recalledCapacity ?? base.recallCapacity
         definition.defenderDamagePerSecond =
             level.damagePerSecond ?? base.defenderDamagePerSecond
         definition.defenderSpeedMultiplier = level.speedDecreasePercent
@@ -929,6 +933,7 @@ extension BattleSpellKind {
         case .iceBlock: return "iceBlock"
         case .skeletonSpell: return "skeletonSpell"
         case .batSpell: return "batSpell"
+        case .recall: return "recall"
         }
     }
 }

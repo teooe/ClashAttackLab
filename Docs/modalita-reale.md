@@ -79,12 +79,13 @@ Li scegli con il pulsante **Equipaggiamento**. **Trova attacco → Confronta equ
 
 ## Incantesimi
 
-- **Disponibili:** Cura, Furia, Gelo, Fulmine, Terremoto, Salto, Invisibilità, Velocità, Veleno, Rampicante, Blocco di ghiaccio, Scheletri, Pipistrelli.
+- **Disponibili:** Cura, Furia, Gelo, Fulmine, Terremoto, Salto, Invisibilità, Velocità, Veleno, Rampicante, Blocco di ghiaccio, Scheletri, Pipistrelli, Richiamo.
 - **Su chi agiscono:**
   - il Veleno colpisce e rallenta solo i rinforzi del Castello;
   - il Gelo ferma anche i rinforzi;
   - il Rampicante ferma le difese e nasconde gli edifici;
   - il Blocco di ghiaccio protegge le truppe ma le tiene ferme.
+  - il Richiamo toglie dal campo truppe ed eroi nel raggio di 5 caselle, dai più vicini al centro, fino alla sua capienza (113 posti al TH17; ogni eroe vale 25). I famigli escono con il loro eroe, le macchine d'assedio restano. Nel piano un ordine «rimetti in campo» li riporta con la vita che avevano e l'abilità ancora usata, se l'avevano usata.
 - **Esercito predefinito:** nelle armate reali predefinite c'è sempre un Veleno, che i piani lanciano sul Castello del clan.
 
 ## Valori stimati
@@ -114,5 +115,5 @@ Altre semplificazioni:
 
 - **Truppe:** Mini Yeti (mancano i dati), Frostmiti di Polaris, truppe super e Trapano da battaglia, che arriva dal TH16.
 - **Difese:** Artiglieria infernale del Municipio 17, Sputafuoco, eroi in difesa sugli Stendardi, Torre della vendetta e Super Torre dello Stregone del TH18.
-- **Incantesimi:** Richiamo, Rianimazione, Totem, Clonazione, Rabbia (Angry Spell).
+- **Incantesimi:** Rianimazione, Totem, Clonazione, Rabbia (Angry Spell).
 - **Equipaggiamenti:** quelli che evocano truppe (marionette, Specchio magico) e alcuni pezzi recenti.

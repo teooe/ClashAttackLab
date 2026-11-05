@@ -179,6 +179,8 @@ nonisolated struct SpellStyle {
             return SpellStyle(displayName: "Scheletri", symbol: "SK", red: 0.80, green: 0.80, blue: 0.75)
         case .batSpell:
             return SpellStyle(displayName: "Pipistrelli", symbol: "BT", red: 0.40, green: 0.30, blue: 0.55)
+        case .recall:
+            return SpellStyle(displayName: "Richiamo", symbol: "RI", red: 0.35, green: 0.55, blue: 0.95)
         case .heal:
             return SpellStyle(displayName: "Cura", symbol: "H", red: 0.2, green: 0.8, blue: 0.3)
         case .rage:

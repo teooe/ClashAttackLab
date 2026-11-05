@@ -12,13 +12,19 @@ nonisolated struct DeploymentOrder: Identifiable, Codable {
     /// position and time are used only when the plan has no such machine.
     var carrierID: UUID?
 
+    /// Puts back a troop or hero taken off the field by a Recall Spell:
+    /// the entity ID it had. It returns with the hit points it had left;
+    /// nothing happens if it was not recalled.
+    var recalledFrom: UUID?
+
     init(
         id: UUID = UUID(),
         entityID: UUID = UUID(),
         kind: BattleEntityKind,
         position: WorldPosition,
         deploymentTime: TimeInterval,
-        carrierID: UUID? = nil
+        carrierID: UUID? = nil,
+        recalledFrom: UUID? = nil
     ) {
         self.id = id
         self.entityID = entityID
@@ -26,6 +32,7 @@ nonisolated struct DeploymentOrder: Identifiable, Codable {
         self.position = position
         self.deploymentTime = deploymentTime
         self.carrierID = carrierID
+        self.recalledFrom = recalledFrom
     }
 }
 
@@ -170,7 +177,8 @@ nonisolated struct AttackPlan: Identifiable, Codable {
     }
 
     func deploymentCount(for kind: BattleEntityKind) -> Int {
-        deployments.filter { $0.kind == kind }.count
+        // Recalled troops coming back are not extra troops.
+        deployments.filter { $0.kind == kind && $0.recalledFrom == nil }.count
     }
 }
 
@@ -304,7 +312,8 @@ nonisolated struct ManualAttackPlan: Identifiable {
                 kind: order.kind,
                 position: order.position,
                 deploymentTime: min(latestOrderTime, max(0, time)),
-                carrierID: order.carrierID
+                carrierID: order.carrierID,
+                recalledFrom: order.recalledFrom
             )
             let newTime = min(latestOrderTime, max(0, time))
             heroAbilityOrders = heroAbilityOrders.map { command in
@@ -325,7 +334,8 @@ nonisolated struct ManualAttackPlan: Identifiable {
                 kind: order.kind,
                 position: order.position,
                 deploymentTime: min(latestOrderTime, max(0, time)),
-                carrierID: order.carrierID
+                carrierID: order.carrierID,
+                recalledFrom: order.recalledFrom
             )
         }
     }

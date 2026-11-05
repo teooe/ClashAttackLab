@@ -170,6 +170,16 @@ nonisolated struct PrototypeGameData: GameDataProviding {
             spell.summonedTroop = .bat
             spell.summonCount = 22
             return spell
+        case .recall:
+            var spell = SpellDefinition(
+                displayName: SpellStyle.style(for: .recall).displayName, radius: 200, duration: 0,
+                healingPerSecond: 0, instantDamage: 0,
+                damageMultiplier: 1, movementSpeedMultiplier: 1,
+                attackSpeedMultiplier: 1, disablesDefenses: false,
+                behaviorEvidence: .documented, tuningEvidence: .prototype
+            )
+            spell.recallCapacity = 113
+            return spell
         }
     }
 
