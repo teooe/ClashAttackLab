@@ -139,6 +139,10 @@ nonisolated struct ReferenceUnitLevel: Decodable {
     /// Damage of the bounce of a Ricochet Cannon shot.
     let secondaryDamagePerHit: Double?
 
+    /// Sky Wagon: barrels it drops and the troops in each, by catalog key.
+    let barrelCount: Int?
+    let barrelTroops: [String: Int]?
+
     /// Housing space a Spring Trap can throw off the battlefield.
     let springCapacity: Int?
 
@@ -558,6 +562,16 @@ nonisolated struct ReferenceGameData: GameDataProviding {
             definition.chainDamageMultiplier = 1 + (unit.chainDamageDecayPercent ?? 0) / 100
         }
         definition.extraTargetCount = base.extraTargetCount
+        definition.barrelPayload = base.barrelPayload
+        definition.barrelCount = level.barrelCount ?? base.barrelCount
+        if let troops = level.barrelTroops, !troops.isEmpty {
+            definition.barrelPayload = troops.keys.sorted().flatMap { key -> [BattleEntityKind] in
+                guard let kind = BattleEntityKind.allCases.first(where: { $0.referenceKey == key }) else {
+                    return []
+                }
+                return Array(repeating: kind, count: troops[key] ?? 0)
+            }
+        }
         if role == .defense {
             if let targets = unit.targetsPerShot, targets > 1 {
                 definition.extraTargetCount = targets - 1
@@ -861,6 +875,8 @@ extension BattleEntityKind {
         case .multiArcherTower: return "multiArcherTower"
         case .ricochetCannon: return "ricochetCannon"
         case .multiGearTower: return "multiGearTower"
+        case .skyWagon: return "skyWagon"
+        case .minion: return "minion"
         case .bomb: return "bomb"
         case .springTrap: return "springTrap"
         case .seekingAirMine: return "seekingAirMine"

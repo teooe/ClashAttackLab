@@ -48,7 +48,12 @@ nonisolated struct PlanInstructions {
             ))
             group = nil
         }
-        for order in plan.orderedDeployments {
+        // Clan Castle troops riding a siege machine are part of its step.
+        let carriers = Set(plan.deployments.filter(\.kind.isSiegeMachine).map(\.entityID))
+        func isCarried(_ order: DeploymentOrder) -> Bool {
+            order.carrierID.map(carriers.contains) ?? false
+        }
+        for order in plan.orderedDeployments where !isCarried(order) {
             let side = sideDescription(order.position)
             if
                 let current = group,
@@ -63,6 +68,26 @@ nonisolated struct PlanInstructions {
             group = (order.kind, order.deploymentTime, side, 1, order.position)
         }
         closeGroup()
+        for carrier in plan.orderedDeployments where carriers.contains(carrier.entityID) {
+            let riders = plan.orderedDeployments.filter { $0.carrierID == carrier.entityID }
+            guard !riders.isEmpty else {
+                continue
+            }
+            var counts: [(BattleEntityKind, Int)] = []
+            for rider in riders {
+                if let index = counts.firstIndex(where: { $0.0 == rider.kind }) {
+                    counts[index].1 += 1
+                } else {
+                    counts.append((rider.kind, 1))
+                }
+            }
+            let list = counts.map { "\($0.1) × \(troopName($0.0))" }.joined(separator: ", ")
+            events.append((
+                carrier.deploymentTime,
+                events.count,
+                "Nel \(troopName(carrier.kind)) le truppe del Castello: \(list); escono quando cade"
+            ))
+        }
 
         // Spells: a run of the same spell cast at a steady pace is one step.
         let spells = plan.orderedSpellDeployments

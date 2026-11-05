@@ -89,6 +89,8 @@ nonisolated enum BattleEntityKind: Hashable, Codable, CaseIterable {
     case multiArcherTower
     case ricochetCannon
     case multiGearTower
+    case skyWagon
+    case minion
 
     var isTrap: Bool {
         switch self {
@@ -115,6 +117,9 @@ nonisolated struct BattleEntity: Identifiable {
 
     /// Shots fired in the current burst by defenses that fire in bursts.
     var burstShotsFired = 0
+
+    /// Barrels a Sky Wagon has dropped so far.
+    var barrelsDropped = 0
 
     /// Seconds left of protection from all damage (Eternal Tome).
     var invulnerableRemaining: TimeInterval = 0

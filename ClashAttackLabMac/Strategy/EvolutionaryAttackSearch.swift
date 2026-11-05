@@ -330,7 +330,8 @@ nonisolated struct EvolutionaryAttackSearch {
             entityID: order.entityID,
             kind: order.kind,
             position: position,
-            deploymentTime: order.deploymentTime
+            deploymentTime: order.deploymentTime,
+            carrierID: order.carrierID
         )
     }
 
@@ -340,7 +341,8 @@ nonisolated struct EvolutionaryAttackSearch {
             entityID: order.entityID,
             kind: order.kind,
             position: order.position,
-            deploymentTime: clampedTime(time)
+            deploymentTime: clampedTime(time),
+            carrierID: order.carrierID
         )
     }
 

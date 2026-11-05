@@ -7,18 +7,25 @@ nonisolated struct DeploymentOrder: Identifiable, Codable {
     let position: WorldPosition
     let deploymentTime: TimeInterval
 
+    /// Clan Castle troops riding a siege machine of the same plan: the
+    /// machine's entity ID. They come out where it falls; their own
+    /// position and time are used only when the plan has no such machine.
+    var carrierID: UUID?
+
     init(
         id: UUID = UUID(),
         entityID: UUID = UUID(),
         kind: BattleEntityKind,
         position: WorldPosition,
-        deploymentTime: TimeInterval
+        deploymentTime: TimeInterval,
+        carrierID: UUID? = nil
     ) {
         self.id = id
         self.entityID = entityID
         self.kind = kind
         self.position = position
         self.deploymentTime = deploymentTime
+        self.carrierID = carrierID
     }
 }
 
@@ -296,7 +303,8 @@ nonisolated struct ManualAttackPlan: Identifiable {
                 entityID: order.entityID,
                 kind: order.kind,
                 position: order.position,
-                deploymentTime: min(latestOrderTime, max(0, time))
+                deploymentTime: min(latestOrderTime, max(0, time)),
+                carrierID: order.carrierID
             )
             let newTime = min(latestOrderTime, max(0, time))
             heroAbilityOrders = heroAbilityOrders.map { command in
@@ -316,7 +324,8 @@ nonisolated struct ManualAttackPlan: Identifiable {
                 id: order.id,
                 kind: order.kind,
                 position: order.position,
-                deploymentTime: min(latestOrderTime, max(0, time))
+                deploymentTime: min(latestOrderTime, max(0, time)),
+                carrierID: order.carrierID
             )
         }
     }

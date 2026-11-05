@@ -48,6 +48,8 @@ UNITS = {
     "flameFlinger": "siege-machines/flame-flinger.json",
     "siegeBarracks": "siege-machines/siege-barracks.json",
     "logLauncher": "siege-machines/log-launcher.json",
+    "skyWagon": "siege-machines/sky-wagon.json",
+    "minion": "troops/minion.json",
     "dragonDuke": "heroes/dragon-duke.json",
     "babyDragon": "troops/baby-dragon.json",
     "healer": "troops/healer.json",
@@ -244,6 +246,16 @@ def hero_hall_town_halls(root):
     }
 
 
+# Sky Wagon barrel contents: package name -> simulator key.
+BARREL_TROOPS = {"minions": "minion", "balloons": "balloon", "babyDragons": "babyDragon"}
+
+
+def barrel_troops(spawned):
+    if not spawned:
+        return None
+    return {BARREL_TROOPS[name]: count for name, count in spawned.items() if name in BARREL_TROOPS}
+
+
 def compact(values):
     return {key: value for key, value in values.items() if value is not None}
 
@@ -373,6 +385,8 @@ def unit_entry(key, data, hero_halls):
             "abilityHealing": level.get("healthRecovery"),
             "bonusDamagePercent": stats.get("bonusDamagePercent"),
             "secondaryDamagePerHit": stats.get("secondaryChainDamagePerShot"),
+            "barrelCount": level.get("barrelCount"),
+            "barrelTroops": barrel_troops(level.get("troopsSpawnedPerBarrel")),
             "springCapacity": level.get("springCapacity"),
             "spawnCount": level.get(
                 "golemitesSpawned", level.get("pupsOnOffense")

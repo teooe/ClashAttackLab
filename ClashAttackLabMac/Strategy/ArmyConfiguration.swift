@@ -258,7 +258,7 @@ nonisolated struct ArmyConfiguration: Equatable {
         case .stoneSlammer:
             return stoneSlammers
         case .hogRider, .valkyrie, .golem, .bowler, .miner, .pekka, .yeti, .rootRider, .electroDragon, .dragonRider, .lavaHound,
-             .grandWarden, .royalChampion, .lavaPup, .golemite, .skeleton, .bat, .battleBlimp, .flameFlinger, .siegeBarracks, .logLauncher, .dragonDuke, .babyDragon, .healer, .frosty, .phoenix, .electroOwl, .unicorn:
+             .grandWarden, .royalChampion, .lavaPup, .golemite, .skeleton, .bat, .battleBlimp, .flameFlinger, .siegeBarracks, .logLauncher, .dragonDuke, .babyDragon, .healer, .frosty, .phoenix, .electroOwl, .unicorn, .skyWagon, .minion:
             return advancedTroops[kind, default: 0]
         case .cannon, .archerTower, .mortar, .wizardTower, .infernoTower, .bombTower, .hiddenTesla, .giantBomb, .airBomb, .airSweeper, .airDefense,
              .townHall, .goldStorage, .wall,
@@ -318,7 +318,8 @@ nonisolated struct ArmyConfiguration: Equatable {
             .battleBlimp,
             .flameFlinger,
             .siegeBarracks,
-            .logLauncher
+            .logLauncher,
+            .skyWagon
         ]
         var remaining = Dictionary(
             uniqueKeysWithValues: preferredOrder.map { ($0, troopCount(for: $0)) }

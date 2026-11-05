@@ -239,7 +239,8 @@ nonisolated struct AttackPlanRefiner {
                 deploymentTime: adjustedTime(
                     order.deploymentTime,
                     multiplier: tempoMultiplier
-                )
+                ),
+                carrierID: order.carrierID
             )
         }
         let spellDeployments = sourcePlan.spellDeployments.map { order in

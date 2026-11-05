@@ -223,6 +223,11 @@ nonisolated struct CombatDefinition {
     /// damage.
     var extraTargetCount = 0
 
+    /// Siege machines that drop troops on their targets (Sky Wagon): the
+    /// troops in one barrel and how many barrels it carries.
+    var barrelPayload: [BattleEntityKind] = []
+    var barrelCount = 0
+
     /// Other troops within `auraRadius` take `auraDamageReduction` less
     /// damage (Grand Warden's Life Aura, modeled as damage reduction).
     var auraRadius: Double = 0

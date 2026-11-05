@@ -48,7 +48,7 @@ extension BattleEntityKind {
     /// Siege machines added for the real mode next to the Wall Wrecker and
     /// the Stone Slammer.
     nonisolated static let advancedSiegeMachines: [BattleEntityKind] = [
-        .battleBlimp, .flameFlinger, .siegeBarracks, .logLauncher
+        .battleBlimp, .flameFlinger, .siegeBarracks, .logLauncher, .skyWagon
     ]
 
     nonisolated static let siegeMachineKinds: [BattleEntityKind] = [
@@ -63,7 +63,7 @@ extension BattleEntityKind {
     /// or a spell summons them; they cannot be trained and have no
     /// catalog entry of their own.
     nonisolated static let spawnedTroops: [BattleEntityKind] = [
-        .lavaPup, .golemite, .skeleton, .bat
+        .lavaPup, .golemite, .skeleton, .bat, .minion
     ]
 
     /// Buildings that only store or produce resources; Bats hurt them less.
@@ -143,6 +143,10 @@ nonisolated struct TroopStyle {
             return TroopStyle(displayName: "Gufo elettrico", symbol: "GE", red: 0.45, green: 0.70, blue: 0.95, radius: 16)
         case .unicorn:
             return TroopStyle(displayName: "Unicorno", symbol: "UN", red: 0.98, green: 0.85, blue: 0.95, radius: 18)
+        case .skyWagon:
+            return TroopStyle(displayName: "Carro volante", symbol: "CV", red: 0.70, green: 0.50, blue: 0.25, radius: 34)
+        case .minion:
+            return TroopStyle(displayName: "Sgherro", symbol: "mi", red: 0.30, green: 0.35, blue: 0.75, radius: 12)
         default:
             return TroopStyle(displayName: "Truppa", symbol: "?", red: 0.5, green: 0.5, blue: 0.5, radius: 22)
         }
